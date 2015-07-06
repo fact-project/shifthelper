@@ -1,5 +1,7 @@
+# -*- encoding:utf-8 -*-
 from __future__ import print_function
 from datetime import datetime
+import numpy as np
 import fact.dim
 from blessings import Terminal
 term = Terminal()
@@ -7,14 +9,19 @@ term = Terminal()
 dimctrl = None
 weather = None
 
+crazy_patches = [66, 191, 193]
+
 
 def setup():
     dns = fact.dim.Dns('newdaq')
     servers = dns.servers()
     global dimctrl
-    global weather
     dimctrl = servers['DIM_CONTROL']
+
+    global weather
     weather = servers['MAGIC_WEATHER']
+    global feedback
+    feedback = servers['FEEDBACK']
 
 
 def perform_checks():
@@ -37,6 +44,17 @@ def perform_checks():
     if wind_speed >= 50:
         mesg = term.red("    !!!! wind_speed >= 50 km/h: {:2.1f} km/h")
         raise ValueError(mesg.format(wind_speed))
-   # elif wind_gusts >= 40:
-   #   mesg = term.red("    !!!! wind_gusts >= 40 km/h: {:2.1f}")
-   #   raise ValueError(mesg.format(wind_gusts))
+
+    # get the currents, leave out patches with crazy pixels
+    currents = np.array(feedback.calibrated_currents()[:320])
+    currents[crazy_patches] = 0
+    median = np.median(currents)
+    max_current = currents.max()
+    print(u'Currents (med/max): {:2.2f}/{:2.2f} μA'.format(median, max_current))
+    if median >= 90:
+        mesg = term.red(u"    !!!! median current >= 90 μA {:2.1f} μA")
+        raise ValueError(mesg.format(median))
+    if max_current >= 110:
+        mesg = term.red(u"    !!!! maximum current >= 110 μA {:2.1f} μA")
+        raise ValueError(mesg.format(max_current))
+
