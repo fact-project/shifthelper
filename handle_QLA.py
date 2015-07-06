@@ -43,7 +43,7 @@ def get_max_rates():
         WHERE QLA.fNight = {night:d}
         """.format(
             comma_sep_keys=', '.join(keys),
-            night=fact.night_int(),
+            night=fact.night_integer(),
         )
 
     data = pd.read_sql_query(sql_query, factdb, parse_dates=['fRunStart'])
