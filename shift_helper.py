@@ -5,11 +5,13 @@ import time
 import handle_QLA
 import handle_dim_stuff
 import handle_cmd_line_UI
-from handle_Skype import skype
+import handle_Skype
 
 handle_dim_stuff.setup()
 handle_QLA.setup()
 my_phone_number = handle_cmd_line_UI.get_tested_phone_number()
+delay_between_checks = 60  # in sec.
+assert handle_Skype.phone_ringing_time < delay_between_checks
 while True:
     try:
         # the perform_checks() functions throw an Exception

@@ -1,3 +1,5 @@
+from __future__ import print_function
+from datetime import datetime
 import fact.dim
 from blessings import Terminal
 term = Terminal()

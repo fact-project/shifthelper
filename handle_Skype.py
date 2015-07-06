@@ -2,9 +2,6 @@ import time
 import Skype4Py
 
 phone_ringing_time = 15  # in sec. do not set larger than delay_between_checks.
-delay_between_checks = 60  # in sec.
-
-assert phone_ringing_time < delay_between_checks
 
 
 def CallStatusText(status):

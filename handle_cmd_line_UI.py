@@ -1,5 +1,5 @@
 import sys
-
+import handle_Skype
 
 # examples:
 #     my_phone_number = '+123456789'   # calls you on your phone
@@ -16,10 +16,10 @@ def enter_phone_number():
 
 
 def confirm_phonenumber():
+    global my_phone_number
     print("You entered: ", my_phone_number)
     confirm_correctness = raw_input('Is that number correct? (y/n): ')
     if not confirm_correctness.lower()[0] == 'y':
-        global my_phone_number
         my_phone_number = None
 
 
@@ -28,7 +28,7 @@ def try_to_call():
     """
     print("I will try to call you now")
     try:
-        skype.PlaceCall(my_phone_number)
+        handle_Skype.call(my_phone_number)
         recieved_call = raw_input('Did your phone ring? (y/n): ')
         if recieved_call.lower()[0] == 'y':
             return True
@@ -39,9 +39,9 @@ def try_to_call():
 
 
 def get_tested_phone_number():
+    global my_phone_number
     if len(sys.argv) > 1:
         my_phone_number = sys.argv[1]
-        confirm_phonenumber()
     else:
         my_phone_number = None
 
