@@ -4,11 +4,15 @@ term = Terminal()
 from sqlalchemy import create_engine
 import pandas as pd
 import fact
+from bokeh.plotting import figure, output_file, save
 
 max_rate = defaultdict(lambda: 0)
 alert_rate = defaultdict(lambda: 10)
 alert_rate['Mrk 501'] = 45
 alert_rate['Mrk 421'] = 45
+
+colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
+
 
 factdb = None
 
@@ -38,23 +42,53 @@ def get_max_rates():
         ON RunInfo.fSourceKEY = Source.fSourceKEY
         WHERE QLA.fNight = {night:d}
         """.format(
-        comma_sep_keys=', '.join(keys),
-        night=fact.night_int())
+            comma_sep_keys=', '.join(keys),
+            night=fact.night_int(),
+        )
 
     data = pd.read_sql_query(sql_query, factdb, parse_dates=['fRunStart'])
-    # if no qla data is available, return None
+    # drop rows with NaNs from the table, these are unfinished qla results
     data = data.dropna()
+
+    # if no qla data is available, return None
     if len(data.index) == 0:
         return None
     data.set_index('fRunStart', inplace=True)
+    # group by source to do the analysis seperated for each one
     grouped = data.groupby('fSourceName')
+    # resample in 20 min intervals by summing up events and ontime
     binned = grouped.resample(
         '20Min',
         how={'fNumExcEvts': 'sum', 'fOnTimeAfterCuts': 'sum'},
     )
+    # throw away bins with less than 5 minutes of datataking
+    binned = binned.query('fOnTimeAfterCuts >= 300')
+    if len(binned.index) == 0:
+        return None
+
+    # calculate excess events per hour
     binned['rate'] = binned.fNumExcEvts / binned.fOnTimeAfterCuts * 3600
+
+    create_bokeh_plot(binned)
+
+    # get the maximum rate for each source
     max_rate = binned.groupby(level='fSourceName').aggregate({'rate': 'max'})
     return max_rate
+
+def create_bokeh_plot(data):
+    '''create bokeh plot at www.fact-project.org/qla
+    expects a pandas dataframe with 2 level index, Source, Time
+    '''
+    output_file('qla.html', title='ShiftHelper QLA')
+    fig = figure(width=600, height=400, x_axis_type='datetime')
+    for i, source in enumerate(data.index.levels[0]):
+        fig.circle(
+            x=data.loc[source].index.values,
+            y=data.loc[source].rate,
+            legend=source,
+            color=colors[i],
+        )
+    save(fig)
 
 
 def perform_checks():
