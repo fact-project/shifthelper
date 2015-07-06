@@ -16,6 +16,7 @@ while True:
     try:
         # the perform_checks() functions throw an Exception
         # if the shifter needs to be called
+        print(term.cyan(datetime.utcnow().strftime('\n%H:%M:%S:')))
         handle_dim_stuff.perform_checks()
         handle_QLA.perform_checks()
         print(term.green("Everything OK!"))

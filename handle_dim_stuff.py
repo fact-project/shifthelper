@@ -18,13 +18,11 @@ def setup():
 
 
 def perform_checks():
-    print(weather.data())
     temperature = weather.data()[1]
     humidity_outside = weather.data()[3]
     wind_speed = weather.data()[5]
     wind_gusts = weather.data()[6]
     dimctrl_state = dimctrl.state()[0][:-1]
-    print('\n', term.cyan(datetime.utcnow().strftime('%H:%M:%S:')))
     print('DimCtrl state:', dimctrl_state)
     print('Humidity: {:2.1f} %'.format(humidity_outside))
     print('Wind (gusts): {:2.1f} ({:1.2f}) km/h'.format(
