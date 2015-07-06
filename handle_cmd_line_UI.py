@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import handle_Skype
 
@@ -13,14 +14,15 @@ def enter_phone_number():
     my_phone_number = raw_input(
         'Please enter your phone number like +1234\n')
     my_phone_number = my_phone_number.replace(' ', '')
+    return my_phone_number
 
 
-def confirm_phonenumber():
-    global my_phone_number
+def confirm_phonenumber(my_phone_number):
     print("You entered: ", my_phone_number)
     confirm_correctness = raw_input('Is that number correct? (y/n): ')
     if not confirm_correctness.lower()[0] == 'y':
         my_phone_number = None
+    return my_phone_number
 
 
 def try_to_call():
@@ -48,8 +50,8 @@ def get_tested_phone_number():
     calling_worked = False
     while (not calling_worked or my_phone_number is None):
         if my_phone_number is None:
-            enter_phone_number()
-        confirm_phonenumber()
+            my_phone_number = enter_phone_number()
+        my_phone_number = confirm_phonenumber(my_phone_number)
 
         if my_phone_number is not None:
             calling_worked = try_to_call()
