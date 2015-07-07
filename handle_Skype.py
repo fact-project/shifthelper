@@ -27,8 +27,8 @@ def OnCall(call, status):
         as soon as you or your answering machine or voicebox take the call.
         so the costs of these calls stay as low as possible.
         (second if)
-        This makes sure, that the call is ended, after it was ringing 10sec
-        (or a little less)
+        This makes sure, that the call is ended, after it was ringing
+        for ringing time
         The reason for this is the following:
         When I drop the call on my cell-phone, the call would actually be
         diverted to my voicebox. So the connection gets established.

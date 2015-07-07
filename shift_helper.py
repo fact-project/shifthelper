@@ -2,7 +2,7 @@
 # coding: utf-8
 '''
 This script is intended to call the shifter
-of security or flare alert limits are reached.
+if security or flare alert limits are reached.
 Please do not accept or deny the call as this will
 create costs for us. Just let it ring.
 <phonenumber> can either be a real phonenumber or a skype account.
@@ -11,13 +11,13 @@ Usage:
     shift_helper.py [<phonenumber>] [options]
 
 Options
-    --debug  start the program in debug mode, DO NOT USE ON SHIFT
-             this will not start a call if a programming error occures
-             and will not check the the dimctrl status for a running Main.js
+    --debug  Start the program in debug mode, DO NOT USE ON SHIFT!
+             Programming errors are raised normally
+             and dimctrl status will not be checked for a running Main.js
 
-    --interval=<N>  the interval between the cecks in seconds [default: 60]
+    --interval=<N>  The interval between the cecks in seconds [default: 60]
 
-    --ringtime=<N>  how long skype wil lett you phone ring [default: 15]
+    --ringtime=<N>  how long skype wil lett you phone ring [default: 10]
 '''
 from __future__ import print_function
 import time
@@ -29,7 +29,6 @@ import handle_cli
 import handle_Skype
 from fact_exceptions import FACTException
 from docopt import docopt
-import sys
 
 
 def main():
@@ -59,7 +58,8 @@ def main():
         try:
             # the perform_checks() functions throw an FACTException
             # if the shifter needs to be called
-            print('\n'+term.cyan(datetime.utcnow().strftime('%Y-%d-%m %H:%M:%S')))
+            timestamp = datetime.utcnow().strftime('%Y-%d-%m %H:%M:%S')
+            print('\n' + term.cyan(timestamp))
             handle_dim_stuff.perform_checks()
             handle_QLA.perform_checks()
             print(term.green("Everything OK!"))
@@ -75,7 +75,6 @@ def main():
                 print(e)
                 handle_Skype.call(my_phone_number)
                 time.sleep(args['--interval'])
-
 
 
 if __name__ == '__main__':
