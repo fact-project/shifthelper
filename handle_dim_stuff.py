@@ -13,7 +13,7 @@ weather = None
 crazy_patches = [66, 191, 193]
 
 
-def setup():
+def setup(args):
     dns = fact.dim.Dns('newdaq')
     servers = dns.servers()
     global dimctrl

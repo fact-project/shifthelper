@@ -1,13 +1,7 @@
 from __future__ import print_function
-import sys
 import handle_Skype
-
-# examples:
-#     my_phone_number = '+123456789'   # calls you on your phone
-#     my_phone_number = None           # if you want to be asked for it on the command line
-#     my_phone_number = 'dominikneise' # calls you on your skype account
-
-my_phone_number = None
+import time
+from Skype4Py import SkypeError
 
 
 def enter_phone_number():
@@ -25,28 +19,18 @@ def confirm_phonenumber(my_phone_number):
     return my_phone_number
 
 
-def try_to_call():
+def try_to_call(my_phone_number):
     """ Returns if the call worked or not.
     """
     print("I will try to call you now")
-    try:
-        handle_Skype.call(my_phone_number)
-        recieved_call = raw_input('Did your phone ring? (y/n): ')
-        if recieved_call.lower()[0] == 'y':
-            return True
-    except Skype4Py.SkypeError:
-        print("Could not call you, I'll try again in 10s")
-        time.sleep(10)
-        return False
+    handle_Skype.call(my_phone_number)
+    recieved_call = raw_input('Did your phone ring? (y/n): ')
+    if recieved_call.lower()[0] == 'y':
+        return True
+    return False
 
 
-def get_tested_phone_number():
-    global my_phone_number
-    if len(sys.argv) > 1:
-        my_phone_number = sys.argv[1]
-    else:
-        my_phone_number = None
-
+def check_phonenumber(my_phone_number):
     calling_worked = False
     while (not calling_worked or my_phone_number is None):
         if my_phone_number is None:
@@ -54,6 +38,6 @@ def get_tested_phone_number():
         my_phone_number = confirm_phonenumber(my_phone_number)
 
         if my_phone_number is not None:
-            calling_worked = try_to_call()
+            calling_worked = try_to_call(my_phone_number)
 
     return my_phone_number

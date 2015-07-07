@@ -19,7 +19,7 @@ colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
 factdb = None
 
 
-def setup():
+def setup(args):
     global factdb
     factdb = create_engine(
         "mysql+mysqldb://<databasecredentials>")

@@ -1,7 +1,17 @@
 import time
 import Skype4Py
 
-phone_ringing_time = 15  # in sec. do not set larger than delay_between_checks.
+ringing_time = None  # in sec. do not set larger than delay_between_checks.
+skype = None
+
+
+def setup(args):
+    global skype
+    global ringing_time
+    ringing_time = args['--ringtime']
+    skype = Skype4Py.Skype(Transport='x11')
+    skype.Attach()
+    skype.OnCallStatus = OnCall
 
 
 def CallStatusText(status):
@@ -29,17 +39,11 @@ def OnCall(call, status):
         while another call is still active, which leads to an exception,
         which is not handled at the moment (FIXME)
     """
-    CallStatus = status
-    # print('Call status text: ', CallStatusText(status))
     if status == Skype4Py.clsInProgress:
         call.Finish()
     elif status == Skype4Py.clsEarlyMedia:
-        time.sleep(phone_ringing_time)
+        time.sleep(ringing_time)
         call.Finish()
-
-skype = Skype4Py.Skype()
-skype.Attach()
-skype.OnCallStatus = OnCall
 
 
 def call(my_phone_number):
@@ -49,4 +53,6 @@ def call(my_phone_number):
             skype.PlaceCall(my_phone_number)
             called = True
         except Skype4Py.SkypeError:
-            time.sleep(phone_ringing_time)
+            mesg = 'Calling impossible, trying again in {:1.1f} seconds'
+            print(mesg.format(ringing_time))
+            time.sleep(ringing_time)
