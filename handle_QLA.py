@@ -41,10 +41,11 @@ def get_max_rates():
         LEFT JOIN Source
         ON RunInfo.fSourceKEY = Source.fSourceKEY
         WHERE QLA.fNight = {night:d}
-        """.format(
-            comma_sep_keys=', '.join(keys),
-            night=fact.night_integer(),
-        )
+    """
+    sql_query = sql_query.format(
+        comma_sep_keys=', '.join(keys),
+        night=fact.night_integer(),
+    )
 
     data = pd.read_sql_query(sql_query, factdb, parse_dates=['fRunStart'])
     # drop rows with NaNs from the table, these are unfinished qla results
@@ -75,6 +76,7 @@ def get_max_rates():
     max_rate = binned.groupby(level='fSourceName').aggregate({'rate': 'max'})
     return max_rate
 
+
 def create_bokeh_plot(data):
     '''create bokeh plot at www.fact-project.org/qla
     expects a pandas dataframe with 2 level index, Source, Time
@@ -92,17 +94,24 @@ def create_bokeh_plot(data):
 
 
 def perform_checks():
+    """ raise ValueError if new flare detected.
+
+    If the maximum excess rates are over the alter_rates for a source
+    and also higher than before, throw a ValueErrorm which leads to
+    a skype-call inside the main while loop of shift_helper.py
+    """
     qla_max_rates = get_max_rates()
     if qla_max_rates is None:
         print('No QLA data available yet')
-    else:
-        print('max rates of today:')
-        for source, rate in qla_max_rates.iterrows():
-            rate = float(rate)
-            if rate > max_rate[source]:
-                max_rate[source] = rate
-                if max_rate[source] > alert_rate[source]:
-                    msg = term.red(
-                        '    !!!! Source {} over alert rate: {:3.1f} Events/h')
-                    raise ValueError(msg.format(source, max_rate[source]))
-            print('{} : {:3.1f} Events/h'.format(source, max_rate[source]))
+        return
+
+    print('max rates of today:')
+    for source, rate in qla_max_rates.iterrows():
+        rate = float(rate)
+        if rate > max_rate[source]:
+            max_rate[source] = rate
+            if max_rate[source] > alert_rate[source]:
+                msg = term.red(
+                    '    !!!! Source {} over alert rate: {:3.1f} Events/h')
+                raise ValueError(msg.format(source, max_rate[source]))
+        print('{} : {:3.1f} Events/h'.format(source, max_rate[source]))
