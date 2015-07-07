@@ -47,14 +47,15 @@ def perform_checks():
 
     # get the currents, leave out patches with crazy pixels
     currents = np.array(feedback.calibrated_currents()[:320])
-    currents[crazy_patches] = 0
+    # TB does not exclude the crazy channels, so we also don't do it for now.
+    # currents[crazy_patches] = 0
     median = np.median(currents)
     max_current = currents.max()
-    print(u'Currents (med/max): {:2.2f}/{:2.2f} μA'.format(median, max_current))
+    print(u'Currents (med/max): {:2.2f}/{:2.2f} μA'.format(
+        median, max_current))
     if median >= 90:
         mesg = term.red(u"    !!!! median current >= 90 μA {:2.1f} μA")
         raise ValueError(mesg.format(median))
     if max_current >= 110:
         mesg = term.red(u"    !!!! maximum current >= 110 μA {:2.1f} μA")
         raise ValueError(mesg.format(max_current))
-
