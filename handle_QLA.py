@@ -92,6 +92,8 @@ def create_bokeh_plot(data):
             legend=source,
             color=colors[i],
         )
+    legend = fig.legend[0]
+    legend.orientation = 'top_left'
     save(fig)
 
 
