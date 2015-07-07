@@ -30,10 +30,21 @@ def perform_checks():
     wind_speed = weather.data()[5]
     wind_gusts = weather.data()[6]
     dimctrl_state = dimctrl.state()[0][:-1]
+
+    # get the currents, leave out patches with crazy pixels
+    currents = np.array(feedback.calibrated_currents()[:320])
+    # TB does not exclude the crazy channels, so we also don't do it for now.
+    # currents[crazy_patches] = 0
+    median = np.median(currents)
+    max_current = currents.max()
+
     print('DimCtrl state:', dimctrl_state)
     print('Humidity: {:2.1f} %'.format(humidity_outside))
     print('Wind (gusts): {:2.1f} ({:1.2f}) km/h'.format(
         wind_speed, wind_gusts))
+    print(u'Currents (med/max): {: 2.2f} μA / {: 2.2f} μA'.format(
+        median, max_current))
+
     if 'Running' not in dimctrl_state:
         mesg = term.red("    !!!! 'Running' not in dimctrl_state\n\t{}")
         raise ValueError(mesg.format(dimctrl_state))
@@ -44,15 +55,6 @@ def perform_checks():
     if wind_speed >= 50:
         mesg = term.red("    !!!! wind_speed >= 50 km/h: {:2.1f} km/h")
         raise ValueError(mesg.format(wind_speed))
-
-    # get the currents, leave out patches with crazy pixels
-    currents = np.array(feedback.calibrated_currents()[:320])
-    # TB does not exclude the crazy channels, so we also don't do it for now.
-    # currents[crazy_patches] = 0
-    median = np.median(currents)
-    max_current = currents.max()
-    print(u'Currents (med/max): {:2.2f}/{:2.2f} μA'.format(
-        median, max_current))
     if median >= 90:
         mesg = term.red(u"    !!!! median current >= 90 μA {:2.1f} μA")
         raise ValueError(mesg.format(median))
