@@ -1,6 +1,5 @@
 # -*- encoding:utf-8 -*-
 from __future__ import print_function
-from datetime import datetime
 import numpy as np
 import fact.dim
 from blessings import Terminal
@@ -9,6 +8,8 @@ term = Terminal()
 
 dimctrl = None
 weather = None
+feedback = None
+debug = False
 
 crazy_patches = [66, 191, 193]
 
@@ -23,10 +24,11 @@ def setup(args):
     weather = servers['MAGIC_WEATHER']
     global feedback
     feedback = servers['FEEDBACK']
+    global debug
+    debug = args['--debug']
 
 
 def perform_checks():
-    temperature = weather.data()[1]
     humidity_outside = weather.data()[3]
     wind_speed = weather.data()[5]
     wind_gusts = weather.data()[6]
@@ -46,13 +48,13 @@ def perform_checks():
     print(u'Currents (med/max): {: 2.2f} μA / {: 2.2f} μA'.format(
         median, max_current))
 
-    if 'Running' not in dimctrl_state:
-        mesg = term.red("    !!!! 'Running' not in dimctrl_state\n\t{}")
-        raise DataTakingException(mesg.format(dimctrl_state))
+    if debug is not True:
+        if 'Running' not in dimctrl_state:
+            mesg = term.red("    !!!! 'Running' not in dimctrl_state\n\t{}")
+            raise DataTakingException(mesg.format(dimctrl_state))
     if humidity_outside >= 98:
         mesg = term.red("    !!!! humidity_outside >= 98 %: {:2.1f} %")
         raise SecurityException(mesg.format(humidity_outside))
-        skype.PlaceCall(my_phone_number)
     if wind_speed >= 50:
         mesg = term.red("    !!!! wind_speed >= 50 km/h: {:2.1f} km/h")
         raise SecurityException(mesg.format(wind_speed))
