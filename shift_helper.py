@@ -1,4 +1,4 @@
-#!/usr/bin/env ipython
+#!/usr/bin/env python
 # coding: utf-8
 '''
 This script is intended to call the shifter
