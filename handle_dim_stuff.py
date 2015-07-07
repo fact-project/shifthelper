@@ -4,6 +4,7 @@ from datetime import datetime
 import numpy as np
 import fact.dim
 from blessings import Terminal
+from fact_exceptions import SecurityException, DataTakingException
 term = Terminal()
 
 dimctrl = None
@@ -47,17 +48,17 @@ def perform_checks():
 
     if 'Running' not in dimctrl_state:
         mesg = term.red("    !!!! 'Running' not in dimctrl_state\n\t{}")
-        raise ValueError(mesg.format(dimctrl_state))
+        raise DataTakingException(mesg.format(dimctrl_state))
     if humidity_outside >= 98:
         mesg = term.red("    !!!! humidity_outside >= 98 %: {:2.1f} %")
-        raise ValueError(mesg.format(humidity_outside))
+        raise SecurityException(mesg.format(humidity_outside))
         skype.PlaceCall(my_phone_number)
     if wind_speed >= 50:
         mesg = term.red("    !!!! wind_speed >= 50 km/h: {:2.1f} km/h")
-        raise ValueError(mesg.format(wind_speed))
+        raise SecurityException(mesg.format(wind_speed))
     if median >= 90:
         mesg = term.red(u"    !!!! median current >= 90 μA {:2.1f} μA")
-        raise ValueError(mesg.format(median))
+        raise SecurityException(mesg.format(median))
     if max_current >= 110:
         mesg = term.red(u"    !!!! maximum current >= 110 μA {:2.1f} μA")
-        raise ValueError(mesg.format(max_current))
+        raise SecurityException(mesg.format(max_current))

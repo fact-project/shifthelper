@@ -3,8 +3,10 @@ from blessings import Terminal
 term = Terminal()
 from sqlalchemy import create_engine
 import pandas as pd
-import fact
 from bokeh.plotting import figure, output_file, save
+
+import fact
+from fact_exceptions import QLAException
 
 max_rate = defaultdict(lambda: 0)
 alert_rate = defaultdict(lambda: 10)
@@ -113,5 +115,5 @@ def perform_checks():
             if max_rate[source] > alert_rate[source]:
                 msg = term.red(
                     '    !!!! Source {} over alert rate: {:3.1f} Events/h')
-                raise ValueError(msg.format(source, max_rate[source]))
+                raise QLAException(msg.format(source, max_rate[source]))
         print('{} : {:3.1f} Events/h'.format(source, max_rate[source]))
