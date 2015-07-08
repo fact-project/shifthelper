@@ -47,12 +47,7 @@ def main():
     handle_Skype.setup(args)
     handle_dim_stuff.setup(args)
     handle_QLA.setup(args)
-
-    if args['<phonenumber>'] is not None:
-        my_phone_number = handle_cli.check_phonenumber(args['<phonenumber>'])
-    else:
-        my_phone_number = handle_cli.enter_phone_number()
-        my_phone_number = handle_cli.check_phonenumber(my_phone_number)
+    args = handle_cli.setup(args)
 
     while True:
         try:

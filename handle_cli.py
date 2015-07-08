@@ -41,3 +41,21 @@ def check_phonenumber(my_phone_number):
             calling_worked = try_to_call(my_phone_number)
 
     return my_phone_number
+
+
+def setup(args):
+    """ basically asks for phonenumber, makes sure it works
+
+    AND pushes it back into args
+
+    therefor it returns args, in order to syntactically make sure,
+    it altered args.
+    """
+    if args['<phonenumber>'] is not None:
+        my_phone_number = check_phonenumber(args['<phonenumber>'])
+    else:
+        my_phone_number = enter_phone_number()
+        my_phone_number = check_phonenumber(my_phone_number)
+
+    args['<phonenumber>'] = my_phone_number
+    return args
