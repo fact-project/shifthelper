@@ -64,7 +64,7 @@ def main():
                 pass
             else:
                 print(type(e), ":\n", e)
-                handle_Skype.call(my_phone_number)
+                handle_Skype.call(args['<phonenumber>'])
                 time.sleep(args['--interval'])
         except (KeyboardInterrupt, SystemExit):
             raise
@@ -73,7 +73,7 @@ def main():
                 raise
             else:
                 print(e)
-                handle_Skype.call(my_phone_number)
+                handle_Skype.call(args['<phonenumber>'])
                 time.sleep(args['--interval'])
 
 
