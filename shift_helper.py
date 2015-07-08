@@ -63,6 +63,8 @@ def main():
             print(type(e), ":\n", e)
             handle_Skype.call(my_phone_number)
             time.sleep(args['--interval'])
+        except (KeyboardInterrupt, SystemExit):
+            raise
         except Exception as e:
             if args['--debug']:
                 raise
