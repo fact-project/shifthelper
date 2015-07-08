@@ -9,7 +9,6 @@ term = Terminal()
 dimctrl = None
 weather = None
 feedback = None
-debug = False
 
 crazy_patches = [66, 191, 193]
 
@@ -24,8 +23,6 @@ def setup(args):
     weather = servers['MAGIC_WEATHER']
     global feedback
     feedback = servers['FEEDBACK']
-    global debug
-    debug = args['--debug']
 
 
 def perform_checks():
@@ -48,10 +45,9 @@ def perform_checks():
     print(u'Currents (med/max): {: 2.2f} μA / {: 2.2f} μA'.format(
         median, max_current))
 
-    if debug is not True:
-        if 'Running' not in dimctrl_state:
-            mesg = term.red("    !!!! 'Running' not in dimctrl_state\n\t{}")
-            raise DataTakingException(mesg.format(dimctrl_state))
+    if 'Running' not in dimctrl_state:
+        mesg = term.red("    !!!! 'Running' not in dimctrl_state\n\t{}")
+        raise DataTakingException(mesg.format(dimctrl_state))
     if humidity_outside >= 98:
         mesg = term.red("    !!!! humidity_outside >= 98 %: {:2.1f} %")
         raise SecurityException(mesg.format(humidity_outside))
