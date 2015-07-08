@@ -27,7 +27,7 @@ import handle_QLA
 import handle_dim_stuff
 import handle_cli
 import handle_Skype
-from fact_exceptions import FACTException
+from fact_exceptions import FACTException, DataTakingException
 from docopt import docopt
 
 
@@ -47,12 +47,7 @@ def main():
     handle_Skype.setup(args)
     handle_dim_stuff.setup(args)
     handle_QLA.setup(args)
-
-    if args['<phonenumber>'] is not None:
-        my_phone_number = handle_cli.check_phonenumber(args['<phonenumber>'])
-    else:
-        my_phone_number = handle_cli.enter_phone_number()
-        my_phone_number = handle_cli.check_phonenumber(my_phone_number)
+    args = handle_cli.setup(args)
 
     while True:
         try:
@@ -65,9 +60,14 @@ def main():
             print(term.green("Everything OK!"))
             time.sleep(args['--interval'])
         except FACTException as e:
-            print(type(e), ":\n", e)
-            handle_Skype.call(my_phone_number)
-            time.sleep(args['--interval'])
+            if args['--debug'] and isinstance(e, DataTakingException):
+                pass
+            else:
+                print(type(e), ":\n", e)
+                handle_Skype.call(my_phone_number)
+                time.sleep(args['--interval'])
+        except (KeyboardInterrupt, SystemExit):
+            raise
         except Exception as e:
             if args['--debug']:
                 raise
