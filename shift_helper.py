@@ -52,13 +52,7 @@ def main():
     handle_QLA.setup(args)
     args = handle_cli.setup(args)
 
-    if not args['--telegram']:
-        use_tg = raw_input('Do you want to use Telegram to get error messages?')
-        if use_tg.lower()[0] == 'y':
-            args['--telegram'] = True
-
-    if args['--telegram']:
-        args['--telegram'] == handle_telegram.setup()
+    args['--telegram'] == handle_telegram.setup(args['--telegram'])
 
     while True:
         try:
