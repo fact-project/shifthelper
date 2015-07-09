@@ -41,7 +41,7 @@ def OnCall(call, status):
     """
     if status == Skype4Py.clsInProgress:
         call.Finish()
-    elif status == Skype4Py.clsEarlyMedia:
+    elif status in [Skype4Py.clsEarlyMedia, Skype4Py.clsRinging]:
         time.sleep(ringing_time)
         call.Finish()
 
