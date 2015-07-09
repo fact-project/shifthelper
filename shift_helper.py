@@ -18,6 +18,8 @@ Options
     --interval=<N>  The interval between the cecks in seconds [default: 60]
 
     --ringtime=<N>  how long skype wil lett you phone ring [default: 10]
+
+    --telegram  Get Telegram messages with errors from the factShiftHelperBot
 '''
 from __future__ import print_function
 import time
@@ -27,7 +29,8 @@ import handle_QLA
 import handle_dim_stuff
 import handle_cli
 import handle_Skype
-from fact_exceptions import FACTException, DataTakingException
+import handle_telegram
+from fact_exceptions import FACTException
 from docopt import docopt
 
 
@@ -44,10 +47,17 @@ def main():
         mesg = term.red(80*'=' + '\n' + '{:^80}\n' + 80*'=')
         print(mesg.format('DEBUG MODE - DO NOT USE DURING SHIFT'))
 
+    if not args['--telegram']:
+        use_tg = raw_input('Do you want to use Telegram to get error messages?')
+        if use_tg.lower()[0] == 'y':
+            args['--telegram'] = True
+
     handle_Skype.setup(args)
     handle_dim_stuff.setup(args)
     handle_QLA.setup(args)
     args = handle_cli.setup(args)
+    if args['--telegram']:
+        args['--telegram'] == handle_telegram.setup()
 
     while True:
         try:
@@ -60,7 +70,9 @@ def main():
             print(term.green("Everything OK!"))
             time.sleep(args['--interval'])
         except FACTException as e:
-            print(type(e), ":\n", e)
+            mesg = e.__name__ + ":\n" + str(e)
+            print(mesg)
+            handle_telegram.send_message(mesg)
             handle_Skype.call(args['<phonenumber>'])
             time.sleep(args['--interval'])
         except (KeyboardInterrupt, SystemExit):
@@ -70,6 +82,7 @@ def main():
                 raise
             else:
                 print(e)
+                handle_telegram.send_message('Python Error')
                 handle_Skype.call(args['<phonenumber>'])
                 time.sleep(args['--interval'])
 
