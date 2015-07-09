@@ -25,7 +25,7 @@ def setup(args):
     feedback = servers['FEEDBACK']
 
 
-def perform_checks():
+def perform_checks(debug=False):
     humidity_outside = weather.data()[3]
     wind_speed = weather.data()[5]
     wind_gusts = weather.data()[6]
@@ -47,7 +47,8 @@ def perform_checks():
 
     if 'Running' not in dimctrl_state:
         mesg = term.red("    !!!! 'Running' not in dimctrl_state\n\t{}")
-        raise DataTakingException(mesg.format(dimctrl_state))
+        if not debug:
+            raise DataTakingException(mesg.format(dimctrl_state))
     if humidity_outside >= 98:
         mesg = term.red("    !!!! humidity_outside >= 98 %: {:2.1f} %")
         raise SecurityException(mesg.format(humidity_outside))

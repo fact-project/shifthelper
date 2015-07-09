@@ -55,17 +55,14 @@ def main():
             # if the shifter needs to be called
             timestamp = datetime.utcnow().strftime('%Y-%d-%m %H:%M:%S')
             print('\n' + term.cyan(timestamp))
-            handle_dim_stuff.perform_checks()
+            handle_dim_stuff.perform_checks(debug=args['--debug'])
             handle_QLA.perform_checks()
             print(term.green("Everything OK!"))
             time.sleep(args['--interval'])
         except FACTException as e:
-            if args['--debug'] and isinstance(e, DataTakingException):
-                pass
-            else:
-                print(type(e), ":\n", e)
-                handle_Skype.call(args['<phonenumber>'])
-                time.sleep(args['--interval'])
+            print(type(e), ":\n", e)
+            handle_Skype.call(args['<phonenumber>'])
+            time.sleep(args['--interval'])
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception as e:
