@@ -1,12 +1,14 @@
 from __future__ import print_function
 import handle_Skype
-import time
-from Skype4Py import SkypeError
+from blessings import Terminal
+
+term = Terminal()
 
 
 def enter_phone_number():
     my_phone_number = raw_input(
-        'Please enter your phone number like +1234\n')
+        'Please enter your phone number (like +4912345) or skype name\n'
+    )
     my_phone_number = my_phone_number.replace(' ', '')
     return my_phone_number
 
@@ -51,6 +53,7 @@ def setup(args):
     therefor it returns args, in order to syntactically make sure,
     it altered args.
     """
+    print(term.cyan('\nCell phone/Skype Setup'))
     if args['<phonenumber>'] is not None:
         my_phone_number = check_phonenumber(args['<phonenumber>'])
     else:
