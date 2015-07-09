@@ -72,7 +72,7 @@ def main():
             time.sleep(args['--interval'])
         except FACTException as e:
             mesg = e.__name__ + ":\n" + str(e)
-            print(mesg)
+            print(term.red(mesg))
             handle_telegram.send_message(mesg)
             handle_Skype.call(args['<phonenumber>'])
             time.sleep(args['--interval'])

@@ -115,7 +115,6 @@ def perform_checks():
         if rate > max_rate[source]:
             max_rate[source] = rate
             if max_rate[source] > alert_rate[source]:
-                msg = term.red(
-                    '    !!!! Source {} over alert rate: {:3.1f} Events/h')
+                msg = '    !!!! Source {} over alert rate: {:3.1f} Events/h'
                 raise QLAException(msg.format(source, max_rate[source]))
         print('{} : {:3.1f} Events/h'.format(source, max_rate[source]))
