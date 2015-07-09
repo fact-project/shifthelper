@@ -16,9 +16,13 @@ def get_last_message_data():
     update = json.loads(update.content.decode('utf8'))
 
     if update['ok']:
-        chat_id = update['result'][-1]['message']['chat']['id']
-        firstname = update['result'][-1]['message']['chat']['first_name']
-        lastname = update['result'][-1]['message']['chat']['last_name']
+        chatdata = update['result'][-1]['message']['chat']
+        chat_id = chatdata['id']
+        firstname = chatdata['first_name']
+        if 'lastname' in chatdata:
+            lastname = chatdata['last_name']
+        else:
+            lastname = ''
         return chat_id, firstname, lastname
 
 
