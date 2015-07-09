@@ -5,16 +5,16 @@ the different problems that can occure
 
 
 class FACTException(ValueError):
-    pass
+    __name__ = 'FACTException'
 
 
 class SecurityException(FACTException):
-    pass
+    __name__ = 'SecurityException'
 
 
 class QLAException(FACTException):
-    pass
+    __name__ = 'QLAException'
 
 
 class DataTakingException(FACTException):
-    pass
+    __name__ = 'DataTakingException'

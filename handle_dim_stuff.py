@@ -46,18 +46,18 @@ def perform_checks(debug=False):
         median, max_current))
 
     if 'Running' not in dimctrl_state:
-        mesg = term.red("    !!!! 'Running' not in dimctrl_state\n\t{}")
+        mesg = "    !!!! 'Running' not in dimctrl_state\n\t{}"
         if not debug:
             raise DataTakingException(mesg.format(dimctrl_state))
     if humidity_outside >= 98:
-        mesg = term.red("    !!!! humidity_outside >= 98 %: {:2.1f} %")
+        mesg = "    !!!! humidity_outside >= 98 %: {:2.1f} %"
         raise SecurityException(mesg.format(humidity_outside))
     if wind_speed >= 50:
-        mesg = term.red("    !!!! wind_speed >= 50 km/h: {:2.1f} km/h")
+        mesg = "    !!!! wind_speed >= 50 km/h: {:2.1f} km/h"
         raise SecurityException(mesg.format(wind_speed))
     if median >= 90:
-        mesg = term.red(u"    !!!! median current >= 90 μA {:2.1f} μA")
+        mesg = u"    !!!! median current >= 90 μA {:2.1f} μA"
         raise SecurityException(mesg.format(median))
     if max_current >= 110:
-        mesg = term.red(u"    !!!! maximum current >= 110 μA {:2.1f} μA")
+        mesg = u"    !!!! maximum current >= 110 μA {:2.1f} μA"
         raise SecurityException(mesg.format(max_current))
