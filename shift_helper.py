@@ -47,15 +47,16 @@ def main():
         mesg = term.red(80*'=' + '\n' + '{:^80}\n' + 80*'=')
         print(mesg.format('DEBUG MODE - DO NOT USE DURING SHIFT'))
 
+    handle_Skype.setup(args)
+    handle_dim_stuff.setup(args)
+    handle_QLA.setup(args)
+    args = handle_cli.setup(args)
+
     if not args['--telegram']:
         use_tg = raw_input('Do you want to use Telegram to get error messages?')
         if use_tg.lower()[0] == 'y':
             args['--telegram'] = True
 
-    handle_Skype.setup(args)
-    handle_dim_stuff.setup(args)
-    handle_QLA.setup(args)
-    args = handle_cli.setup(args)
     if args['--telegram']:
         args['--telegram'] == handle_telegram.setup()
 
