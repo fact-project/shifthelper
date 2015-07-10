@@ -61,7 +61,8 @@ def B_01(Non, Noff, alpha):
     # gamma, delta, c1/c2
     Nges = Non + Noff
     gam = (1 + 2 * Noff) * alpha ** (0.5 + Nges) * gamma(0.5 + Nges)
-    delta = 2 * (1 + alpha)**Nges * gamma(1 + Nges) * hyp2f1(0.5 + Noff, 1 + Nges, 1.5 + Noff, (-1 / alpha))
+    delta = (2 * (1 + alpha)**Nges * gamma(1+Nges) *
+             hyp2f1(0.5 + Noff, 1 + Nges, 1.5 + Noff, (-1 / alpha)))
     c1_c2 = sqrt(pi) / (2 * atan(1 / sqrt(alpha)))
 
     return gam / (c1_c2 * delta)
@@ -107,7 +108,12 @@ def C_lambda(
     can offer), in order to calculate the definite integral on the
     interval [0,lambda_s].
     '''
-    return quad(lambda x: P_lambda(x, Non, Noff, alpha), [0, lambda_s], maxdegree=maxdeg, error=err, method=meth)
+    return quad(
+        lambda x: P_lambda(x, Non, Noff, alpha),
+        [0, lambda_s],
+        maxdegree=maxdeg,
+        error=err,
+        method=meth)
 
 
 def S_B_01(Non, Noff, alpha):
@@ -155,7 +161,11 @@ def l_99(Non, Noff, alpha):
     guess = 3. + lmax
     # print(guess)
 
-    b = findroot(lambda x: C_lambda(x, Non, Noff, alpha)[0]-0.99, guess, solver='secant', tol=1e-8)
+    b = findroot(
+        lambda x: C_lambda(x, Non, Noff, alpha)[0]-0.99,
+        guess,
+        solver='secant',
+        tol=1e-8)
     return b
 
 
@@ -173,7 +183,11 @@ def l_84(Non, Noff, alpha):
     guess = 1. + lmax
     # print(sigma, lstar, lmax, guess)
 
-    b = findroot(lambda x: C_lambda(x, Non, Noff, alpha)[0] - 0.84, guess, solver='secant', tol=1e-8)
+    b = findroot(
+        lambda x: C_lambda(x, Non, Noff, alpha)[0] - 0.84,
+        guess,
+        solver='secant',
+        tol=1e-8)
     return b
 
 
@@ -191,7 +205,11 @@ def l_16(Non, Noff, alpha):
     guess = 0.2 + lmax
     # print(sigma, lstar, lmax, guess)
 
-    b = findroot(lambda x: C_lambda(x, Non, Noff, alpha)[0] - 0.16, guess, solver='secant', tol=1e-8)
+    b = findroot(
+        lambda x: C_lambda(x, Non, Noff, alpha)[0] - 0.16,
+        guess,
+        solver='secant',
+        tol=1e-8)
     return b
 
 # run the above methods to test them, if called directly
@@ -210,14 +228,15 @@ if __name__ == "__main__":
         l_star_buf = l_star(n_on, n_off, alpha)
         l_84_buf = l_84(n_on, n_off, alpha)
         l_16_buf = l_16(n_on, n_off, alpha)
-        print("{on:d}, {off:d}, {al:.3f}, {B:.3e}, {S:.3f}, {ls:.3f}+{lu:.3f}-{ll:.3f}".format(
-            on=n_on, off=n_off, al=alpha,
-            B=float(B_01(n_on, n_off, alpha)),
-            S=float(significance),
-            ls=float(l_star_buf),
-            lu=float(l_84_buf - l_star_buf),
-            ll=float(l_star_buf - l_16_buf)),
-        )
+        print("{on:d}, {off:d}, {al:.3f}, {B:.3e}, " +
+              "{S:.3f}, {ls:.3f}+{lu:.3f}-{ll:.3f}".format(
+                  on=n_on, off=n_off, al=alpha,
+                  B=float(B_01(n_on, n_off, alpha)),
+                  S=float(significance),
+                  ls=float(l_star_buf),
+                  lu=float(l_84_buf - l_star_buf),
+                  ll=float(l_star_buf - l_16_buf))
+              )
     else:
         print("{on:d}, {off:d}, {al:.3f}, {B:.3e}, {S:.3f}, <{l99:.3f}".format(
             on=n_on, off=n_off, al=alpha,
