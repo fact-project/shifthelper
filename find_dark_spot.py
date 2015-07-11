@@ -6,7 +6,10 @@ Calculates the darkest spot at <date> for a zenith angle below 10 degrees
 Please give the date and time like this: 2015-07-11 1:00
 
 Usage:
-    find_dark_spot.py <date> <timeutc>
+    find_dark_spot.py <date> <timeutc> [options]
+
+Options:
+    --max-zenith=<degrees>    maximal zenith for the dark spot [default: 10]
 '''
 from __future__ import division, print_function
 from docopt import docopt
@@ -18,6 +21,7 @@ from numpy import sin, cos, tan, arctan2, arcsin, pi, arccos
 import ephem
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
+from progressbar import ProgressBar
 
 lapalma = ephem.Observer()
 lapalma.lon = '-17:53:05'
@@ -75,14 +79,16 @@ stars = stars.query('altitude > {}'.format(np.deg2rad(70)))
 stars = stars.query('Vmag < 9')
 
 azs = np.deg2rad(np.linspace(0, 360, 91))
-alts = np.deg2rad(np.linspace(80, 90, 31))
+alts = np.deg2rad(np.arange(90 - int(args['--max-zenith']), 91, 0.5))
 light = []
 coords = []
 
+prog = ProgressBar(maxval=len(azs) * len(alts)).start()
 for i, az in enumerate(azs):
     for j, alt in enumerate(alts):
         coords.append((az, alt))
         light.append(light_in_fov(az, alt, stars))
+        prog.update(i*len(alts) + j)
 
 light = np.array(light)
 coords = np.array(coords)
@@ -133,7 +139,7 @@ m.scatter(
 m.tissot(
     np.rad2deg(best_az),
     np.rad2deg(best_alt),
-    2.25, 50, alpha=0.1,
+    2.25, 50, facecolor='none', edgecolor='red',
 )
 plt.colorbar(label='Visual Magnitude')
 plt.show()
