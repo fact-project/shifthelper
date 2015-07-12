@@ -67,7 +67,8 @@ def main():
         except FACTException as e:
             mesg = e.__name__ + ":\n" + str(e)
             print(term.red(mesg))
-            handle_telegram.send_message(mesg)
+            if args['--telegram']:
+                handle_telegram.send_message(mesg)
             handle_Skype.call(args['<phonenumber>'])
             time.sleep(args['--interval'])
         except (KeyboardInterrupt, SystemExit):
@@ -77,7 +78,8 @@ def main():
                 raise
             else:
                 print(e)
-                handle_telegram.send_message('Python Error')
+                if args['--telegram']:
+                    handle_telegram.send_message('Python Error')
                 handle_Skype.call(args['<phonenumber>'])
                 time.sleep(args['--interval'])
 
