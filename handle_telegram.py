@@ -12,7 +12,7 @@ chat_id = None
 
 
 def get_last_message_data():
-    update = requests.get(url.format(method='getUpdates'), timeout=1)
+    update = requests.get(url.format(method='getUpdates'), timeout=5)
     update = json.loads(update.content.decode('utf8'))
 
     if update['ok']:
@@ -24,11 +24,14 @@ def get_last_message_data():
 
 
 def send_message(message):
-    r = requests.post(
-        url.format(token=bot_token, method='sendMessage'),
-        data={'chat_id': chat_id, 'text': message},
-        timeout=1,
-    )
+    try:
+        r = requests.post(
+            url.format(token=bot_token, method='sendMessage'),
+            data={'chat_id': chat_id, 'text': message},
+            timeout=5,
+        )
+    except requests.exceptions.Timeout:
+        print('Telegram "send_message" timed out')
     return r
 
 
