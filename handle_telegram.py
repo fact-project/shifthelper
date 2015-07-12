@@ -53,13 +53,16 @@ def setup(use_telegram=False):
 
     confirmed = False
     while not confirmed:
-        send_start = raw_input('Did you send the /start command? (y/n):')
-        if send_start.lower()[0] == 'y':
-            chat_id, firstname, lastname = get_last_message_data()
-            print('Got a message from "{} {}"'.format(firstname, lastname))
-        else:
-            continue
-        confirmed = check_connection()
+        try:
+            send_start = raw_input('Did you send the /start command? (y/n):')
+            if send_start.lower()[0] == 'y':
+                chat_id, firstname, lastname = get_last_message_data()
+                print('Got a message from "{} {}"'.format(firstname, lastname))
+            else:
+                continue
+            confirmed = check_connection()
+        except requests.exceptions.Timeout:
+            print('Connection to Telegram timed out')
         if not confirmed:
             ask_again = raw_input('Try again? (y/n):')
             if not ask_again.lower()[0] == 'y':
