@@ -65,7 +65,7 @@ def get_max_rates():
         how={'fNumExcEvts': 'sum', 'fOnTimeAfterCuts': 'sum'},
     )
     # throw away bins with less than 5 minutes of datataking
-    binned.where(binned.fOnTimeAfterCuts >= 300, inplace=True)
+    binned = binned.query('fOnTimeAfterCuts >= 300').copy()
     if len(binned.index) == 0:
         return None
 
