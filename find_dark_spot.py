@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
 Calculates the darkest spot at <date> for a zenith angle below 10 degrees
@@ -10,6 +11,7 @@ Usage:
 
 Options:
     --max-zenith=<degrees>    maximal zenith for the dark spot [default: 10]
+    --plot                    show the selected position, does not work on gui
 '''
 from __future__ import division, print_function
 from docopt import docopt
@@ -19,8 +21,6 @@ import pandas as pd
 import numpy as np
 from numpy import sin, cos, tan, arctan2, arcsin, pi, arccos
 import ephem
-from mpl_toolkits.basemap import Basemap
-import matplotlib.pyplot as plt
 from progressbar import ProgressBar
 
 lapalma = ephem.Observer()
@@ -107,39 +107,42 @@ print(u'DEC: {:1.3f}°'.format(np.rad2deg(dec)))
 print(u'Az: {:1.3f}°'.format(np.rad2deg(best_az)))
 print(u'Alt: {:1.3f}°'.format(np.rad2deg(best_alt)))
 
+if args['--plot']:
+    # plot the skymap
+    from mpl_toolkits.basemap import Basemap
+    import matplotlib.pyplot as plt
 
-# plot the skymap
-m = Basemap(
-    resolution='l',
-    projection='stere',
-    lat_0=90,
-    lon_0=0,
-    width=0.3e7,
-    height=0.3e7,
-)
-m.drawmapboundary(fill_color='black')
-m.drawparallels([0, 80], color='gray', dashes=[5,5])
-m.scatter(
-    np.rad2deg(best_az),
-    np.rad2deg(best_alt),
-    latlon=True,
-    lw=0,
-    color='red',
-)
-m.scatter(
-    np.rad2deg(stars.azimuth.values),
-    np.rad2deg(stars.altitude.values),
-    c=-stars.Vmag,
-    latlon=True,
-    lw=0,
-    cmap='gray',
-    vmin=-12,
-    s=0.3 * (-stars.Vmag + stars.Vmag.max())**2 + 1,
-)
-m.tissot(
-    np.rad2deg(best_az),
-    np.rad2deg(best_alt),
-    2.25, 50, facecolor='none', edgecolor='red',
-)
-plt.colorbar(label='Visual Magnitude')
-plt.show()
+    m = Basemap(
+        resolution='l',
+        projection='stere',
+        lat_0=90,
+        lon_0=0,
+        width=0.3e7,
+        height=0.3e7,
+    )
+    m.drawmapboundary(fill_color='black')
+    m.drawparallels([0, 80], color='gray', dashes=[5,5])
+    m.scatter(
+        np.rad2deg(best_az),
+        np.rad2deg(best_alt),
+        latlon=True,
+        lw=0,
+        color='red',
+    )
+    m.scatter(
+        np.rad2deg(stars.azimuth.values),
+        np.rad2deg(stars.altitude.values),
+        c=-stars.Vmag,
+        latlon=True,
+        lw=0,
+        cmap='gray',
+        vmin=-12,
+        s=0.3 * (-stars.Vmag + stars.Vmag.max())**2 + 1,
+    )
+    m.tissot(
+        np.rad2deg(best_az),
+        np.rad2deg(best_alt),
+        2.25, 50, facecolor='none', edgecolor='red',
+    )
+    plt.colorbar(label='Visual Magnitude')
+    plt.show()
