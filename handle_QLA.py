@@ -51,7 +51,7 @@ def get_max_rates():
 
     data = pd.read_sql_query(sql_query, factdb, parse_dates=['fRunStart'])
     # drop rows with NaNs from the table, these are unfinished qla results
-    data = data.dropna()
+    data.dropna(inplace=True)
 
     # if no qla data is available, return None
     if len(data.index) == 0:
@@ -65,7 +65,7 @@ def get_max_rates():
         how={'fNumExcEvts': 'sum', 'fOnTimeAfterCuts': 'sum'},
     )
     # throw away bins with less than 5 minutes of datataking
-    binned = binned.query('fOnTimeAfterCuts >= 300')
+    binned.where(binned.fOnTimeAfterCuts >= 300, inplace=True)
     if len(binned.index) == 0:
         return None
 
