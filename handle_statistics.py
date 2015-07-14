@@ -149,68 +149,38 @@ def l_star(Non, Noff, alpha):
 
 
 def l_99(Non, Noff, alpha):
-    '''
-    this function shall find the 99% signal
-    posterior UL using the secant method and a good guess of the
-    starting point '''
-    sigma = sqrt(alpha*alpha*Noff + Non)
-    lstar = 0.0-alpha*Noff+Non
-
-    # lmin = 1e-11 if (lstar - sigma) < 0 else (lstar - sigma)
-    lmax = 1e-11 if (lstar + 2*sigma) < 0 else (lstar + 2*sigma)
-    guess = 3. + lmax
-    # print(guess)
-
-    b = findroot(
-        lambda x: C_lambda(x, Non, Noff, alpha)[0]-0.99,
-        guess,
-        solver='secant',
-        tol=1e-8)
-    return b
-
+    return l_something(Non, Noff, alpha, 0.99, 3.0)
 
 def l_84(Non, Noff, alpha):
-    '''
-    this function shall find the 84% signal
-    posterior UL using the secant method and a good guess of the
-    starting point
-    '''
-    sigma = sqrt(alpha*alpha*Noff + Non)
-    lstar = 0.0-alpha*Noff+Non
-
-    # lmin = 1e-11 if (lstar - sigma) < 0 else (lstar - sigma)
-    lmax = 1e-11 if (lstar + 1.*sigma) < 0 else (lstar + 1.*sigma)
-    guess = 1. + lmax
-    # print(sigma, lstar, lmax, guess)
-
-    b = findroot(
-        lambda x: C_lambda(x, Non, Noff, alpha)[0] - 0.84,
-        guess,
-        solver='secant',
-        tol=1e-8)
-    return b
-
+    return l_something(Non, Noff, alpha, 0.84, 1.0)
 
 def l_16(Non, Noff, alpha):
+    return l_something(Non, Noff, alpha, 0.16, 0.2)
+
+def l_something(
+        Non,
+        Noff,
+        alpha,
+        limit=0.16,
+        guess_offset=0.2):
     '''
-    this function shall find the 16% signal
+    this function shall find the limit(default: 16%) signal
     posterior UL using the secant method and a good guess of the
     starting point
     '''
     sigma = sqrt(alpha*alpha*Noff + Non)
     lstar = 0.0-alpha*Noff+Non
 
-    # lmin = 1e-11 if (lstar - sigma) < 0 else (lstar - sigma)
     lmax = 1e-11 if (lstar - 1.*sigma) < 0 else (lstar - 1.*sigma)
-    guess = 0.2 + lmax
-    # print(sigma, lstar, lmax, guess)
+    guess = guess_offset + lmax
 
     b = findroot(
-        lambda x: C_lambda(x, Non, Noff, alpha)[0] - 0.16,
+        lambda x: C_lambda(x, Non, Noff, alpha)[0] - limit,
         guess,
         solver='secant',
         tol=1e-8)
     return b
+
 
 # run the above methods to test them, if called directly
 if __name__ == "__main__":
