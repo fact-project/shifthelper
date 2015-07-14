@@ -52,7 +52,7 @@ def main():
     handle_QLA.setup(args)
     args = handle_cli.setup(args)
 
-    args['--telegram'] == handle_telegram.setup(args['--telegram'])
+    args['--telegram'] = handle_telegram.setup(args['--telegram'])
 
     while True:
         try:
