@@ -22,6 +22,18 @@ def get_last_message_data():
         lastname = chatdata.get('last_name', '')
         return chat_id, firstname, lastname
 
+def send_image(image):
+    try:
+        r = requests.post(
+            url.format(token=bot_token, method='sendPhoto'),
+            data={'chat_id': chat_id},
+            files={'photo': open(image, 'rb')},
+            timeout=15,
+        )
+    except requests.exceptions.Timeout:
+        print('Telegram "send_message" timed out')
+    return r
+
 
 def send_message(message):
     try:
