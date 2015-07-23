@@ -48,7 +48,7 @@ def main():
         print(mesg.format('DEBUG MODE - DO NOT USE DURING SHIFT'))
 
     handle_Skype.setup(args)
-    # handle_dim_stuff.setup(args)
+    handle_dim_stuff.setup(args)
     handle_QLA.setup(args)
     args = handle_cli.setup(args)
 
@@ -60,7 +60,7 @@ def main():
             # if the shifter needs to be called
             timestamp = datetime.utcnow().strftime('%Y-%d-%m %H:%M:%S')
             print('\n' + term.cyan(timestamp))
-            # handle_dim_stuff.perform_checks(debug=args['--debug'])
+            handle_dim_stuff.perform_checks(debug=args['--debug'])
             handle_QLA.perform_checks()
             print(term.green("Everything OK!"))
             time.sleep(args['--interval'])
