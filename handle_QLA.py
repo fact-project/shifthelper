@@ -118,14 +118,15 @@ def perform_checks():
         return
 
     print('max rates of today:')
-    for source, rate, source_key in qla_max_rates.iterrows():
-        rate = float(rate)
+    for source, data in qla_max_rates.iterrows():
+        print(data)
+        rate = float(data['rate'])
         if rate > max_rate[source]:
             max_rate[source] = rate
             if max_rate[source] > alert_rate[source]:
                 msg = '    !!!! Source {} over alert rate: {:3.1f} Events/h'
                 raise QLAException(
-                    source_key,
+                    int(data['fSourceKEY']),
                     msg.format(source, max_rate[source]),
                 )
         print('{} : {:3.1f} Events/h'.format(source, max_rate[source]))
@@ -134,15 +135,14 @@ def get_image(source_key):
     night = fact.night()
     link = 'http://fact-project.org/lightcurves/' \
         '{year}/{month:02d}/{day:02d}/' \
-        'lightcurve{sourcekey}_20min_{year}{moth:02d}{day:02d}.root-2.png'
-
-    urllib.urlretrieve(
-        link.format(
-            year=night.year,
-            day=night.day,
-            month=night.day,
-            sourcekey=source_key,
-        ),
-        'tmp.png',
+        'lightcurve{sourcekey}_20min_{year}{month:02d}{day:02d}.root-2.png'
+    link = link.format(
+        year=night.year,
+        month=night.month,
+        day=night.day,
+        sourcekey=source_key,
     )
+    ret = urllib.urlopen(link)
+    with open('tmp.png', 'wb') as f:
+        f.write(ret.read())
     return open('tmp.png', 'rb')
