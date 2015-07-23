@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+from __future__ import print_function, division
 from collections import defaultdict
 from blessings import Terminal
 term = Terminal()
@@ -16,12 +18,13 @@ if not os.path.exists('plots'):
     os.makedirs('plots')
 
 config = SafeConfigParser()
+config.optionxform = str  # this make the parsing case sensitive
 config.read('config.ini')
 
 max_rate = defaultdict(lambda: 0)
 alert_rate = defaultdict(lambda: config.getint('qla', 'default'))
 for key, val in config.items('qla'):
-    if key is not 'default':
+    if key not in ['default', ]:
         alert_rate[key] = int(val)
 
 
