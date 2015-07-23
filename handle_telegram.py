@@ -2,17 +2,21 @@
 from __future__ import unicode_literals
 import requests
 import json
+from ConfigParser import SafeConfigParser
 from blessings import Terminal
 
 term = Terminal()
+config = SafeConfigParser()
+config.read('config.ini')
 
-bot_token = '<botoken>'
-url = 'https://api.telegram.org/bot{}'.format(bot_token) + '/{method}'
+url = 'https://api.telegram.org/bot{token}'.format(
+    token=config.get('telegram', 'token')
+)
 chat_id = None
 
 
 def get_last_message_data():
-    update = requests.get(url.format(method='getUpdates'), timeout=5)
+    update = requests.get(url + '/getUpdates', timeout=5)
     update = json.loads(update.content.decode('utf8'))
 
     if update['ok']:
@@ -25,7 +29,7 @@ def get_last_message_data():
 def send_image(image):
     try:
         r = requests.post(
-            url.format(token=bot_token, method='sendPhoto'),
+            url + '/sendPhoto',
             data={'chat_id': chat_id},
             files={'photo': image},
             timeout=15,
@@ -38,7 +42,7 @@ def send_image(image):
 def send_message(message):
     try:
         r = requests.post(
-            url.format(token=bot_token, method='sendMessage'),
+            url + '/sendMessage',
             data={'chat_id': chat_id, 'text': message},
             timeout=5,
         )

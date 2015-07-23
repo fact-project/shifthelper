@@ -5,6 +5,8 @@ from sqlalchemy import create_engine
 import pandas as pd
 from bokeh.plotting import figure, output_file, save
 
+from ConfigParser import SafeConfigParser
+
 import fact
 from fact_exceptions import QLAException
 import urllib
@@ -13,21 +15,26 @@ import os
 if not os.path.exists('plots'):
     os.makedirs('plots')
 
+config = SafeConfigParser()
+config.read('config.ini')
+
 max_rate = defaultdict(lambda: 0)
-alert_rate = defaultdict(lambda: 10)
-alert_rate['Mrk 501'] = 45
-alert_rate['Mrk 421'] = 45
+alert_rate = defaultdict(lambda: config.getint('qla', 'default'))
+for key, val in config.items('qla'):
+    if key is not 'default':
+        alert_rate[key] = int(val)
+
 
 colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
 
-
-factdb = None
-
-
-def setup(args):
-    global factdb
-    factdb = create_engine(
-        "mysql+mysqldb://<databasecredentials>")
+factdb = create_engine(
+    "mysql+mysqldb://{user}:{pw}@{host}/{db}".format(
+        user=config.get('database', 'user'),
+        pw=config.get('database', 'password'),
+        host=config.get('database', 'host'),
+        db=config.get('database', 'database'),
+    )
+)
 
 
 def get_max_rates():
