@@ -13,6 +13,9 @@ class SecurityException(FACTException):
 
 
 class QLAException(FACTException):
+    def __init__(self, source_key, *args, **kwargs):
+        self.source_key = source_key
+        super.__init__(*args, **kwargs)
     __name__ = 'QLAException'
 
 

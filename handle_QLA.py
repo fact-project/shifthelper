@@ -7,6 +7,7 @@ from bokeh.plotting import figure, output_file, save
 
 import fact
 from fact_exceptions import QLAException
+import urllib
 
 max_rate = defaultdict(lambda: 0)
 alert_rate = defaultdict(lambda: 10)
@@ -34,6 +35,7 @@ def get_max_rates():
         'QLA.fOnTimeAfterCuts',
         'RunInfo.fRunStart',
         'Source.fSourceName',
+        'Source.fSourceKEY',
     ]
 
     sql_query = """SELECT {comma_sep_keys}
@@ -62,7 +64,11 @@ def get_max_rates():
     # resample in 20 min intervals by summing up events and ontime
     binned = grouped.resample(
         '20Min',
-        how={'fNumExcEvts': 'sum', 'fOnTimeAfterCuts': 'sum'},
+        how={
+            'fNumExcEvts': 'sum',
+            'fOnTimeAfterCuts': 'sum',
+            'fSourceKEY': 'median',
+        },
     )
     # throw away bins with less than 5 minutes of datataking
     binned = binned.query('fOnTimeAfterCuts >= 300').copy()
@@ -75,7 +81,9 @@ def get_max_rates():
     create_bokeh_plot(binned)
 
     # get the maximum rate for each source
-    max_rate = binned.groupby(level='fSourceName').aggregate({'rate': 'max'})
+    max_rate = binned.groupby(level='fSourceName').aggregate(
+        {'rate': 'max', 'fSourceKEY': 'median'}
+    )
     return max_rate
 
 
@@ -110,11 +118,31 @@ def perform_checks():
         return
 
     print('max rates of today:')
-    for source, rate in qla_max_rates.iterrows():
+    for source, rate, source_key in qla_max_rates.iterrows():
         rate = float(rate)
         if rate > max_rate[source]:
             max_rate[source] = rate
             if max_rate[source] > alert_rate[source]:
                 msg = '    !!!! Source {} over alert rate: {:3.1f} Events/h'
-                raise QLAException(msg.format(source, max_rate[source]))
+                raise QLAException(
+                    source_key,
+                    msg.format(source, max_rate[source]),
+                )
         print('{} : {:3.1f} Events/h'.format(source, max_rate[source]))
+
+def get_image(source_key):
+    night = fact.night()
+    link = 'http://fact-project.org/lightcurves/' \
+        '{year}/{month:02d}/{day:02d}/' \
+        'lightcurve{sourcekey}_20min_{year}{moth:02d}{day:02d}.root-2.png'
+
+    urllib.urlretrieve(
+        link.format(
+            year=night.year,
+            day=night.day,
+            month=night.day,
+            sourcekey=source_key,
+        ),
+        'tmp.png',
+    )
+    return open('tmp.png', 'rb')

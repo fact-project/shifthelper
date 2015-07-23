@@ -30,7 +30,7 @@ import handle_dim_stuff
 import handle_cli
 import handle_Skype
 import handle_telegram
-from fact_exceptions import FACTException
+from fact_exceptions import FACTException, QLAException
 from docopt import docopt
 
 
@@ -69,6 +69,11 @@ def main():
             print(term.red(mesg))
             if args['--telegram']:
                 handle_telegram.send_message(mesg)
+                if isinstance(e, QLAException):
+                    image = handle_QLA.get_image(e.source_key)
+                    handle_telegram.send_image(image)
+                    image.close()
+
             handle_Skype.call(args['<phonenumber>'])
             time.sleep(args['--interval'])
         except (KeyboardInterrupt, SystemExit):

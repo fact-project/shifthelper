@@ -27,7 +27,7 @@ def send_image(image):
         r = requests.post(
             url.format(token=bot_token, method='sendPhoto'),
             data={'chat_id': chat_id},
-            files={'photo': open(image, 'rb')},
+            files={'photo': image},
             timeout=15,
         )
     except requests.exceptions.Timeout:
