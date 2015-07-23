@@ -123,7 +123,6 @@ def perform_checks():
 
     print('max rates of today:')
     for source, data in qla_max_rates.iterrows():
-        print(data)
         rate = float(data['rate'])
         if rate > max_rate[source]:
             max_rate[source] = rate
