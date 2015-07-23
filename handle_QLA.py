@@ -8,6 +8,10 @@ from bokeh.plotting import figure, output_file, save
 import fact
 from fact_exceptions import QLAException
 import urllib
+import os
+
+if not os.path.exists('plots'):
+    os.makedirs('plots')
 
 max_rate = defaultdict(lambda: 0)
 alert_rate = defaultdict(lambda: 10)
@@ -91,7 +95,7 @@ def create_bokeh_plot(data):
     '''create bokeh plot at www.fact-project.org/qla
     expects a pandas dataframe with 2 level index, Source, Time
     '''
-    output_file('qla.html', title='ShiftHelper QLA')
+    output_file('plots/qla.html', title='ShiftHelper QLA')
     fig = figure(width=600, height=400, x_axis_type='datetime')
     for i, source in enumerate(data.index.levels[0]):
         fig.circle(
@@ -143,6 +147,6 @@ def get_image(source_key):
         sourcekey=source_key,
     )
     ret = urllib.urlopen(link)
-    with open('tmp.png', 'wb') as f:
+    with open('plots/qla.png', 'wb') as f:
         f.write(ret.read())
-    return open('tmp.png', 'rb')
+    return open('plots/qla.png', 'rb')
