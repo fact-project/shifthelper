@@ -10,8 +10,7 @@ call
 
 You can give the number directly as firs command line option
 
-## Why is this a private repo?
+# the config file
 
-Because in the code there are login credentials to our RunInfo DB.
-While the information stored in our RunInfo DB are public by design, the access
-to this DB using this read-only user is **not** to be considered safe.
+Credentials and other config data is stored in the config.ini file
+a dummy is stored in the config_example.ini

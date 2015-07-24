@@ -49,7 +49,6 @@ def main():
 
     handle_Skype.setup(args)
     handle_dim_stuff.setup(args)
-    handle_QLA.setup(args)
     args = handle_cli.setup(args)
 
     args['--telegram'] = handle_telegram.setup(args['--telegram'])
