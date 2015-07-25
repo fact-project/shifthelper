@@ -17,7 +17,7 @@ Options
 
     --interval=<N>  The interval between the cecks in seconds [default: 60]
 
-    --ringtime=<N>  how long skype wil lett you phone ring [default: 10]
+    --ringtime=<N>  how long skype wil lett you phone ring [default: 20]
 
     --telegram  Get Telegram messages with errors from the factShiftHelperBot
 '''
