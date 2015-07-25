@@ -57,7 +57,7 @@ def main():
         try:
             # the perform_checks() functions throw an FACTException
             # if the shifter needs to be called
-            timestamp = datetime.utcnow().strftime('%Y-%d-%m %H:%M:%S')
+            timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
             print('\n' + term.cyan(timestamp))
             handle_dim_stuff.perform_checks(debug=args['--debug'])
             handle_QLA.perform_checks()
