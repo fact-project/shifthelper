@@ -13,6 +13,7 @@ import fact
 from fact_exceptions import QLAException
 import urllib
 import os
+import numpy as np
 
 if not os.path.exists('plots'):
     os.makedirs('plots')
@@ -75,6 +76,8 @@ def get_data(bin_width_minutes=20):
     )
     # drop rows with NaNs from the table, these are unfinished qla results
     data.dropna(inplace=True)
+    data.sort('fRunStart', inplace=True)
+    data.index = np.arange(len(data.index))
 
     # if no qla data is available, return None
     if len(data.index) == 0:
@@ -84,6 +87,7 @@ def get_data(bin_width_minutes=20):
     grouped = data.groupby('fSourceName')
     binned = pd.DataFrame()
     for source, group in grouped:
+        group = group.copy()
         group['bin'] = dorner_binning(group, bin_width_minutes)
         agg = group.groupby('bin').aggregate({
             'fOnTimeAfterCuts': 'sum',
@@ -103,7 +107,6 @@ def get_data(bin_width_minutes=20):
 
 def create_bokeh_plot(data):
     '''create bokeh plot at www.fact-project.org/qla
-    expects a pandas dataframe with 2 level index, Source, Time
     '''
     output_file('plots/qla.html', title='ShiftHelper QLA')
     fig = figure(width=600, height=400, x_axis_type='datetime')
