@@ -96,10 +96,13 @@ def get_data(bin_width_minutes=20):
             'fNumBgEvts':       'sum',
             'fRunStart':        'min',
             'fRunStop':         'max',
-            'fSourceKEY':       'median',
         })
         agg['fSourceName'] = source
         agg['rate'] = agg.fNumExcEvts / agg.fOnTimeAfterCuts * 3600
+        agg['xerr'] = (agg.fRunStop - agg.fRunStart) / 2
+        agg['timeMean'] = agg.fRunStart + agg.xerr
+        agg['yerr'] = np.sqrt(np.abs(agg.fNumSigEvts) + np.abs(agg.fNumExcEvts))
+        agg['yerr'] /= agg.fOnTimeAfterCuts / 3600
         valid = agg.query('fOnTimeAfterCuts > 0.9*60*{}'.format(bin_width_minutes))
         binned = binned.append(valid, ignore_index=True)
     return binned
@@ -111,9 +114,12 @@ def create_bokeh_plot(data):
     output_file('plots/qla.html', title='ShiftHelper QLA')
     fig = figure(width=600, height=400, x_axis_type='datetime')
     for i, (name, group) in enumerate(data.groupby('fSourceName')):
-        fig.circle(
-            x=group.fRunStart,
+        errorbar(
+            fig=fig,
+            x=group.timeMean,
             y=group.rate,
+            xerr=group.xerr,
+            yerr=group.yerr,
             legend=name,
             color=colors[i],
         )
@@ -125,17 +131,18 @@ def create_bokeh_plot(data):
 def create_mpl_plot(data):
     import matplotlib.pyplot as plt
     for name, group in data.groupby('fSourceName'):
-        group.plot(
-            x='fRunStart',
-            y='rate',
+        plt.errorbar(
+            x=group.timeMean,
+            y=group.rate,
+            xerr=group.xerr,
+            yerr=group.yerr,
             label=name,
-            marker='x',
-            linestyle='none',
-            ax=plt.gca(),
+            fmt='o',
+            mec='none',
         )
     plt.legend(loc='best')
     plt.tight_layout()
-    plt.savefig('plot.png')
+    plt.savefig('plots/shift_helper_qla.png')
 
 def perform_checks():
     """ raise ValueError if new flare detected.
@@ -151,6 +158,7 @@ def perform_checks():
     qla_max_rates = data.groupby('fSourceName').agg({'rate': 'max'})
 
     create_mpl_plot(data)
+    create_bokeh_plot(data)
 
     print('max rates of today:')
     for source, data in qla_max_rates.iterrows():
@@ -183,16 +191,48 @@ def get_image(source_key):
     return open('plots/qla.png', 'rb')
 
 
+
 def dorner_binning(data, bin_width_minutes=20):
-    ''' this hopefully creates the same binning as in lightcurve.C
-    '''
     bin_number = 0
     ontime_sum = 0
     bins = []
     for key, row in data.iterrows():
-        ontime_sum += row['fOnTimeAfterCuts']
-        bins.append(bin_number)
-        if ontime_sum > bin_width_minutes * 60:
+        if ontime_sum + row.fOnTimeAfterCuts >= bin_width_minutes * 60:
             bin_number += 1
             ontime_sum = 0
+        bins.append(bin_number)
+        ontime_sum += row['fOnTimeAfterCuts']
     return pd.Series(bins, index=data.index)
+
+
+
+def errorbar(
+        fig,
+        x,
+        y,
+        xerr=None,
+        yerr=None,
+        color='red',
+        legend=None,
+        point_kwargs={},
+        error_kwargs={},
+        ):
+
+    fig.circle(x, y, color=color, legend=legend, **point_kwargs)
+
+    double_x = np.repeat(x, 2)
+    double_y = np.repeat(y, 2)
+
+    if xerr is not None:
+        x_err_x = double_x
+        x_err_x[::2] -= xerr
+        x_err_x[1::2] += xerr
+        x_err_y = double_y
+        fig.multi_line(x_err_x, x_err_y, color=color, **error_kwargs)
+
+    if yerr is not None:
+        y_err_x = double_x
+        y_err_y = double_y
+        y_err_y[::2] -= yerr
+        y_err_y[1::2] += yerr
+        fig.multi_line(y_err_x, y_err_y, color=color, **error_kwargs)
