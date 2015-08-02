@@ -153,7 +153,7 @@ def create_mpl_plot(data):
 def perform_checks():
     """ raise ValueError if new flare detected.
 
-    If the maximum excess rates are over the alter_rates for a source
+    If the maximum excess rates are over the alert_rate for a source
     and also higher than before, throw a ValueErrorm which leads to
     a skype-call inside the main while loop of shift_helper.py
     """
