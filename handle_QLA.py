@@ -66,7 +66,7 @@ def get_data(bin_width_minutes=20):
     """
     sql_query = sql_query.format(
         comma_sep_keys=', '.join(keys),
-        night=20150723,
+        night=fact.night_integer(),
     )
 
     data = pd.read_sql_query(
@@ -96,6 +96,7 @@ def get_data(bin_width_minutes=20):
             'fNumBgEvts':       'sum',
             'fRunStart':        'min',
             'fRunStop':         'max',
+            'fSourceKEY':       'median',
         })
         agg['fSourceName'] = source
         agg['rate'] = agg.fNumExcEvts / agg.fOnTimeAfterCuts * 3600
@@ -116,10 +117,10 @@ def create_bokeh_plot(data):
     for i, (name, group) in enumerate(data.groupby('fSourceName')):
         errorbar(
             fig=fig,
-            x=group.timeMean,
-            y=group.rate,
-            xerr=group.xerr,
-            yerr=group.yerr,
+            x=group.timeMean.values,
+            y=group.rate.values,
+            xerr=group.xerr.values,
+            yerr=group.yerr.values,
             legend=name,
             color=colors[i],
         )
@@ -129,7 +130,10 @@ def create_bokeh_plot(data):
 
 
 def create_mpl_plot(data):
+    import matplotlib
+    matplotlib.use('Agg')
     import matplotlib.pyplot as plt
+    plt.figure()
     for name, group in data.groupby('fSourceName'):
         plt.errorbar(
             x=group.timeMean,
@@ -143,6 +147,8 @@ def create_mpl_plot(data):
     plt.legend(loc='best')
     plt.tight_layout()
     plt.savefig('plots/shift_helper_qla.png')
+    plt.close('all')
+
 
 def perform_checks():
     """ raise ValueError if new flare detected.
@@ -155,7 +161,10 @@ def perform_checks():
     if data is None:
         print('No QLA data available yet')
         return
-    qla_max_rates = data.groupby('fSourceName').agg({'rate': 'max'})
+    qla_max_rates = data.groupby('fSourceName').agg({
+        'rate': 'max',
+        'fSourceKEY': 'median',
+    })
 
     create_mpl_plot(data)
     create_bokeh_plot(data)
@@ -172,6 +181,7 @@ def perform_checks():
                     msg.format(source, max_rate[source]),
                 )
         print('{} : {:3.1f} Events/h'.format(source, max_rate[source]))
+
 
 def get_image(source_key):
     ''' returns the png qla-plot of the selected source '''
