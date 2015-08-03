@@ -38,14 +38,18 @@ from collections import deque
 def main(stop_event):
     term = Terminal()
     args = docopt(__doc__)
+    mesg = term.red(80*'=' + '\n' + '{:^80}\n' + 80*'=')
+    print(mesg.format('You are on a trial branch. Calling and messages are not'
+                      'implemented. Use only the master branch for the shift'
+                      ))
 
     args['--interval'] = float(args['--interval'])
     args['--ringtime'] = float(args['--ringtime'])
     assert args['--ringtime'] < args['--interval'], \
         'Ringtime has to be smaller than interval'
 
+
     if args['--debug']:
-        mesg = term.red(80*'=' + '\n' + '{:^80}\n' + 80*'=')
         print(mesg.format('DEBUG MODE - DO NOT USE DURING SHIFT'))
 
     # handle_Skype.setup(args)
