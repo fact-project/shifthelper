@@ -64,7 +64,7 @@ def main():
             print(term.green("Everything OK!"))
             time.sleep(args['--interval'])
         except FACTException as e:
-            mesg = e.__name__ + ":\n" + str(e)
+            mesg = e.__name__ + ":\n" + unicode(e)
             print(term.red(mesg))
             if args['--telegram']:
                 handle_telegram.send_message(mesg)
