@@ -215,7 +215,6 @@ def dorner_binning(data, bin_width_minutes=20):
     return pd.Series(bins, index=data.index)
 
 
-
 def errorbar(
         fig,
         x,
@@ -230,19 +229,19 @@ def errorbar(
 
     fig.circle(x, y, color=color, legend=legend, **point_kwargs)
 
-    double_x = np.repeat(x, 2)
-    double_y = np.repeat(y, 2)
 
     if xerr is not None:
-        x_err_x = double_x
-        x_err_x[::2] -= xerr
-        x_err_x[1::2] += xerr
-        x_err_y = double_y
+        x_err_x = []
+        x_err_y = []
+        for px, py, err in zip(x, y, xerr):
+            x_err_x.append((px - err, px + err))
+            x_err_y.append((py, py))
         fig.multi_line(x_err_x, x_err_y, color=color, **error_kwargs)
 
     if yerr is not None:
-        y_err_x = double_x
-        y_err_y = double_y
-        y_err_y[::2] -= yerr
-        y_err_y[1::2] += yerr
+        y_err_x = []
+        y_err_y = []
+        for px, py, err in zip(x, y, yerr):
+            y_err_x.append((px, px))
+            y_err_y.append((py - err, py + err))
         fig.multi_line(y_err_x, y_err_y, color=color, **error_kwargs)
