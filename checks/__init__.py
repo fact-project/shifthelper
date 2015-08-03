@@ -33,7 +33,7 @@ class Alert(Thread):
 
     def run(self):
         while not self.stop_event.is_set():
-            now = datetime.utcnow().strftime('%Y-%m-%d %H%:M:%S -- ')
+            now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S -- ')
             if len(self.queue) > 0:
                 if self.caller is not None:
                     self.caller.place_call()
