@@ -89,8 +89,12 @@ def main(stop_event):
     check_currents = CurrentCheck(alert.queue, args['--interval'], stop_event)
     check_currents.start()
 
-    alert.start()
+    from checks.qla import FlareAlert
+    flare_alert = FlareAlert(alert.queue, args['--interval'], stop_event)
+    flare_alert.start()
+
     print('All checkers are running')
+    alert.start()
 
     while True:
         try:

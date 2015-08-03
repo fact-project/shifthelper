@@ -42,6 +42,8 @@ class FlareAlert(Check):
         data = get_data()
         if data is None:
             return
+        if len(data.index) == 0:
+            return
         qla_max_rates = data.groupby('fSourceName').agg({
             'rate': 'max',
             'fSourceKEY': 'median',
