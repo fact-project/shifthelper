@@ -25,16 +25,17 @@ from __future__ import print_function
 import time
 from datetime import datetime
 from blessings import Terminal
-import handle_QLA
-import handle_dim_stuff
 import handle_cli
 import handle_Skype
 import handle_telegram
 from fact_exceptions import FACTException, QLAException
 from docopt import docopt
 
+from threading import Event
+from collections import deque
 
-def main():
+
+def main(stop_event):
     term = Terminal()
     args = docopt(__doc__)
 
@@ -47,34 +48,38 @@ def main():
         mesg = term.red(80*'=' + '\n' + '{:^80}\n' + 80*'=')
         print(mesg.format('DEBUG MODE - DO NOT USE DURING SHIFT'))
 
-    handle_Skype.setup(args)
-    handle_dim_stuff.setup(args)
-    args = handle_cli.setup(args)
+    # handle_Skype.setup(args)
+    # args = handle_cli.setup(args)
+    # args['--telegram'] = handle_telegram.setup(args['--telegram'])
 
-    args['--telegram'] = handle_telegram.setup(args['--telegram'])
+    from checks import Alert
+    alert = Alert(queue=deque(),
+                  interval=args['--interval'],
+                  stop_event=stop_event
+                  )
+
+    if not args['-debug']:
+        from checks.dim import MainJsStatusCheck
+        check_mainjs = MainJsStatusCheck(
+            alert.queue,
+            args['--interval'],
+            stop_event,
+        )
+        check_mainjs.start()
+
+    from checks.dim import WeatherCheck
+    check_weather = WeatherCheck(alert.queue, args['--interval'], stop_event)
+    check_weather.start()
+
+    from checks.dim import CurrentCheck
+    check_currents = CurrentCheck(alert.queue, args['--interval'], stop_event)
+    check_currents.start()
+
+    alert.start()
 
     while True:
         try:
-            # the perform_checks() functions throw an FACTException
-            # if the shifter needs to be called
-            timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-            print('\n' + term.cyan(timestamp))
-            handle_dim_stuff.perform_checks(debug=args['--debug'])
-            handle_QLA.perform_checks()
-            print(term.green("Everything OK!"))
-            time.sleep(args['--interval'])
-        except FACTException as e:
-            mesg = e.__name__ + ":\n" + unicode(e)
-            print(term.red(mesg))
-            if args['--telegram']:
-                handle_telegram.send_message(mesg)
-                if isinstance(e, QLAException):
-                    image = handle_QLA.get_image(e.source_key)
-                    handle_telegram.send_image(image)
-                    image.close()
-
-            handle_Skype.call(args['<phonenumber>'])
-            time.sleep(args['--interval'])
+            time.sleep(10)
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception:
@@ -89,6 +94,7 @@ def main():
 
 if __name__ == '__main__':
     try:
-        main()
+        stop_event = Event()
+        main(stop_event)
     except (KeyboardInterrupt, SystemExit):
-        pass
+        stop_event.set()
