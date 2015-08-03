@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 from __future__ import print_function
-import handle_Skype
 from blessings import Terminal
 
 term = Terminal()
@@ -14,52 +13,40 @@ def enter_phone_number():
     return my_phone_number
 
 
-def confirm_phonenumber(my_phone_number):
-    print("You entered: ", my_phone_number)
+def confirm_phonenumber(caller):
+    print("You entered: ", caller.phonenumber)
     confirm_correctness = raw_input('Is that number correct? (y/n): ')
-    if not confirm_correctness.lower()[0] == 'y':
-        my_phone_number = None
-    return my_phone_number
+    if not confirm_correctness.lower().startswith('y'):
+        caller.phonenumber = None
 
 
-def try_to_call(my_phone_number):
+def try_to_call(caller):
     """ Returns if the call worked or not.
     """
     print("I will try to call you now")
-    handle_Skype.call(my_phone_number)
+    caller.place_call()
     recieved_call = raw_input('Did your phone ring? (y/n): ')
-    if recieved_call.lower()[0] == 'y':
+    if recieved_call.lower().startswith('y'):
         return True
     return False
 
 
-def check_phonenumber(my_phone_number):
+def check_phonenumber(caller):
     calling_worked = False
-    while (not calling_worked or my_phone_number is None):
-        if my_phone_number is None:
-            my_phone_number = enter_phone_number()
-        my_phone_number = confirm_phonenumber(my_phone_number)
+    while (not calling_worked or caller.phonenumber is None):
+        if caller.phonenumber is None:
+            caller.phonenumber = enter_phone_number()
+        confirm_phonenumber(caller)
 
-        if my_phone_number is not None:
-            calling_worked = try_to_call(my_phone_number)
-
-    return my_phone_number
+        if caller.phonenumber is not None:
+            calling_worked = try_to_call(caller)
 
 
-def setup(args):
-    """ basically asks for phonenumber, makes sure it works
-
-    AND pushes it back into args
-
-    therefor it returns args, in order to syntactically make sure,
-    it altered args.
-    """
-    print(term.cyan('\nCell phone/Skype Setup'))
-    if args['<phonenumber>'] is not None:
-        my_phone_number = check_phonenumber(args['<phonenumber>'])
+def ask_telegram():
+    answer = raw_input(
+        'Do you want to use the telegram messenger to get error messages? (y/n)'
+    )
+    if answer.lower().startswith('y'):
+        return True
     else:
-        my_phone_number = enter_phone_number()
-        my_phone_number = check_phonenumber(my_phone_number)
-
-    args['<phonenumber>'] = my_phone_number
-    return args
+        return False

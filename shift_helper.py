@@ -18,24 +18,26 @@ Options
     --interval=<N>  The interval between the cecks in seconds [default: 60]
 
     --ringtime=<N>  how long skype wil lett you phone ring [default: 20]
-
-    --telegram  Get Telegram messages with errors from the factShiftHelperBot
 '''
 from __future__ import print_function
 import time
 from datetime import datetime
 from blessings import Terminal
 import handle_cli
-import handle_Skype
 import handle_telegram
-from fact_exceptions import FACTException, QLAException
 from docopt import docopt
-
 from threading import Event
 from collections import deque
+from ConfigParser import SafeConfigParser
+
+from communication import SkypeInterface, TelegramInterface
 
 
 def main(stop_event):
+
+    config = SafeConfigParser()
+    config.read('config.ini')
+
     term = Terminal()
     args = docopt(__doc__)
     mesg = term.red(80*'=' + '\n' + '{:^80}\n' + 80*'=')
@@ -52,14 +54,22 @@ def main(stop_event):
     if args['--debug']:
         print(mesg.format('DEBUG MODE - DO NOT USE DURING SHIFT'))
 
-    # handle_Skype.setup(args)
-    # args = handle_cli.setup(args)
-    # args['--telegram'] = handle_telegram.setup(args['--telegram'])
+    print(term.cyan('Skype Setup'))
+    skype = SkypeInterface(args['<phonenumber>'], args['--ringtime'])
+    handle_cli.check_phonenumber(skype)
+
+    print(term.cyan('\nTelegram Setup'))
+    if handle_cli.ask_telegram() is True:
+        telegram = TelegramInterface(config.get('telegram', 'token'))
+    else:
+        telegram = None
 
     from checks import Alert
     alert = Alert(queue=deque(),
                   interval=args['--interval'],
-                  stop_event=stop_event
+                  stop_event=stop_event,
+                  caller=skype,
+                  messenger=telegram,
                   )
 
     if not args['--debug']:
@@ -80,6 +90,7 @@ def main(stop_event):
     check_currents.start()
 
     alert.start()
+    print('All checkers are running')
 
     while True:
         try:
@@ -92,7 +103,7 @@ def main(stop_event):
             else:
                 if args['--telegram']:
                     handle_telegram.send_message('Python Error')
-                handle_Skype.call(args['<phonenumber>'])
+                skype.place_call(args['<phonenumber>'])
                 time.sleep(args['--interval'])
 
 

@@ -10,11 +10,12 @@ term = Terminal()
 
 class SkypeInterface(object):
 
-    def __init__(self, args):
-        self.ringing_time = args['--ringtime']
+    def __init__(self, phonenumber, ringing_time):
+        self.ringing_time = ringing_time
         self.skype = Skype4Py.Skype(Transport='x11')
         self.skype.Attach()
         self.skype.OnCallStatus = self.on_call
+        self.phonenumber = phonenumber
 
     def call_status_text(self, status):
         return self.skype.Convert.CallStatusToText(status)
@@ -47,11 +48,11 @@ class SkypeInterface(object):
             call.Finish()
 
 
-    def place_call(self, my_phone_number):
+    def place_call(self):
         called = False
         while not called:
             try:
-                self.skype.PlaceCall(my_phone_number)
+                self.skype.PlaceCall(self.phonenumber)
                 called = True
             except Skype4Py.SkypeError:
                 mesg = 'Calling impossible, trying again in {:1.1f} seconds'
@@ -63,7 +64,7 @@ class TelegramInterface(object):
     url = 'https://api.telegram.org/bot{token}'
 
     def __init__(self, bot_token):
-        self.url = self.url.format(bot_token)
+        self.url = self.url.format(token=bot_token)
         print('\nPlease visit www.telegram.me/factShiftHelperBot\n'
               'click on "SEND MESSAGE", the Telegram App will open.\n'
               'Send the message "/start" to the shiftHelperBot.\n'
@@ -75,7 +76,7 @@ class TelegramInterface(object):
                 send_start = raw_input('Did you send the /start command? (y/n):')
                 if send_start.lower()[0] == 'y':
                     self.chat_id, first, last = self.get_last_message_data()
-                    print('Got a message from "{} {}"'.format(first, last))
+                    print(u'Got a message from "{} {}"'.format(first, last))
                 else:
                     continue
                 confirmed = self.check_connection()
