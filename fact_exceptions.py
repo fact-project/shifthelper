@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 '''
 create custom exceptions to better handle
 the different problems that can occure

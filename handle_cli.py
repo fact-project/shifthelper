@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 from __future__ import print_function
 import handle_Skype
 from blessings import Terminal
