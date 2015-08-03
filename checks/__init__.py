@@ -31,4 +31,4 @@ class Alert(Thread):
         while not self.stop_event.is_set():
             while len(self.queue) > 0:
                 print(self.queue.popleft())
-            self.stop_event.wait('interval')
+            self.stop_event.wait(self.interval)

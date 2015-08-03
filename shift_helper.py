@@ -58,7 +58,7 @@ def main(stop_event):
                   stop_event=stop_event
                   )
 
-    if not args['-debug']:
+    if not args['--debug']:
         from checks.dim import MainJsStatusCheck
         check_mainjs = MainJsStatusCheck(
             alert.queue,
