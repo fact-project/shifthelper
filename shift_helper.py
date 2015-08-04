@@ -24,7 +24,6 @@ import time
 from datetime import datetime
 from blessings import Terminal
 import handle_cli
-import handle_telegram
 from docopt import docopt
 from threading import Event
 from collections import deque
