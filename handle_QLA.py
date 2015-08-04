@@ -15,6 +15,8 @@ import urllib
 import os
 import numpy as np
 
+from itertools import cycle
+
 if not os.path.exists('plots'):
     os.makedirs('plots')
 
@@ -29,7 +31,7 @@ for key, val in config.items('qla'):
         alert_rate[key] = int(val)
 
 
-colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
+colors = cycle(['red', 'blue', 'green', 'black', 'cyan', 'yellow'])
 
 factdb = create_engine(
     "mysql+mysqldb://{user}:{pw}@{host}/{db}".format(
@@ -104,7 +106,9 @@ def get_data(bin_width_minutes=20):
         agg['timeMean'] = agg.fRunStart + agg.xerr
         agg['yerr'] = np.sqrt(np.abs(agg.fNumSigEvts) + np.abs(agg.fNumExcEvts))
         agg['yerr'] /= agg.fOnTimeAfterCuts / 3600
-        valid = agg.query('fOnTimeAfterCuts > 0.9*60*{}'.format(bin_width_minutes))
+        valid = agg.query(
+            'fOnTimeAfterCuts > 0.9*60*{}'.format(bin_width_minutes)
+        )
         binned = binned.append(valid, ignore_index=True)
     return binned
 
@@ -114,7 +118,9 @@ def create_bokeh_plot(data):
     '''
     output_file('plots/qla.html', title='ShiftHelper QLA')
     fig = figure(width=600, height=400, x_axis_type='datetime')
-    for i, (name, group) in enumerate(data.groupby('fSourceName')):
+    for name, group in data.groupby('fSourceName'):
+        if len(group.index) == 0:
+            continue
         errorbar(
             fig=fig,
             x=group.timeMean.values,
@@ -122,7 +128,7 @@ def create_bokeh_plot(data):
             xerr=group.xerr.values,
             yerr=group.yerr.values,
             legend=name,
-            color=colors[i],
+            color=next(colors),
         )
     legend = fig.legend[0]
     legend.orientation = 'top_left'
@@ -135,6 +141,8 @@ def create_mpl_plot(data):
     import matplotlib.pyplot as plt
     plt.figure()
     for name, group in data.groupby('fSourceName'):
+        if len(group.index) == 0:
+            continue
         plt.errorbar(
             x=group.timeMean,
             y=group.rate,
@@ -161,6 +169,10 @@ def perform_checks():
     if data is None:
         print('No QLA data available yet')
         return
+    if len(data.index) == 0:
+        print('No QLA data available yet')
+        return
+
     qla_max_rates = data.groupby('fSourceName').agg({
         'rate': 'max',
         'fSourceKEY': 'median',
@@ -201,7 +213,6 @@ def get_image(source_key):
     return open('plots/qla.png', 'rb')
 
 
-
 def dorner_binning(data, bin_width_minutes=20):
     bin_number = 0
     ontime_sum = 0
@@ -228,7 +239,6 @@ def errorbar(
         ):
 
     fig.circle(x, y, color=color, legend=legend, **point_kwargs)
-
 
     if xerr is not None:
         x_err_x = []
