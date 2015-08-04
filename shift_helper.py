@@ -27,6 +27,7 @@ import handle_cli
 from docopt import docopt
 from threading import Event
 from collections import deque
+from traceback import print_tb, format_exc
 from ConfigParser import SafeConfigParser
 
 from communication import SkypeInterface, TelegramInterface
@@ -38,7 +39,6 @@ def main(stop_event):
     config.read('config.ini')
 
     term = Terminal()
-    args = docopt(__doc__)
 
     args['--interval'] = float(args['--interval'])
     args['--ringtime'] = float(args['--ringtime'])
@@ -101,13 +101,15 @@ def main(stop_event):
             if args['--debug']:
                 raise
             else:
-                if args['--telegram']:
-                    handle_telegram.send_message('Python Error')
+                print_tb()
+                if telegram is not None:
+                    telegram.send_message(format_exc())
                 skype.place_call(args['<phonenumber>'])
                 time.sleep(args['--interval'])
 
 
 if __name__ == '__main__':
+    args = docopt(__doc__)
     try:
         stop_event = Event()
         main(stop_event)
