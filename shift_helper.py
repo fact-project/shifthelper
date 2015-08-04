@@ -32,6 +32,7 @@ import handle_Skype
 import handle_telegram
 from fact_exceptions import FACTException, QLAException
 from docopt import docopt
+from traceback import format_exc
 
 
 def main():
@@ -81,8 +82,10 @@ def main():
             if args['--debug']:
                 raise
             else:
+                exc = format_exc()
+                print(exc)
                 if args['--telegram']:
-                    handle_telegram.send_message('Python Error')
+                    handle_telegram.send_message(exc)
                 handle_Skype.call(args['<phonenumber>'])
                 time.sleep(args['--interval'])
 
