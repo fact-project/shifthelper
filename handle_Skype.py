@@ -53,7 +53,6 @@ def call(my_phone_number):
         try:
             skype.PlaceCall(my_phone_number)
             called = True
-            time.sleep(ringing_time)
         except Skype4Py.SkypeError:
             mesg = 'Calling impossible, trying again in {:1.1f} seconds'
             print(mesg.format(ringing_time))
