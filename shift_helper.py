@@ -78,7 +78,7 @@ def main(stop_event):
             alert.queue,
             args['--interval'],
             stop_event,
-            qla_data
+            qla_data,
             system_status,
         )
         check_mainjs.start()
@@ -88,7 +88,7 @@ def main(stop_event):
         alert.queue,
         args['--interval'],
         stop_event,
-        qla_data
+        qla_data,
         system_status,
     )
     check_weather.start()
