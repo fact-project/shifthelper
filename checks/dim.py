@@ -28,8 +28,7 @@ class WeatherCheck(Check):
 
         self.system_status['wind speed'] = ('{:2.1f}'.format(wind_speed), 'km/h')
         self.system_status['wind gusts'] = ('{:2.1f}'.format(wind_gusts), 'km/h')
-        self.system_status['humidity'] = ('{:2.1f}'.format(humidity), '%')
-
+        self.system_status['humidity'] = ('{:2.1f}'.format(humidity_outside), '%')
 
         if humidity_outside >= 98:
             mesg = "humidity_outside >= 98 %: {:2.1f} %"
