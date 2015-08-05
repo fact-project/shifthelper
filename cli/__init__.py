@@ -20,7 +20,7 @@ class StatusDisplay(Thread):
 
     def update_status(self):
         print(self.term.clear())
-        print(self.term.cyan(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        print(self.term.cyan(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')))
         with self.term.location(0, 2):
             print('System Status')
             for key, val in self.status_data.iteritems():
