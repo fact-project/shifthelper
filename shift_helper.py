@@ -113,7 +113,8 @@ def main(stop_event):
     )
     flare_alert.start()
 
-    status = StatusDisplay(qla_data, status_data, stop_event)
+    status = StatusDisplay(qla_data, system_status, stop_event)
+    status.start()
 
     print('All checkers are running')
     alert.start()
