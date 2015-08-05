@@ -21,13 +21,13 @@ class StatusDisplay(Thread):
     def update_status(self):
         print(self.term.clear())
         print(self.term.cyan(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')))
-        with self.term.location(0, 2):
-            print('System Status')
-            for key, val in self.status_data.iteritems():
-                print(u'{:<20}  {:6>} {:<6}'.format(key, *val))
-        with self.term.location(40, 2):
-            print('Maximum Source Activity')
-            for key, val in self.qla_data.iteritems():
-                print(self.term.move_x(40) + u'{:<20}  {:6>} {:<6}'.format(
-                    key, *val
-                ))
+        print(self.term.move(1, 0) + 'System Status')
+        for i, (key, val) in enumerate(self.status_data.iteritems()):
+            print(self.term.move(3+i, 0) + u'{:<20}  {:6>} {:<6}'.format(
+                key, *val
+            ))
+        print(self.term.move(2, 40) + 'Maximum Source Activity')
+        for i, (key, val) in enumerate(self.qla_data.iteritems()):
+            print(self.term.move(3+i, 40) + u'{:<20}  {:6>} {:<6}'.format(
+                key, *val
+            ))
