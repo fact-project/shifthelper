@@ -6,10 +6,13 @@ from blessings import Terminal
 term = Terminal()
 
 class Check(Thread):
-    def __init__(self, queue, interval, stop_event):
+    def __init__(self, queue, interval, stop_event,
+                 qla_data=None, system_status=None):
         self.queue = queue
         self.interval = interval
         self.stop_event = stop_event
+        self.qla_data = qla_data
+        self.system_status = system_status
         super(Check, self).__init__()
 
     def run(self):

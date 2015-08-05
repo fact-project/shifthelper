@@ -27,10 +27,11 @@ import handle_cli
 from docopt import docopt
 from threading import Event
 from collections import deque
-from traceback import print_tb, format_exc
+from traceback import format_exc
 from ConfigParser import SafeConfigParser
 
 from communication import SkypeInterface, TelegramInterface
+from cli import StatusDisplay
 
 
 def main(stop_event):
@@ -60,6 +61,9 @@ def main(stop_event):
     else:
         telegram = None
 
+    qla_data = {}
+    system_status = {}
+
     from checks import Alert
     alert = Alert(queue=deque(),
                   interval=args['--interval'],
@@ -74,20 +78,42 @@ def main(stop_event):
             alert.queue,
             args['--interval'],
             stop_event,
+            qla_data
+            system_status,
         )
         check_mainjs.start()
 
     from checks.dim import WeatherCheck
-    check_weather = WeatherCheck(alert.queue, args['--interval'], stop_event)
+    check_weather = WeatherCheck(
+        alert.queue,
+        args['--interval'],
+        stop_event,
+        qla_data
+        system_status,
+    )
     check_weather.start()
 
     from checks.dim import CurrentCheck
-    check_currents = CurrentCheck(alert.queue, args['--interval'], stop_event)
+    check_currents = CurrentCheck(
+        alert.queue,
+        args['--interval'],
+        stop_event,
+        qla_data,
+        system_status,
+    )
     check_currents.start()
 
     from checks.qla import FlareAlert
-    flare_alert = FlareAlert(alert.queue, args['--interval'], stop_event)
+    flare_alert = FlareAlert(
+        alert.queue,
+        args['--interval'],
+        stop_event,
+        qla_data,
+        system_status,
+    )
     flare_alert.start()
+
+    status = StatusDisplay(qla_data, status_data, stop_event)
 
     print('All checkers are running')
     alert.start()
@@ -101,9 +127,10 @@ def main(stop_event):
             if args['--debug']:
                 raise
             else:
-                print_tb()
+                exc = format_exc()
+                print(exc)
                 if telegram is not None:
-                    telegram.send_message(format_exc())
+                    telegram.send_message(exc)
                 skype.place_call(args['<phonenumber>'])
                 time.sleep(args['--interval'])
 
