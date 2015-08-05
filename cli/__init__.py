@@ -12,6 +12,7 @@ class StatusDisplay(Thread):
         self.status_data = status_data
         self.qla_data = qla_data
         self.term = Terminal()
+        self.term.clear()
         self.stop_event = stop_event
         super(StatusDisplay, self).__init__()
 
