@@ -31,6 +31,7 @@ class Alert(Thread):
         self.stop_event = stop_event
         self.caller = caller
         self.messenger = messenger
+        self.errors = 0
 
         super(Alert, self).__init__()
 
@@ -42,9 +43,9 @@ class Alert(Thread):
                     self.caller.place_call()
                 while len(self.queue) > 0:
                     message = self.queue.popleft()
+                    self.errors += 1
                     if self.messenger is not None:
                         self.messenger.send_message(message)
-            else:
-                print(term.green(now + 'Everything OK!'))
+                    print(term.move(self.errors+10, 0) + term.red(now + message))
 
             self.stop_event.wait(self.interval)

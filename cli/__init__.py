@@ -2,6 +2,9 @@ from threading import Thread
 from blessings import Terminal
 from datetime import datetime
 
+def timestamp():
+    return datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+
 
 class StatusDisplay(Thread):
 
@@ -19,13 +22,14 @@ class StatusDisplay(Thread):
                 self.stop_event.wait(1)
 
     def update_status(self):
-        print(self.term.clear())
-        print(self.term.cyan(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')))
-        print(self.term.move(1, 0) + 'System Status')
+        print(self.term.move(0, 0) + self.term.cyan(timestamp()))
+
+        print(self.term.move(2, 0) + 'System Status')
         for i, (key, val) in enumerate(self.status_data.iteritems()):
             print(self.term.move(3+i, 0) + u'{:<20}  {:6>} {:<6}'.format(
                 key, *val
             ))
+
         print(self.term.move(2, 40) + 'Maximum Source Activity')
         for i, (key, val) in enumerate(self.qla_data.iteritems()):
             print(self.term.move(3+i, 40) + u'{:<20}  {:6>} {:<6}'.format(
