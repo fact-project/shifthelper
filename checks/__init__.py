@@ -21,8 +21,6 @@ class Check(Thread):
             try:
                 self.check()
                 self.stop_event.wait(self.interval)
-            except (SystemExit, KeyboardInterrupt):
-                raise
             except:
                 self.queue.append(format_exc())
 
