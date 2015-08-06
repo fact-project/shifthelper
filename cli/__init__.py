@@ -36,3 +36,4 @@ class StatusDisplay(Thread):
             print(self.term.move(3+i, 40) + u'{:<20}  {:>6} {:<6}'.format(
                 key, *val
             ))
+        print(self.term.move(20, 0))
