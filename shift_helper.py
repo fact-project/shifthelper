@@ -14,10 +14,6 @@ Options
     --debug  Start the program in debug mode, DO NOT USE ON SHIFT!
              Programming errors are raised normally
              and dimctrl status will not be checked for a running Main.js
-
-    --interval=<N>  The interval between the cecks in seconds [default: 60]
-
-    --ringtime=<N>  how long skype wil lett you phone ring [default: 20]
 '''
 from __future__ import print_function
 import time
@@ -41,18 +37,15 @@ def main(stop_event):
 
     term = Terminal()
 
-    args['--interval'] = float(args['--interval'])
-    args['--ringtime'] = float(args['--ringtime'])
-    assert args['--ringtime'] < args['--interval'], \
-        'Ringtime has to be smaller than interval'
-
-
     if args['--debug']:
         mesg = term.red(80*'=' + '\n' + '{:^80}\n' + 80*'=')
         print(mesg.format('DEBUG MODE - DO NOT USE DURING SHIFT'))
 
     print(term.cyan('Skype Setup'))
-    skype = SkypeInterface(args['<phonenumber>'], args['--ringtime'])
+    skype = SkypeInterface(
+        args['<phonenumber>'],
+        config.getfloat('caller', 'ringtime'),
+    )
     handle_cli.check_phonenumber(skype)
 
     print(term.cyan('\nTelegram Setup'))
@@ -76,7 +69,7 @@ def main(stop_event):
         from checks.dim import MainJsStatusCheck
         check_mainjs = MainJsStatusCheck(
             alert.queue,
-            args['--interval'],
+            config.getint('checkintervals', 'mainjs'),
             stop_event,
             qla_data,
             system_status,
@@ -86,7 +79,7 @@ def main(stop_event):
     from checks.dim import WeatherCheck
     check_weather = WeatherCheck(
         alert.queue,
-        args['--interval'],
+        config.getint('checkintervals', 'weather'),
         stop_event,
         qla_data,
         system_status,
@@ -96,7 +89,7 @@ def main(stop_event):
     from checks.dim import CurrentCheck
     check_currents = CurrentCheck(
         alert.queue,
-        args['--interval'],
+        config.getint('checkintervals', 'currents'),
         stop_event,
         qla_data,
         system_status,
@@ -106,7 +99,7 @@ def main(stop_event):
     from checks.qla import FlareAlert
     flare_alert = FlareAlert(
         alert.queue,
-        args['--interval'],
+        config.getint('checkintervals', 'qla'),
         stop_event,
         qla_data,
         system_status,
