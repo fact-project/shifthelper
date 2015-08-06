@@ -119,7 +119,8 @@ def main(stop_event):
     alert.start()
     status.start()
 
-    stop_event.wait()
+    while True:
+        time.sleep(10)
 
 if __name__ == '__main__':
     args = docopt(__doc__)
