@@ -59,7 +59,7 @@ def main(stop_event):
 
     from checks import Alert
     alert = Alert(queue=deque(),
-                  interval=args['--interval'],
+                  interval=5,
                   stop_event=stop_event,
                   caller=skype,
                   messenger=telegram,
@@ -110,6 +110,7 @@ def main(stop_event):
     status = StatusDisplay(qla_data, system_status, stop_event)
 
     alert.start()
+    time.sleep(5)
     status.start()
 
     while True:
