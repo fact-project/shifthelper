@@ -119,23 +119,7 @@ def main(stop_event):
     alert.start()
     status.start()
 
-
-    while True:
-        try:
-            time.sleep(10)
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except Exception:
-            if args['--debug']:
-                raise
-            else:
-                exc = format_exc()
-                print(exc)
-                if telegram is not None:
-                    telegram.send_message(exc)
-                skype.place_call(args['<phonenumber>'])
-                time.sleep(args['--interval'])
-
+    stop_event.wait()
 
 if __name__ == '__main__':
     args = docopt(__doc__)

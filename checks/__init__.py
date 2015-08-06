@@ -3,6 +3,7 @@ from __future__ import print_function
 from threading import Thread
 from datetime import datetime
 from blessings import Terminal
+from traceback import format_exc
 term = Terminal()
 
 class Check(Thread):
@@ -17,8 +18,13 @@ class Check(Thread):
 
     def run(self):
         while not self.stop_event.is_set():
-            self.check()
-            self.stop_event.wait(self.interval)
+            try:
+                self.check()
+                self.stop_event.wait(self.interval)
+            except (SystemExit, KeyboardInterrupt):
+                raise
+            except:
+                self.queue.append(format_exc())
 
     def check(self):
         raise NotImplementedError
