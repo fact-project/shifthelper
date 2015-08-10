@@ -40,7 +40,7 @@ logfile = logging.FileHandler(
 )
 logfile.setLevel(logging.INFO)
 formatter = logging.Formatter(
-    format='%(asctime)s -%(levelname)s- %(message)s',
+    fmt='%(asctime)s -%(levelname)s- %(message)s',
     datefmt='%H:%M:%S',
 )
 logfile.setFormatter(formatter)
