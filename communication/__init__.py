@@ -75,8 +75,12 @@ class TelegramInterface(object):
             try:
                 send_start = raw_input('Did you send the /start command? (y/n):')
                 if send_start.lower()[0] == 'y':
-                    self.chat_id, first, last = self.get_last_message_data()
-                    print(u'Got a message from "{} {}"'.format(first, last))
+                    try:
+                        self.chat_id, first, last = self.get_last_message_data()
+                        print(u'Got a message from "{} {}"'.format(first, last))
+                    except IndexError:
+                        print('I did not receive a message.')
+                        continue
                 else:
                     continue
                 confirmed = self.check_connection()
