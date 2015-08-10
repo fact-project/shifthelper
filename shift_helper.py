@@ -31,7 +31,8 @@ from ConfigParser import SafeConfigParser
 from communication import SkypeInterface, TelegramInterface
 import cli
 
-os.makedirs('logs', exist_ok=True)
+if not os.path.exists('logs'):
+    os.makedirs('logs')
 
 logging.basicConfig(
     filename='logs/shifthelper_{:%Y-%m-%d}.log'.format(fact.night()),
