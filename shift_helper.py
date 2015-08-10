@@ -35,10 +35,11 @@ import cli
 if not os.path.exists('logs'):
     os.makedirs('logs')
 log = logging.getLogger('shift_helper')
+log.setLevel(logging.INFO)
 logfile = logging.FileHandler(
     filename='logs/shifthelper_{:%Y-%m-%d}.log'.format(fact.night()),
 )
-logfile.setLevel(logging.INFO)
+logfile.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
     fmt='%(asctime)s -%(levelname)s- %(message)s',
     datefmt='%H:%M:%S',
@@ -142,6 +143,7 @@ def main(stop_event):
         time.sleep(10)
 
 if __name__ == '__main__':
+    log.info('shift helper started')
     args = docopt(__doc__)
     try:
         stop_event = Event()
