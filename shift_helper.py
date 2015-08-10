@@ -19,7 +19,6 @@ from __future__ import print_function
 import time
 from datetime import datetime
 from blessings import Terminal
-import handle_cli
 from docopt import docopt
 from threading import Event
 from collections import deque
@@ -27,7 +26,7 @@ from traceback import format_exc
 from ConfigParser import SafeConfigParser
 
 from communication import SkypeInterface, TelegramInterface
-from cli import StatusDisplay
+import cli
 
 
 def main(stop_event):
@@ -46,10 +45,10 @@ def main(stop_event):
         args['<phonenumber>'],
         config.getfloat('caller', 'ringtime'),
     )
-    handle_cli.check_phonenumber(skype)
+    cli.check_phonenumber(skype)
 
     print(term.cyan('\nTelegram Setup'))
-    if handle_cli.ask_telegram() is True:
+    if cli.ask_telegram() is True:
         telegram = TelegramInterface(config.get('telegram', 'token'))
     else:
         telegram = None
