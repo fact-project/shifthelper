@@ -18,6 +18,7 @@ class StatusDisplay(Thread):
         self.qla_data = qla_data
         self.term = Terminal()
         self.stop_event = stop_event
+        self.logfile = logfile
         super(StatusDisplay, self).__init__()
 
     def run(self):
