@@ -50,6 +50,7 @@ class FlareAlert(Check):
         })
 
         create_bokeh_plot(data)
+        create_mpl_plot(data)
 
         for source, data in qla_max_rates.iterrows():
             rate = float(data['rate'])
@@ -147,6 +148,29 @@ def create_bokeh_plot(data):
     legend = fig.legend[0]
     legend.orientation = 'top_left'
     save(fig)
+
+
+def create_mpl_plot(data):
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    plt.figure()
+    for name, group in data.groupby('fSourceName'):
+        if len(group.index) == 0:
+            continue
+        plt.errorbar(
+            x=group.timeMean.values,
+            y=group.rate.values,
+            xerr=group.xerr.values,
+            yerr=group.yerr.values,
+            label=name,
+            fmt='o',
+            mec='none',
+        )
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.savefig('plots/qla.png')
+    plt.close('all')
 
 
 def errorbar(

@@ -56,6 +56,8 @@ class Alert(Thread):
                     self.logger.error(message)
                     if self.messenger is not None:
                         self.messenger.send_message(message)
-
+                        if 'Source' in message:
+                            with open('plots/qla.png', 'rb') as img:
+                                self.messenger.send_image(img)
 
             self.stop_event.wait(self.interval)
