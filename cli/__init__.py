@@ -3,6 +3,7 @@ from __future__ import print_function
 from threading import Thread
 from blessings import Terminal
 from datetime import datetime
+from subprocess import check_output
 
 term = Terminal()
 
@@ -12,7 +13,7 @@ def timestamp():
 
 class StatusDisplay(Thread):
 
-    def __init__(self, qla_data, status_data, stop_event):
+    def __init__(self, qla_data, status_data, stop_event, logfile=None):
         self.status_data = status_data
         self.qla_data = qla_data
         self.term = Terminal()
@@ -24,7 +25,7 @@ class StatusDisplay(Thread):
             print(self.term.clear())
             while not self.stop_event.is_set():
                 self.update_status()
-                self.stop_event.wait(1)
+                self.stop_event.wait(5)
 
     def update_status(self):
         print(self.term.move(0, 0) + self.term.cyan(timestamp()))
@@ -40,7 +41,12 @@ class StatusDisplay(Thread):
             print(self.term.move(3+i, 40) + u'{:<20}  {:>6} {:<6}'.format(
                 key, *val
             ))
-        print(self.term.move(20, 0))
+
+        if self.logfile is not None:
+            logs = check_output('tail -n10 {}'.format(self.logfile))
+            print(self.term.move(15, 0) + logs)
+
+        print(self.term.move(25, 0))
 
 
 def enter_phone_number():

@@ -36,16 +36,15 @@ if not os.path.exists('logs'):
     os.makedirs('logs')
 log = logging.getLogger('shift_helper')
 log.setLevel(logging.INFO)
-logfile = logging.FileHandler(
-    filename='logs/shifthelper_{:%Y-%m-%d}.log'.format(fact.night()),
-)
-logfile.setLevel(logging.DEBUG)
+logfile = 'logs/shifthelper_{:%Y-%m-%d}.log'.format(fact.night())
+logfile_handler = logging.FileHandler(filename=logfile)
+logfile_handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
     fmt='%(asctime)s -%(levelname)s- %(message)s',
     datefmt='%H:%M:%S',
 )
-logfile.setFormatter(formatter)
-log.addHandler(logfile)
+logfile_handler.setFormatter(formatter)
+log.addHandler(logfile_handler)
 
 
 
@@ -132,7 +131,7 @@ def main(stop_event):
     flare_alert.start()
 
     log.info('All checkers are running.')
-    status = cli.StatusDisplay(qla_data, system_status, stop_event)
+    status = cli.StatusDisplay(qla_data, system_status, stop_event, logfile)
 
     alert.start()
     time.sleep(5)
