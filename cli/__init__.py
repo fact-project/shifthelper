@@ -44,7 +44,7 @@ class StatusDisplay(Thread):
             ))
 
         if self.logfile is not None:
-            logs = check_output('tail -n10 {}'.format(self.logfile))
+            logs = check_output('tail -n10 {}'.format(self.logfile), shell=True)
             print(self.term.move(15, 0) + logs)
 
         print(self.term.move(25, 0))
