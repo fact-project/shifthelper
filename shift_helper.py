@@ -31,17 +31,20 @@ from ConfigParser import SafeConfigParser
 from communication import SkypeInterface, TelegramInterface
 import cli
 
+# setup logging
 if not os.path.exists('logs'):
     os.makedirs('logs')
-
-logging.basicConfig(
+log = logging.getLogger('shift_helper')
+logfile = logging.FileHandler(
     filename='logs/shifthelper_{:%Y-%m-%d}.log'.format(fact.night()),
-    level=logging.INFO,
-    format='%(asctime)s %(message)s',
+)
+logfile.setLevel(logging.INFO)
+formatter = logging.Formatter(
+    format='%(asctime)s -%(levelname)s- %(message)s',
     datefmt='%H:%M:%S',
 )
-
-log = logging.getLogger()
+logfile.setFormatter(formatter)
+log.addHandler(logfile)
 
 
 
