@@ -29,27 +29,33 @@ class Check(Thread):
 
 
 class Alert(Thread):
-    def __init__(self, queue, interval, stop_event, caller=None, messenger=None):
+    def __init__(self,
+                 queue,
+                 interval,
+                 stop_event,
+                 logger,
+                 caller=None,
+                 messenger=None,
+                 ):
         self.queue = queue
         self.interval = interval
         self.stop_event = stop_event
+        self.logger = logger
         self.caller = caller
         self.messenger = messenger
-        self.errors = 0
 
         super(Alert, self).__init__()
 
     def run(self):
         while not self.stop_event.is_set():
-            now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S -- ')
             if len(self.queue) > 0:
                 if self.caller is not None:
                     self.caller.place_call()
                 while len(self.queue) > 0:
                     message = self.queue.popleft()
-                    self.errors += 1
+                    self.logger.error(message)
                     if self.messenger is not None:
                         self.messenger.send_message(message)
-                    print(term.move(self.errors+10, 0) + term.red(now + message))
+
 
             self.stop_event.wait(self.interval)

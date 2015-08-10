@@ -19,6 +19,9 @@ from __future__ import print_function
 import time
 from datetime import datetime
 from blessings import Terminal
+import logging
+import fact
+import os
 from docopt import docopt
 from threading import Event
 from collections import deque
@@ -27,6 +30,18 @@ from ConfigParser import SafeConfigParser
 
 from communication import SkypeInterface, TelegramInterface
 import cli
+
+os.makedirs('logs', exist_ok=True)
+
+logging.basicConfig(
+    filename='logs/shifthelper_{:%Y-%m-%d}.log'.format(fact.night()),
+    level=logging.INFO,
+    format='%(asctime)s %(message)s',
+    datefmt='%H:%M:%S',
+)
+
+log = logging.getLogger()
+
 
 
 def main(stop_event):
@@ -39,6 +54,8 @@ def main(stop_event):
     if args['--debug']:
         mesg = term.red(80*'=' + '\n' + '{:^80}\n' + 80*'=')
         print(mesg.format('DEBUG MODE - DO NOT USE DURING SHIFT'))
+        log.setLevel(logging.DEBUG)
+        log.debug('started shift helper in debug mode')
 
     print(term.cyan('Skype Setup'))
     skype = SkypeInterface(
@@ -46,12 +63,15 @@ def main(stop_event):
         config.getfloat('caller', 'ringtime'),
     )
     cli.check_phonenumber(skype)
+    log.info('Using phonenumber: {}'.format(skype.phonenumber))
 
     print(term.cyan('\nTelegram Setup'))
     if cli.ask_telegram() is True:
         telegram = TelegramInterface(config.get('telegram', 'token'))
+        log.info('Using Telegram')
     else:
         telegram = None
+
 
     qla_data = {}
     system_status = {}
@@ -62,6 +82,7 @@ def main(stop_event):
                   stop_event=stop_event,
                   caller=skype,
                   messenger=telegram,
+                  logger=log,
                   )
 
     if not args['--debug']:
@@ -105,13 +126,14 @@ def main(stop_event):
     )
     flare_alert.start()
 
-    print('All checkers are running')
-    status = StatusDisplay(qla_data, system_status, stop_event)
+    log.info('All checkers are running.')
+    status = cli.StatusDisplay(qla_data, system_status, stop_event)
 
     alert.start()
     time.sleep(5)
     status.start()
 
+    log.info('Entering main loop.')
     while True:
         time.sleep(10)
 
@@ -122,3 +144,4 @@ if __name__ == '__main__':
         main(stop_event)
     except (KeyboardInterrupt, SystemExit):
         stop_event.set()
+        log.info('Exit')

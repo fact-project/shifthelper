@@ -4,3 +4,4 @@ __pycache__
 *.swp
 plots/
 config.ini
+logs
