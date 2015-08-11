@@ -72,6 +72,7 @@ def try_to_call(caller):
     caller.place_call()
     recieved_call = raw_input('Did your phone ring? (y/n): ')
     if recieved_call.lower().startswith('y'):
+        caller.hangup()
         return True
     return False
 

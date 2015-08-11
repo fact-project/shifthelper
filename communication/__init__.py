@@ -8,6 +8,7 @@ from blessings import Terminal
 
 term = Terminal()
 
+
 class SkypeInterface(object):
 
     def __init__(self, phonenumber, ringing_time):
@@ -16,6 +17,11 @@ class SkypeInterface(object):
         self.skype.Attach()
         self.skype.OnCallStatus = self.on_call
         self.phonenumber = phonenumber
+
+    def hangup(self):
+        if self.call is not None:
+            self.call.Finish()
+            self.call = None
 
     def call_status_text(self, status):
         return self.skype.Convert.CallStatusToText(status)
@@ -47,12 +53,11 @@ class SkypeInterface(object):
             time.sleep(self.ringing_time)
             call.Finish()
 
-
     def place_call(self):
         called = False
         while not called:
             try:
-                self.skype.PlaceCall(self.phonenumber)
+                self.call = self.skype.PlaceCall(self.phonenumber)
                 called = True
             except Skype4Py.SkypeError:
                 mesg = 'Calling impossible, trying again in {:1.1f} seconds'
@@ -110,7 +115,6 @@ class TelegramInterface(object):
             print('Telegram "send_message" timed out')
         return r
 
-
     def send_message(self, message):
         try:
             r = requests.post(
@@ -121,7 +125,6 @@ class TelegramInterface(object):
         except requests.exceptions.Timeout:
             print('Telegram "send_message" timed out')
         return r
-
 
     def check_connection(self):
         print('I will send you a message now.')
