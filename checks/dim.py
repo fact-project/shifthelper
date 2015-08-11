@@ -23,17 +23,10 @@ class WeatherCheck(Check):
     weather = servers['MAGIC_WEATHER']
 
     def check(self):
-<<<<<<< HEAD
-        print(self.weather.data())
-        humidity_outside = self.weather.data()[3]
-        wind_speed = self.weather.data()[5]
-        wind_gusts = self.weather.data()[6]
-=======
         weather_data = self.weather.data()
         humidity_outside = weather_data[3]
         wind_speed = weather_data[5]
         wind_gusts = weather_data[6]
->>>>>>> 87c48288cac5c72780bb3b3a7489a56237d38da0
 
         fmt = '{:2.1f}'
         self.system_status['wind speed'] = (fmt.format(wind_speed), 'km/h')
