@@ -22,6 +22,7 @@ class WeatherCheck(Check):
     weather = servers['MAGIC_WEATHER']
 
     def check(self):
+        print(self.weather.data())
         humidity_outside = self.weather.data()[3]
         wind_speed = self.weather.data()[5]
         wind_gusts = self.weather.data()[6]
@@ -55,15 +56,15 @@ class CurrentCheck(Check):
         currents_median = np.median(currents)
         currents_max = currents.max()
         self.system_status['bias current median'] = (
-            '{:2.0f}'.format(currents_median), u'µA'
+            '{:2.0f}'.format(currents_median), u'uA'
         )
         self.system_status['bias current max'] = (
-            '{:2.0f}'.format(currents_max), u'µA'
+            '{:2.0f}'.format(currents_max), u'uA'
         )
 
         if currents_median >= 90:
-            mesg = u"median current >= 90 μA {:2.1f} μA"
+            mesg = u"median current >= 90 uA {:2.1f} uA"
             self.queue.append(mesg.format(currents_median))
         if currents_max >= 110:
-            mesg = u"maximum current >= 110 μA {:2.1f} μA"
+            mesg = u"maximum current >= 110 uA {:2.1f} uA"
             self.queue.append(mesg.format(currents_max))
