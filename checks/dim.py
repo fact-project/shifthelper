@@ -8,6 +8,7 @@ from . import Check
 dns = fact.dim.Dns('newdaq')
 servers = dns.servers()
 
+
 class MainJsStatusCheck(Check):
     dimctrl = servers['DIM_CONTROL']
 
@@ -22,14 +23,22 @@ class WeatherCheck(Check):
     weather = servers['MAGIC_WEATHER']
 
     def check(self):
+<<<<<<< HEAD
         print(self.weather.data())
         humidity_outside = self.weather.data()[3]
         wind_speed = self.weather.data()[5]
         wind_gusts = self.weather.data()[6]
+=======
+        weather_data = self.weather.data()
+        humidity_outside = weather_data[3]
+        wind_speed = weather_data[5]
+        wind_gusts = weather_data[6]
+>>>>>>> 87c48288cac5c72780bb3b3a7489a56237d38da0
 
-        self.system_status['wind speed'] = ('{:2.1f}'.format(wind_speed), 'km/h')
-        self.system_status['wind gusts'] = ('{:2.1f}'.format(wind_gusts), 'km/h')
-        self.system_status['humidity'] = ('{:2.1f}'.format(humidity_outside), '%')
+        fmt = '{:2.1f}'
+        self.system_status['wind speed'] = (fmt.format(wind_speed), 'km/h')
+        self.system_status['wind gusts'] = (fmt.format(wind_gusts), 'km/h')
+        self.system_status['humidity'] = (fmt.format(humidity_outside), '%')
 
         if humidity_outside >= 98:
             mesg = "humidity_outside >= 98 %: {:2.1f} %"
