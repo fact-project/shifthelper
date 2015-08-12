@@ -41,6 +41,7 @@ formatter = logging.Formatter(
     fmt='%(asctime)s -%(levelname)s- %(message)s',
     datefmt='%H:%M:%S',
 )
+formatter.converter = time.gmtime  # use utc in log
 logfile_handler.setFormatter(formatter)
 log.addHandler(logfile_handler)
 
