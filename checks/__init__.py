@@ -1,12 +1,30 @@
 # -*- coding:utf-8 -*-
 from __future__ import print_function
 from threading import Thread
-from datetime import datetime
 from blessings import Terminal
 from traceback import format_exc
 term = Terminal()
 
+
 class Check(Thread):
+    '''
+    base class for the checks
+    this class is the base implementation for the checks
+
+    Subclasses need to implement the check method.
+    This method has to push a string (unicode) message into
+    the queue if something goes wrong.
+
+    All Exceptions in this Thread are catched and their messages
+    are also pushed into the queue.
+
+    The thread has to be started with the .start() method, it
+    will terminate if stop_event.set() is called.
+
+    In your main thread, this requires that KeyboardInterrupt and SystemExit
+    are catched to first call stop_event.set() and then terminate the
+    program.
+    '''
     def __init__(self, queue, interval, stop_event,
                  qla_data=None, system_status=None):
         self.queue = queue
@@ -27,8 +45,44 @@ class Check(Thread):
     def check(self):
         raise NotImplementedError
 
+    def update_system_status(self, name, value, unit):
+        '''
+        Updates the system_status dict which is used by the
+        command line status display.
+
+        e.g. name='wind speed', value=10, unit='km/h'
+        '''
+        self._system_status[name] = (value, unit)
+
+    def update_qla_data(self, source, rate):
+        '''
+        Updates the system_status dict which is used by the
+        command line status display.
+
+        e.g. name='wind speed', value=10, unit='km/h'
+        '''
+        self._qla_data[source] = (rate, '1/h')
+
 
 class Alert(Thread):
+    '''
+    This thread listens to the queue and performs the following
+    actions if the queue is not empty:
+        * if the caller was given, caller.place_call is called
+          this should call the shifter
+        * if the messenger was given, each message in the queue is
+          sent via the messenger.send_message command
+
+          If the message is due to a flare alert also the last QLA plot
+          is send with the messenger.send_image method
+
+        * all messages are logged using logger.error
+
+    This thread runs until stop_event.set() is called.
+    In your main thread, this requires that KeyboardInterrupt and SystemExit
+    are catched to first call stop_event.set() and then terminate the
+    program.
+    '''
     def __init__(self,
                  queue,
                  interval,
