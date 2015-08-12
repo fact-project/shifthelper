@@ -19,9 +19,13 @@ class SkypeInterface(object):
         self.phonenumber = phonenumber
 
     def hangup(self):
-        if self.call is not None:
-            self.call.Finish()
-            self.call = None
+        try:
+            if self.call is not None:
+                self.call.Finish()
+                self.call = None
+        except Skype4Py.SkypeError as e:
+            if '[Errno 559]' in e.message:
+                pass
 
     def call_status_text(self, status):
         return self.skype.Convert.CallStatusToText(status)
@@ -47,11 +51,15 @@ class SkypeInterface(object):
             while another call is still active, which leads to an exception,
             which is not handled at the moment (FIXME)
         """
-        if status == Skype4Py.clsInProgress:
-            call.Finish()
-        elif status in [Skype4Py.clsEarlyMedia, Skype4Py.clsRinging]:
-            time.sleep(self.ringing_time)
-            call.Finish()
+        try:
+            if status == Skype4Py.clsInProgress:
+                call.Finish()
+            elif status in [Skype4Py.clsEarlyMedia, Skype4Py.clsRinging]:
+                time.sleep(self.ringing_time)
+                call.Finish()
+        except Skype4Py.SkypeError as e:
+            if '[Errno 559]' in e.message:
+                pass
 
     def place_call(self):
         called = False
