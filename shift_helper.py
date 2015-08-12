@@ -17,7 +17,6 @@ Options
 '''
 from __future__ import print_function
 import time
-from datetime import datetime
 from blessings import Terminal
 import logging
 import fact
@@ -25,7 +24,6 @@ import os
 from docopt import docopt
 from threading import Event
 from collections import deque
-from traceback import format_exc
 from ConfigParser import SafeConfigParser
 
 from communication import SkypeInterface, TelegramInterface
@@ -47,7 +45,6 @@ logfile_handler.setFormatter(formatter)
 log.addHandler(logfile_handler)
 
 
-
 def main(stop_event):
 
     config = SafeConfigParser()
@@ -62,6 +59,7 @@ def main(stop_event):
         log.debug('started shift helper in debug mode')
 
     print(term.cyan('Skype Setup'))
+    os.environ['DISPLAY'] = config.get('skype', 'display')
     skype = SkypeInterface(
         args['<phonenumber>'],
         config.getfloat('caller', 'ringtime'),
@@ -75,7 +73,6 @@ def main(stop_event):
         log.info('Using Telegram')
     else:
         telegram = None
-
 
     qla_data = {}
     system_status = {}
