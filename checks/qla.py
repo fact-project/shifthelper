@@ -58,7 +58,7 @@ class FlareAlert(Check):
 
         for source, data in qla_max_rates.iterrows():
             rate = float(data['rate'])
-            self.update_qla_data(source, '{:3.1f}'.format(rate), '1/h')
+            self.update_qla_data(source, '{:3.1f}'.format(rate))
             if rate > self.max_rate[source]:
                 self.max_rate[source] = rate
                 if self.max_rate[source] > alert_rate[source]:
