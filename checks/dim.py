@@ -29,9 +29,9 @@ class WeatherCheck(Check):
         wind_gusts = weather_data[6]
 
         fmt = '{:2.1f}'
-        self.system_status['wind speed'] = (fmt.format(wind_speed), 'km/h')
-        self.system_status['wind gusts'] = (fmt.format(wind_gusts), 'km/h')
-        self.system_status['humidity'] = (fmt.format(humidity_outside), '%')
+        self.update_system_status('wind speed', fmt.format(wind_speed), 'km/h')
+        self.update_system_status('wind gusts', fmt.format(wind_gusts), 'km/h')
+        self.update_system_status('humidity', fmt.format(humidity_outside), '%')
 
         if humidity_outside >= 98:
             mesg = "humidity_outside >= 98 %: {:2.1f} %"
@@ -57,11 +57,11 @@ class CurrentCheck(Check):
         # currents[self.crazy_patches] = 0
         currents_median = np.median(currents)
         currents_max = currents.max()
-        self.system_status['bias current median'] = (
-            '{:2.0f}'.format(currents_median), u'uA'
+        self.update_system_status(
+            'bias current median', '{:2.0f}'.format(currents_median), u'uA'
         )
-        self.system_status['bias current max'] = (
-            '{:2.0f}'.format(currents_max), u'uA'
+        self.update_system_status(
+            'bias current max', '{:2.0f}'.format(currents_max), u'uA'
         )
 
         if currents_median >= 90:

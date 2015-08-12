@@ -26,12 +26,15 @@ class Check(Thread):
     program.
     '''
     def __init__(self, queue, interval, stop_event,
-                 qla_data=None, system_status=None):
+                 qla_data, system_status):
         self.queue = queue
         self.interval = interval
         self.stop_event = stop_event
-        self.qla_data = qla_data
-        self.system_status = system_status
+
+        assert isinstance(qla_data, dict), 'qla_data has to be a dict'
+        self._qla_data = qla_data
+        assert isinstance(system_status, dict), 'system_status has to be a dict'
+        self._system_status = system_status
         super(Check, self).__init__()
 
     def run(self):

@@ -7,6 +7,9 @@ import pandas as pd
 from collections import defaultdict
 from sqlalchemy import create_engine
 from bokeh.plotting import figure, output_file, save
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 from ConfigParser import SafeConfigParser
 import fact
@@ -35,6 +38,7 @@ factdb = create_engine(
     )
 )
 
+
 class FlareAlert(Check):
     max_rate = defaultdict(lambda: 0)
 
@@ -54,7 +58,7 @@ class FlareAlert(Check):
 
         for source, data in qla_max_rates.iterrows():
             rate = float(data['rate'])
-            self.qla_data[source] = ('{:3.1f}'.format(rate), '1/h')
+            self.update_qla_data(source, '{:3.1f}'.format(rate), '1/h')
             if rate > self.max_rate[source]:
                 self.max_rate[source] = rate
                 if self.max_rate[source] > alert_rate[source]:
@@ -125,14 +129,14 @@ def get_data(bin_width_minutes=20):
         agg['timeMean'] = agg.fRunStart + agg.xerr
         agg['yerr'] = np.sqrt(np.abs(agg.fNumSigEvts) + np.abs(agg.fNumExcEvts))
         agg['yerr'] /= agg.fOnTimeAfterCuts / 3600
-        valid = agg.query('fOnTimeAfterCuts > 0.9*60*{}'.format(bin_width_minutes))
+        valid = agg.query(
+            'fOnTimeAfterCuts > 0.9*60*{}'.format(bin_width_minutes),
+        )
         binned = binned.append(valid, ignore_index=True)
     return binned
 
 
 def create_bokeh_plot(data):
-    '''create bokeh plot at www.fact-project.org/qla
-    '''
     output_file('plots/qla.html', title='ShiftHelper QLA')
     fig = figure(width=600, height=400, x_axis_type='datetime')
     for i, (name, group) in enumerate(data.groupby('fSourceName')):
@@ -151,9 +155,6 @@ def create_bokeh_plot(data):
 
 
 def create_mpl_plot(data):
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
     plt.figure()
     for name, group in data.groupby('fSourceName'):
         if len(group.index) == 0:
@@ -184,9 +185,11 @@ def errorbar(
         point_kwargs={},
         error_kwargs={},
         ):
+    '''
+    draw an errorbar plot with bokeh
+    '''
 
     fig.circle(x, y, color=color, legend=legend, **point_kwargs)
-
 
     if xerr is not None:
         x_err_x = []
