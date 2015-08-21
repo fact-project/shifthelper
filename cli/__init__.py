@@ -7,6 +7,7 @@ from subprocess import check_output
 
 term = Terminal()
 
+
 def timestamp():
     return datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
 
@@ -29,6 +30,7 @@ class StatusDisplay(Thread):
                 self.stop_event.wait(5)
 
     def update_status(self):
+        print(self.term.clear())
         print(self.term.move(0, 0) + self.term.cyan(timestamp()))
 
         print(self.term.move(2, 0) + 'System Status')
