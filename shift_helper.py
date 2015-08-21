@@ -132,7 +132,6 @@ def main(stop_event):
     status = cli.StatusDisplay(qla_data, system_status, stop_event, logfile)
 
     alert.start()
-    time.sleep(5)
     status.start()
 
     log.info('Entering main loop.')
