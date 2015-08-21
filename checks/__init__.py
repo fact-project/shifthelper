@@ -41,9 +41,9 @@ class Check(Thread):
         while not self.stop_event.is_set():
             try:
                 self.check()
-                self.stop_event.wait(self.interval)
-            except:
+            except Exception:
                 self.queue.append(format_exc())
+            self.stop_event.wait(self.interval)
 
     def check(self):
         raise NotImplementedError
