@@ -101,12 +101,13 @@ def get_data(bin_width_minutes=20):
     )
     # drop rows with NaNs from the table, these are unfinished qla results
     data.dropna(inplace=True)
-    data.sort('fRunStart', inplace=True)
-    data.index = np.arange(len(data.index))
 
     # if no qla data is available, return None
     if len(data.index) == 0:
         return None
+
+    data.sort('fRunStart', inplace=True)
+    data.index = np.arange(len(data.index))
 
     # group by source to do the analysis seperated for each one
     grouped = data.groupby('fSourceName')
@@ -129,10 +130,8 @@ def get_data(bin_width_minutes=20):
         agg['timeMean'] = agg.fRunStart + agg.xerr
         agg['yerr'] = np.sqrt(np.abs(agg.fNumSigEvts) + np.abs(agg.fNumExcEvts))
         agg['yerr'] /= agg.fOnTimeAfterCuts / 3600
-        valid = agg.query(
-            'fOnTimeAfterCuts > 0.9*60*{}'.format(bin_width_minutes),
-        )
-        binned = binned.append(valid, ignore_index=True)
+        valid = agg.fOnTimeAfterCuts >= 0.9 * 60 * bin_width_minutes
+        binned = binned.append(agg[valid], ignore_index=True)
     return binned
 
 
