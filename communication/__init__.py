@@ -5,6 +5,7 @@ import Skype4Py
 import requests
 import json
 from blessings import Terminal
+from cli import ask_user
 
 term = Terminal()
 
@@ -86,8 +87,8 @@ class TelegramInterface(object):
         confirmed = False
         while not confirmed:
             try:
-                send_start = raw_input('Did you send the /start command? (y/n):')
-                if send_start.lower()[0] == 'y':
+
+                if ask_user('Did you send the /start command?'):
                     try:
                         self.chat_id, first, last = self.get_last_message_data()
                         print(u'Got a message from "{} {}"'.format(first, last))
@@ -137,7 +138,4 @@ class TelegramInterface(object):
     def check_connection(self):
         print('I will send you a message now.')
         self.send_message('Welcome to the shift, I wish a pleasant night!')
-        received = raw_input('Did you receive it? (y/n):')
-        if received.lower()[0] == 'y':
-            return True
-        return False
+        return ask_user('Did you receive it?')

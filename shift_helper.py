@@ -69,11 +69,10 @@ def main(stop_event):
     log.info('Using phonenumber: {}'.format(skype.phonenumber))
 
     print(term.cyan('\nTelegram Setup'))
-    if cli.ask_telegram() is True:
+    telegram = None
+    if cli.ask_user('Do you want to use Telegram to receive notifications?'):
         telegram = TelegramInterface(config.get('telegram', 'token'))
         log.info('Using Telegram')
-    else:
-        telegram = None
 
     qla_data = {}
     system_status = {}

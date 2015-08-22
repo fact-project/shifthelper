@@ -62,8 +62,7 @@ def enter_phone_number():
 
 def confirm_phonenumber(caller):
     print("You entered: ", caller.phonenumber)
-    confirm_correctness = raw_input('Is that number correct? (y/n): ')
-    if not confirm_correctness.lower().startswith('y'):
+    if not ask_user('Is that number correct?'):
         caller.phonenumber = None
 
 
@@ -72,8 +71,8 @@ def try_to_call(caller):
     """
     print("I will try to call you now")
     caller.place_call()
-    recieved_call = raw_input('Did your phone ring? (y/n): ')
-    if recieved_call.lower().startswith('y'):
+
+    if ask_user('Did your phone ring?'):
         caller.hangup()
         return True
     return False
@@ -90,10 +89,8 @@ def check_phonenumber(caller):
             calling_worked = try_to_call(caller)
 
 
-def ask_telegram():
-    answer = raw_input(
-        'Do you want to use the telegram messenger to get error messages? (y/n)'
-    )
+def ask_user(question):
+    answer = raw_input(question + ' (y/n): ')
     if answer.lower().startswith('y'):
         return True
     else:
