@@ -24,19 +24,11 @@ class WebDimCheck(Check):
 
 
     def _fetch_string_with_catch(self, payload, line, col):
-        try: 
-            return payload[line].split()[col]
-        except Exception as e:
-            #print(e)
-            return ""
+        return payload[line].split()[col]
 
 
     def _fetch_float_with_catch(self, payload, line, col):
-        try: 
-            return float(payload[line].split()[col])
-        except Exception as e:
-            #print(e)
-            return float('nan')
+        return float(payload[line].split()[col])
 
 
     def _parse_payload(self):
@@ -78,13 +70,15 @@ class WebDimCheck(Check):
         self.bias_current_page_payload = self.bias_current_page.content.split('\n')
     
         self.humidity_outside = self._fetch_float_with_catch(
-            self.main_page_payload, 4, 1)
+            self.weather_page_payload, 5, 1)
         self.wind_speed = self._fetch_float_with_catch(
-            self.main_page_payload, 4, 2)
+            self.weather_page_payload, 7, 1)
         self.wind_gusts = self._fetch_float_with_catch(
             self.weather_page_payload, 8, 1)
+        
         self.dimctrl_state = self._fetch_string_with_catch(
             self.main_page_payload, 1, 1)
+        
         self.current_time = datetime.fromtimestamp(
             self._fetch_float_with_catch(self.main_page_payload, 0, 0) / 1000., 
             UTC)
@@ -95,7 +89,7 @@ class WebDimCheck(Check):
         self.currents_median = self._fetch_float_with_catch(
             self.bias_current_page_payload, 3, 1)
         self.currents_max = self._fetch_float_with_catch(
-            self.bias_current_page_payload, 5, 2)
+            self.bias_current_page_payload, 5, 1)
 
 
     def _load_data_from_webdim_page(self):
@@ -110,12 +104,12 @@ class MainJsStatusCheck(WebDimCheck):
     
     def check(self):
         self._load_data_from_webdim_page()
-        if 'Running' not in dimctrl_state:
+        if 'Running' not in self.dimctrl_state:
             mesg = "'Running' not in dimctrl_state\n\t{}"
-            self.queue.append(mesg.format(dimctrl_state))
+            self.queue.append(mesg.format(self.dimctrl_state))
 
 
-class WeatherCheck(Check):
+class WeatherCheck(WebDimCheck):
 
     def check(self):
         self._load_data_from_webdim_page()
@@ -136,7 +130,7 @@ class WeatherCheck(Check):
             self.queue.append(mesg.format(self.wind_gusts))
 
 
-class CurrentCheck(Check):
+class CurrentCheck(WebDimCheck):
 
     def check(self):
         self._load_data_from_webdim_page()

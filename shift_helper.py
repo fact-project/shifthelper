@@ -87,7 +87,7 @@ def main(stop_event):
                   )
 
     if not args['--debug']:
-        from checks.dim import MainJsStatusCheck
+        from checks.webdim import MainJsStatusCheck
         check_mainjs = MainJsStatusCheck(
             alert.queue,
             config.getint('checkintervals', 'mainjs'),
@@ -97,7 +97,7 @@ def main(stop_event):
         )
         check_mainjs.start()
 
-    from checks.dim import WeatherCheck
+    from checks.webdim import WeatherCheck
     check_weather = WeatherCheck(
         alert.queue,
         config.getint('checkintervals', 'weather'),
@@ -107,7 +107,7 @@ def main(stop_event):
     )
     check_weather.start()
 
-    from checks.dim import CurrentCheck
+    from checks.webdim import CurrentCheck
     check_currents = CurrentCheck(
         alert.queue,
         config.getint('checkintervals', 'currents'),
