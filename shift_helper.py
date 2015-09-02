@@ -5,10 +5,10 @@ This script is intended to call the shifter
 if security or flare alert limits are reached.
 Please do not accept or deny the call as this will
 create costs for us. Just let it ring.
-<phonenumber> can either be a real phonenumber or a skype account.
+<phone_number> can either be a real phone_number or a skype account.
 
 Usage:
-    shift_helper.py [<phonenumber>] [options]
+    shift_helper.py [<phone_number>] [options]
 
 Options
     --debug  Start the program in debug mode, DO NOT USE ON SHIFT!
@@ -26,7 +26,7 @@ from threading import Event
 from collections import deque
 from ConfigParser import SafeConfigParser
 
-from communication import SkypeInterface, TelegramInterface
+from communication import TwilioInterface, TelegramInterface
 import cli
 
 # setup logging
@@ -61,12 +61,15 @@ def main(stop_event):
 
     print(term.cyan('Skype Setup'))
     os.environ['DISPLAY'] = config.get('skype', 'display')
-    skype = SkypeInterface(
-        args['<phonenumber>'],
-        config.getfloat('caller', 'ringtime'),
+    caller = TwilioInterface(
+        args['<phone_number>'],
+        config.getint('caller', 'ringtime'),
+        config.get('twilio', 'sid'),
+        config.get('twilio', 'auth_token'),
+        config.get('twilio', 'number'),
     )
-    cli.check_phonenumber(skype)
-    log.info('Using phonenumber: {}'.format(skype.phonenumber))
+    cli.check_phone_number(caller)
+    log.info('Using phone_number: {}'.format(caller.phone_number))
 
     print(term.cyan('\nTelegram Setup'))
     telegram = None
@@ -81,7 +84,7 @@ def main(stop_event):
     alert = Alert(queue=deque(),
                   interval=5,
                   stop_event=stop_event,
-                  caller=skype,
+                  caller=caller,
                   messenger=telegram,
                   logger=log,
                   )

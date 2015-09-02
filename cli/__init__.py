@@ -60,10 +60,10 @@ def enter_phone_number():
     return my_phone_number
 
 
-def confirm_phonenumber(caller):
-    print("You entered: ", caller.phonenumber)
+def confirm_phone_number(caller):
+    print("You entered: ", caller.phone_number)
     if not ask_user('Is that number correct?'):
-        caller.phonenumber = None
+        caller.phone_number = None
 
 
 def try_to_call(caller):
@@ -78,14 +78,14 @@ def try_to_call(caller):
     return False
 
 
-def check_phonenumber(caller):
+def check_phone_number(caller):
     calling_worked = False
-    while (not calling_worked or caller.phonenumber is None):
-        if caller.phonenumber is None:
-            caller.phonenumber = enter_phone_number()
-        confirm_phonenumber(caller)
+    while (not calling_worked or caller.phone_number is None):
+        if caller.phone_number is None:
+            caller.phone_number = enter_phone_number()
+        confirm_phone_number(caller)
 
-        if caller.phonenumber is not None:
+        if caller.phone_number is not None:
             calling_worked = try_to_call(caller)
 
 
