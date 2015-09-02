@@ -1,11 +1,9 @@
 # -*- encoding:utf-8 -*-
 from __future__ import print_function, absolute_import
 import numpy as np
-import fact.dim
 from datetime import datetime
 from pytz import UTC
 import requests
-
 from . import Check
 
 class WebDimCheck(Check):

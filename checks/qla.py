@@ -12,7 +12,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from ConfigParser import SafeConfigParser
-import fact
+from tools import night_integer
 from . import Check
 
 if not os.path.exists('plots'):
@@ -91,7 +91,7 @@ def get_data(bin_width_minutes=20):
     """
     sql_query = sql_query.format(
         comma_sep_keys=', '.join(keys),
-        night=fact.night_integer(),
+        night=night_integer(),
     )
 
     data = pd.read_sql_query(

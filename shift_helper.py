@@ -19,7 +19,7 @@ from __future__ import print_function
 import time
 from blessings import Terminal
 import logging
-import fact
+from tools import night
 import os
 from docopt import docopt
 from threading import Event
@@ -34,7 +34,7 @@ if not os.path.exists('logs'):
     os.makedirs('logs')
 log = logging.getLogger('shift_helper')
 log.setLevel(logging.INFO)
-logfile = 'logs/shifthelper_{:%Y-%m-%d}.log'.format(fact.night())
+logfile = 'logs/shifthelper_{:%Y-%m-%d}.log'.format(night())
 logfile_handler = logging.FileHandler(filename=logfile)
 logfile_handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
