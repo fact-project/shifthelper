@@ -113,14 +113,24 @@ def main(stop_event):
     check_weather.start()
 
     from checks.webdim import RelativeCameraTemperatureCheck
-    check_weather = RelativeCameraTemperatureCheck(
+    check_rel_camera_temp = RelativeCameraTemperatureCheck(
         alert.queue,
         config.getint('checkintervals', 'weather'),
         stop_event,
         qla_data,
         system_status,
     )
-    check_weather.start()
+    check_rel_camera_temp.start()
+    
+    from checks.webdim import RelativeCameraHumidityCheck
+    check_rel_camera_hum = RelativeCameraHumidityCheck(
+        alert.queue,
+        config.getint('checkintervals', 'weather'),
+        stop_event,
+        qla_data,
+        system_status,
+    )
+    check_rel_camera_hum.start()
 
     from checks.webdim import CurrentCheck
     check_currents = CurrentCheck(

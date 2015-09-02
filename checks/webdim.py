@@ -14,6 +14,7 @@ class WebDimCheck(Check):
     main_page_url = base_url + "/fact.data"
     weather_page_url = base_url + "/weather.data"
     bias_current_page_url = base_url + "/current.data"
+    fsc_page_url = base_url + "/fsc.data"
     
     def _request_page(self):
         # TODO:
@@ -23,6 +24,7 @@ class WebDimCheck(Check):
         self.main_page = requests.get(self.main_page_url)
         self.weather_page = requests.get(self.weather_page_url)
         self.bias_current_page = requests.get(self.bias_current_page_url)
+        self.fsc_page = requests.get(self.fsc_page_url)
 
     def _fetch_string_with_catch(self, payload, line, col):
         return payload[line].split()[col]
@@ -101,7 +103,8 @@ class WebDimCheck(Check):
         self.main_page_payload = self.main_page.content.split('\n')
         self.weather_page_payload = self.weather_page.content.split('\n')
         self.bias_current_page_payload = self.bias_current_page.content.split('\n')
-    
+        self.fsc_page_payload = self.fsc_page.content.split('\n')
+
         self.humidity_outside = self._fetch_float_with_catch(
             self.weather_page_payload, 5, 1)
         self.wind_speed = self._fetch_float_with_catch(
@@ -127,6 +130,9 @@ class WebDimCheck(Check):
         self.rel_cam_temp = self._fetch_float_with_catch(
             self.main_page_payload, 3, 1)
 
+        self.rel_cam_hum = self._fetch_float_with_catch(
+            self.fsc_page_payload, 1, 1)
+
 
     def _load_data_from_webdim_page(self):
         # TODO: this should be called "check"
@@ -147,7 +153,6 @@ class MainJsStatusCheck(WebDimCheck):
         else:
             self.update_system_status('Main.js', 'Running', ' ')
 
-
 class WeatherCheck(WebDimCheck):
 
     def check(self):
@@ -167,7 +172,6 @@ class WeatherCheck(WebDimCheck):
         if self.wind_gusts >= 50:
             mesg = "wind_gusts >= 50 km/h: {:2.1f} km/h"
             self.queue.append(mesg.format(self.wind_gusts))
-
 
 class CurrentCheck(WebDimCheck):
 
@@ -197,8 +201,24 @@ class RelativeCameraTemperatureCheck(WebDimCheck):
         self._load_data_from_webdim_page()
 
         fmt = '{:2.1f}'
-        self.update_system_status('rel. camera temp.', fmt.format(self.rel_cam_temp), 'K')
+        self.update_system_status(
+            'rel. camera temp.', fmt.format(self.rel_cam_temp), 'K'
+        )
 
-        if self.rel_cam_temp > 10:
+        if self.rel_cam_temp > 10.0:
             mesg = "relative camera temp > 10 K: {:2.1f} %"
             self.queue.append(mesg.format(self.rel_cam_temp))
+
+class RelativeCameraHumidityCheck(WebDimCheck):
+
+    def check(self):
+        self._load_data_from_webdim_page()
+
+        fmt = '{:2.1f}'
+        self.update_system_status(
+            'rel. camera hum.', fmt.format(self.rel_cam_hum), '%'
+        )
+
+        if self.rel_cam_hum > 50.0:
+            mesg = "relative camera hum. > 50 %: {:2.1f} %"
+            self.queue.append(mesg.format(self.rel_cam_hum))
