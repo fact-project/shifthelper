@@ -10,18 +10,21 @@ from . import Check
 
 class WebDimCheck(Check):
     base_url = "http://fact-project.org/smartfact/data"
+    status_page_url = base_url + "/status.data"
     main_page_url = base_url + "/fact.data"
     weather_page_url = base_url + "/weather.data"
     bias_current_page_url = base_url + "/current.data"
+    fsc_page_url = base_url + "/fsc.data"
     
     def _request_page(self):
         # TODO:
         # throw a good exception, when the request does not work ... 
         # maybe the page is down?
+        self.status_page = requests.get(self.status_page_url)
         self.main_page = requests.get(self.main_page_url)
         self.weather_page = requests.get(self.weather_page_url)
         self.bias_current_page = requests.get(self.bias_current_page_url)
-
+        self.fsc_page = requests.get(self.fsc_page_url)
 
     def _fetch_string(self, payload, line, col):
         return payload[line].split()[col]
@@ -33,6 +36,37 @@ class WebDimCheck(Check):
 
     def _parse_payload(self):
         """ Example payload
+
+            ----------------- status_page: ------------------
+            1441151157594   1441150920149   losticks    0   1
+            #f0fff0 V20r13
+            #f0fff0 1:Running[3] [smueller:4950]
+            #f0fff0 TakingData
+            #f0fff0 Logging
+            #f0fff0 OnTrack
+            #f0fff0 Valid
+            #f0fff0 RunInProgress
+            #f0fff0 TriggerOn
+            #f0fff0 VoltageOn
+            #f0fff0 InProgress
+            #f0fff0 InProgress
+            #f0fff0 Connected
+            #f0fff0 Locked
+            #f0fff0 Valid
+            #f0fff0 VoltageOn
+            #f0fff0 VoltageOn
+            #f0fff0 VoltageOn
+            #f0fff0 SystemOn
+            #f0fff0 Open
+            #f0fff0 Connected
+            #f0fff0 Valid
+            #f0fff0 Valid
+            #f0fff0 Valid
+            #f0fff0 Valid
+            #f0fff0 Ready
+            #ffffff &mdash;
+            #f0fff0 7 TB
+            #f0fff0 552:59:44
 
             ----------------- main_page: -----------------
             1440764736901   1440741010798   ding    0   0
@@ -65,19 +99,24 @@ class WebDimCheck(Check):
             #f0fff0 6.23
             #ffffff 0W [0mW]
         """
+        self.status_page_payload = self.status_page.content.split('\n')
         self.main_page_payload = self.main_page.content.split('\n')
         self.weather_page_payload = self.weather_page.content.split('\n')
         self.bias_current_page_payload = self.bias_current_page.content.split('\n')
-    
+        self.fsc_page_payload = self.fsc_page.content.split('\n')
+
         self.humidity_outside = self._fetch_float(
-            self.weather_page_payload, 5, 1)
+            self.weather_page_payload, 5, 1)            
         self.wind_speed = self._fetch_float(
             self.weather_page_payload, 7, 1)
         self.wind_gusts = self._fetch_float(
             self.weather_page_payload, 8, 1)
         
+
         self.dimctrl_state = self._fetch_string(
             self.main_page_payload, 1, 1)
+        self.dimctrl_state = self._fetch_string(
+            self.status_page_payload, 2, 1)
         
         self.current_time = datetime.fromtimestamp(
             self._fetch_float(self.main_page_payload, 0, 0) / 1000., 
@@ -90,6 +129,12 @@ class WebDimCheck(Check):
             self.bias_current_page_payload, 3, 1)
         self.currents_max = self._fetch_float(
             self.bias_current_page_payload, 5, 1)
+
+        self.rel_cam_temp = self._fetch_float_with_catch(
+            self.main_page_payload, 3, 1)
+
+        self.rel_cam_hum = self._fetch_float_with_catch(
+            self.fsc_page_payload, 1, 1)
 
 
     def _load_data_from_webdim_page(self):
@@ -107,7 +152,9 @@ class MainJsStatusCheck(WebDimCheck):
         if 'Running' not in self.dimctrl_state:
             mesg = "'Running' not in dimctrl_state\n\t{}"
             self.queue.append(mesg.format(self.dimctrl_state))
-
+            self.update_system_status('Main.js', 'Offline', ' ')
+        else:
+            self.update_system_status('Main.js', 'Running', ' ')
 
 class WeatherCheck(WebDimCheck):
 
@@ -128,7 +175,6 @@ class WeatherCheck(WebDimCheck):
         if self.wind_gusts >= 50:
             mesg = "wind_gusts >= 50 km/h: {:2.1f} km/h"
             self.queue.append(mesg.format(self.wind_gusts))
-
 
 class CurrentCheck(WebDimCheck):
 
@@ -151,3 +197,31 @@ class CurrentCheck(WebDimCheck):
         if self.currents_max >= 110:
             mesg = u"maximum current >= 110 uA {:2.1f} uA"
             self.queue.append(mesg.format(self.currents_max))
+
+class RelativeCameraTemperatureCheck(WebDimCheck):
+
+    def check(self):
+        self._load_data_from_webdim_page()
+
+        fmt = '{:2.1f}'
+        self.update_system_status(
+            'rel. camera temp.', fmt.format(self.rel_cam_temp), 'K'
+        )
+
+        if self.rel_cam_temp > 10.0:
+            mesg = "relative camera temp > 10 K: {:2.1f} %"
+            self.queue.append(mesg.format(self.rel_cam_temp))
+
+class RelativeCameraHumidityCheck(WebDimCheck):
+
+    def check(self):
+        self._load_data_from_webdim_page()
+
+        fmt = '{:2.1f}'
+        self.update_system_status(
+            'rel. camera hum.', fmt.format(self.rel_cam_hum), '%'
+        )
+
+        if self.rel_cam_hum > 50.0:
+            mesg = "relative camera hum. > 50 %: {:2.1f} %"
+            self.queue.append(mesg.format(self.rel_cam_hum))
