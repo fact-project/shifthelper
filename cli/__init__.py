@@ -54,7 +54,7 @@ class StatusDisplay(Thread):
 
 def enter_phone_number():
     my_phone_number = raw_input(
-        'Please enter your phone number (like +4912345) or skype name\n'
+        'Please enter your phone number (like +4912345)\n'
     )
     my_phone_number = my_phone_number.replace(' ', '')
     return my_phone_number

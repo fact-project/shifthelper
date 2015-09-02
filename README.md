@@ -1,6 +1,6 @@
 # FACT shift helper
 
-* Calls you via skype if security limits are
+* Calls you via twilio if security limits are
 reached, data taking stopped or the QLA exceeds alert limits
 
 * just enter your phone number, check for the incoming

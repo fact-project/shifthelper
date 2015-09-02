@@ -5,7 +5,7 @@ This script is intended to call the shifter
 if security or flare alert limits are reached.
 Please do not accept or deny the call as this will
 create costs for us. Just let it ring.
-<phone_number> can either be a real phone_number or a skype account.
+<phone_number> can either be a real phone_number or a twilio account.
 
 Usage:
     shift_helper.py [<phone_number>] [options]
@@ -64,7 +64,7 @@ def main(stop_event):
         log.setLevel(logging.DEBUG)
         log.debug('started shift helper in debug mode')
 
-    print(term.cyan('Skype Setup'))
+    print(term.cyan('Twilio Phone Setup'))
     
     caller = TwilioInterface(
         args['<phone_number>'],
