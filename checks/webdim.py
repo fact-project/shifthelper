@@ -128,10 +128,10 @@ class WebDimCheck(Check):
         self.currents_max = self._fetch_float(
             self.bias_current_page_payload, 5, 1)
 
-        self.rel_cam_temp = self._fetch_float_with_catch(
+        self.rel_cam_temp = self._fetch_float(
             self.main_page_payload, 3, 1)
 
-        self.rel_cam_hum = self._fetch_float_with_catch(
+        self.rel_cam_hum = self._fetch_float(
             self.fsc_page_payload, 1, 1)
 
 
