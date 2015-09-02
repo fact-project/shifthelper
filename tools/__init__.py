@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 def night(timestamp=None):
     """
