@@ -124,6 +124,9 @@ class WebDimCheck(Check):
         self.currents_max = self._fetch_float_with_catch(
             self.bias_current_page_payload, 5, 1)
 
+        self.rel_cam_temp = self._fetch_float_with_catch(
+            self.main_page_payload, 3, 1)
+
 
     def _load_data_from_webdim_page(self):
         # TODO: this should be called "check"
@@ -187,3 +190,15 @@ class CurrentCheck(WebDimCheck):
         if self.currents_max >= 110:
             mesg = u"maximum current >= 110 uA {:2.1f} uA"
             self.queue.append(mesg.format(self.currents_max))
+
+class RelativeCameraTemperatureCheck(WebDimCheck):
+
+    def check(self):
+        self._load_data_from_webdim_page()
+
+        fmt = '{:2.1f}'
+        self.update_system_status('rel. camera temp.', fmt.format(self.rel_cam_temp), 'K')
+
+        if self.rel_cam_temp > 10:
+            mesg = "relative camera temp > 10 K: {:2.1f} %"
+            self.queue.append(mesg.format(self.rel_cam_temp))

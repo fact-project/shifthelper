@@ -45,11 +45,16 @@ formatter.converter = time.gmtime  # use utc in log
 logfile_handler.setFormatter(formatter)
 log.addHandler(logfile_handler)
 
+def read_config_file(config_file_name):
+    config = SafeConfigParser()
+    list_of_successfully_parsed_files = config.read(config_file_name)
+    if config_file_name not in list_of_successfully_parsed_files:
+        raise Exception('Can not find a config file named: '+config_file_name)
+    return config
 
 def main(stop_event):
 
-    config = SafeConfigParser()
-    config.read('config.ini')
+    config = read_config_file('config.ini')
 
     term = Terminal()
 
@@ -60,7 +65,7 @@ def main(stop_event):
         log.debug('started shift helper in debug mode')
 
     print(term.cyan('Skype Setup'))
-    os.environ['DISPLAY'] = config.get('skype', 'display')
+    #os.environ['DISPLAY'] = config.get('skype', 'display')
     skype = SkypeInterface(
         args['<phonenumber>'],
         config.getfloat('caller', 'ringtime'),
@@ -99,6 +104,16 @@ def main(stop_event):
 
     from checks.webdim import WeatherCheck
     check_weather = WeatherCheck(
+        alert.queue,
+        config.getint('checkintervals', 'weather'),
+        stop_event,
+        qla_data,
+        system_status,
+    )
+    check_weather.start()
+
+    from checks.webdim import RelativeCameraTemperatureCheck
+    check_weather = RelativeCameraTemperatureCheck(
         alert.queue,
         config.getint('checkintervals', 'weather'),
         stop_event,
