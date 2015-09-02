@@ -23,11 +23,11 @@ class WebDimCheck(Check):
         self.bias_current_page = requests.get(self.bias_current_page_url)
 
 
-    def _fetch_string_with_catch(self, payload, line, col):
+    def _fetch_string(self, payload, line, col):
         return payload[line].split()[col]
 
 
-    def _fetch_float_with_catch(self, payload, line, col):
+    def _fetch_float(self, payload, line, col):
         return float(payload[line].split()[col])
 
 
@@ -69,26 +69,26 @@ class WebDimCheck(Check):
         self.weather_page_payload = self.weather_page.content.split('\n')
         self.bias_current_page_payload = self.bias_current_page.content.split('\n')
     
-        self.humidity_outside = self._fetch_float_with_catch(
+        self.humidity_outside = self._fetch_float(
             self.weather_page_payload, 5, 1)
-        self.wind_speed = self._fetch_float_with_catch(
+        self.wind_speed = self._fetch_float(
             self.weather_page_payload, 7, 1)
-        self.wind_gusts = self._fetch_float_with_catch(
+        self.wind_gusts = self._fetch_float(
             self.weather_page_payload, 8, 1)
         
-        self.dimctrl_state = self._fetch_string_with_catch(
+        self.dimctrl_state = self._fetch_string(
             self.main_page_payload, 1, 1)
         
         self.current_time = datetime.fromtimestamp(
-            self._fetch_float_with_catch(self.main_page_payload, 0, 0) / 1000., 
+            self._fetch_float(self.main_page_payload, 0, 0) / 1000., 
             UTC)
         self.last_update_time = datetime.fromtimestamp(
-            self._fetch_float_with_catch(self.main_page_payload, 0, 1) / 1000., 
+            self._fetch_float(self.main_page_payload, 0, 1) / 1000., 
             UTC)
 
-        self.currents_median = self._fetch_float_with_catch(
+        self.currents_median = self._fetch_float(
             self.bias_current_page_payload, 3, 1)
-        self.currents_max = self._fetch_float_with_catch(
+        self.currents_max = self._fetch_float(
             self.bias_current_page_payload, 5, 1)
 
 
