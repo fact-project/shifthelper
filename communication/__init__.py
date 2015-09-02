@@ -10,14 +10,25 @@ from cli import ask_user
 term = Terminal()
 
 
-class SkypeInterface(object):
-
+class Caller(object):
     def __init__(self, phonenumber, ringing_time):
         self.ringing_time = ringing_time
+        self.phonenumber = phonenumber
+
+    def hangup(self):
+        raise NotImplementedError
+
+    def place_call(self):
+        raise NotImplementedError
+
+
+class SkypeInterface(Caller):
+
+    def __init__(self, phonenumber, ringing_time):
         self.skype = Skype4Py.Skype(Transport='x11')
         self.skype.Attach()
         self.skype.OnCallStatus = self.on_call
-        self.phonenumber = phonenumber
+        super(self, SkypeInterface).__init__(phonenumber, ringing_time)
 
     def hangup(self):
         try:
