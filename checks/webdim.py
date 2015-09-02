@@ -140,6 +140,9 @@ class MainJsStatusCheck(WebDimCheck):
         if 'Running' not in self.dimctrl_state:
             mesg = "'Running' not in dimctrl_state\n\t{}"
             self.queue.append(mesg.format(self.dimctrl_state))
+            self.update_system_status('Main.js', 'Offline', ' ')
+        else:
+            self.update_system_status('Main.js', 'Running', ' ')
 
 
 class WeatherCheck(WebDimCheck):
