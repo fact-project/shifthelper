@@ -10,6 +10,7 @@ from . import Check
 
 class WebDimCheck(Check):
     base_url = "http://fact-project.org/smartfact/data"
+    status_page_url = base_url + "/status.data"
     main_page_url = base_url + "/fact.data"
     weather_page_url = base_url + "/weather.data"
     bias_current_page_url = base_url + "/current.data"
@@ -18,10 +19,10 @@ class WebDimCheck(Check):
         # TODO:
         # throw a good exception, when the request does not work ... 
         # maybe the page is down?
+        self.status_page = requests.get(self.status_page_url)
         self.main_page = requests.get(self.main_page_url)
         self.weather_page = requests.get(self.weather_page_url)
         self.bias_current_page = requests.get(self.bias_current_page_url)
-
 
     def _fetch_string_with_catch(self, payload, line, col):
         return payload[line].split()[col]
@@ -33,6 +34,37 @@ class WebDimCheck(Check):
 
     def _parse_payload(self):
         """ Example payload
+
+            ----------------- status_page: ------------------
+            1441151157594   1441150920149   losticks    0   1
+            #f0fff0 V20r13
+            #f0fff0 1:Running[3] [smueller:4950]
+            #f0fff0 TakingData
+            #f0fff0 Logging
+            #f0fff0 OnTrack
+            #f0fff0 Valid
+            #f0fff0 RunInProgress
+            #f0fff0 TriggerOn
+            #f0fff0 VoltageOn
+            #f0fff0 InProgress
+            #f0fff0 InProgress
+            #f0fff0 Connected
+            #f0fff0 Locked
+            #f0fff0 Valid
+            #f0fff0 VoltageOn
+            #f0fff0 VoltageOn
+            #f0fff0 VoltageOn
+            #f0fff0 SystemOn
+            #f0fff0 Open
+            #f0fff0 Connected
+            #f0fff0 Valid
+            #f0fff0 Valid
+            #f0fff0 Valid
+            #f0fff0 Valid
+            #f0fff0 Ready
+            #ffffff &mdash;
+            #f0fff0 7 TB
+            #f0fff0 552:59:44
 
             ----------------- main_page: -----------------
             1440764736901   1440741010798   ding    0   0
@@ -65,6 +97,7 @@ class WebDimCheck(Check):
             #f0fff0 6.23
             #ffffff 0W [0mW]
         """
+        self.status_page_payload = self.status_page.content.split('\n')
         self.main_page_payload = self.main_page.content.split('\n')
         self.weather_page_payload = self.weather_page.content.split('\n')
         self.bias_current_page_payload = self.bias_current_page.content.split('\n')
@@ -77,7 +110,7 @@ class WebDimCheck(Check):
             self.weather_page_payload, 8, 1)
         
         self.dimctrl_state = self._fetch_string_with_catch(
-            self.main_page_payload, 1, 1)
+            self.status_page_payload, 2, 1)
         
         self.current_time = datetime.fromtimestamp(
             self._fetch_float_with_catch(self.main_page_payload, 0, 0) / 1000., 
