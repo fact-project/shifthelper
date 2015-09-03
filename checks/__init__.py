@@ -79,7 +79,7 @@ class Alert(Thread):
           If the message is due to a flare alert also the last QLA plot
           is send with the messenger.send_image method
 
-        * all messages are logged using logger.error
+        * all messages are logged using logger.warning
 
     This thread runs until stop_event.set() is called.
     In your main thread, this requires that KeyboardInterrupt and SystemExit
@@ -110,7 +110,7 @@ class Alert(Thread):
                     self.caller.place_call()
                 while len(self.queue) > 0:
                     message = self.queue.popleft()
-                    self.logger.error(message)
+                    self.logger.warning(message)
                     if self.messenger is not None:
                         self.messenger.send_message(message)
                         if 'Source' in message:
