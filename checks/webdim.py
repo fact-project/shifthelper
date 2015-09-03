@@ -1,5 +1,8 @@
 # -*- encoding:utf-8 -*-
 from __future__ import print_function, absolute_import
+from collections import defaultdict
+import time 
+import random
 import numpy as np
 from datetime import datetime
 from pytz import UTC
@@ -13,16 +16,32 @@ class WebDimCheck(Check):
     weather_page_url = base_url + "/weather.data"
     bias_current_page_url = base_url + "/current.data"
     fsc_page_url = base_url + "/fsc.data"
+
+    connection_error_counter = defaultdict(int)
+
+
+    def _requests_get(self, url):
+        while True:
+            try:
+                r = requests.get(url, timeout=5.)
+            except requests.exceptions.ConnectionError:
+                self.connection_error_counter[url] += 1
+                if self.connection_error_counter[url] >= 10:
+                    raise
+                else:
+                    # sleep between 1 and 2 seconds.
+                    time.sleep(1. + random.random())
+            else:
+                self.connection_error_counter[url]=0
+                return r
+
     
     def _request_page(self):
-        # TODO:
-        # throw a good exception, when the request does not work ... 
-        # maybe the page is down?
-        self.status_page = requests.get(self.status_page_url)
-        self.main_page = requests.get(self.main_page_url)
-        self.weather_page = requests.get(self.weather_page_url)
-        self.bias_current_page = requests.get(self.bias_current_page_url)
-        self.fsc_page = requests.get(self.fsc_page_url)
+        self.status_page = self._requests_get(self.status_page_url)
+        self.main_page = self._requests_get(self.main_page_url)
+        self.weather_page = self._requests_get(self.weather_page_url)
+        self.bias_current_page = self._requests_get(self.bias_current_page_url)
+        self.fsc_page = self._requests_get(self.fsc_page_url)
 
     def _fetch_string(self, payload, line, col):
         return payload[line].split()[col]
