@@ -105,7 +105,7 @@ class LidCamCheck(Check):
 
         if relative_response >= 0.05:
             mesg = "lid cam image is bright, response > 1%: {:2.1f} %"
-            self.queue.append(mesg.format(relative_response))
+            self.queue.append(mesg.format(100.0*relative_response))
             res.imsave("plots/fact_lid_camera_"+timestamp()+".jpg")
 
 class IrCamCheck(Check):
@@ -128,5 +128,5 @@ class IrCamCheck(Check):
 
         if relative_response >= 0.05:
             mesg = "IR camera is bright, response > 1%: {:2.1f} %"
-            self.queue.append(mesg.format(relative_response))
+            self.queue.append(mesg.format(100.0*relative_response))
             res.imsave("plots/fact_ir_camera_"+timestamp()+".jpg")
