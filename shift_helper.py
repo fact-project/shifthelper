@@ -145,6 +145,26 @@ def main(stop_event):
     )
     check_currents.start()
 
+    from checks.computervision import LidCamCheck
+    lidcam_response = LidCamCheck(
+        alert.queue,
+        config.getint('checkintervals', 'weather'),
+        stop_event,
+        qla_data,
+        system_status,
+    )
+    lidcam_response.start()
+
+    from checks.computervision import IrCamCheck
+    IRcam_response = IrCamCheck(
+        alert.queue,
+        config.getint('checkintervals', 'weather'),
+        stop_event,
+        qla_data,
+        system_status,
+    )
+    IRcam_response.start()
+
     from checks.qla import FlareAlert
     flare_alert = FlareAlert(
         alert.queue,
