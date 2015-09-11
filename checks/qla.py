@@ -6,7 +6,6 @@ import pandas as pd
 
 from collections import defaultdict
 from sqlalchemy import create_engine
-from bokeh.plotting import figure, output_file, save
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -53,7 +52,6 @@ class FlareAlert(Check):
             'fSourceKEY': 'median',
         })
 
-        create_bokeh_plot(data)
         create_mpl_plot(data)
 
         for source, data in qla_max_rates.iterrows():
@@ -133,24 +131,6 @@ def get_data(bin_width_minutes=20):
         valid = agg.fOnTimeAfterCuts >= 0.9 * 60 * bin_width_minutes
         binned = binned.append(agg[valid], ignore_index=True)
     return binned
-
-
-def create_bokeh_plot(data):
-    output_file('plots/qla.html', title='ShiftHelper QLA')
-    fig = figure(width=600, height=400, x_axis_type='datetime')
-    for i, (name, group) in enumerate(data.groupby('fSourceName')):
-        errorbar(
-            fig=fig,
-            x=group.timeMean.values,
-            y=group.rate.values,
-            xerr=group.xerr.values,
-            yerr=group.yerr.values,
-            legend=name,
-            color=colors[i],
-        )
-    legend = fig.legend[0]
-    legend.orientation = 'top_left'
-    save(fig)
 
 
 def create_mpl_plot(data):
