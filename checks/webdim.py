@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 from __future__ import print_function, absolute_import
 from collections import defaultdict
-import time 
+import time
 import random
 import numpy as np
 from datetime import datetime
@@ -35,7 +35,7 @@ class WebDimCheck(Check):
                 self.connection_error_counter[url]=0
                 return r
 
-    
+
     def _request_page(self):
         self.status_page = self._requests_get(self.status_page_url)
         self.main_page = self._requests_get(self.main_page_url)
@@ -123,23 +123,23 @@ class WebDimCheck(Check):
         self.fsc_page_payload = self.fsc_page.content.split('\n')
 
         self.humidity_outside = self._fetch_float(
-            self.weather_page_payload, 5, 1)            
+            self.weather_page_payload, 5, 1)
         self.wind_speed = self._fetch_float(
             self.weather_page_payload, 7, 1)
         self.wind_gusts = self._fetch_float(
             self.weather_page_payload, 8, 1)
-        
+
 
         self.dimctrl_state = self._fetch_string(
             self.main_page_payload, 1, 1)
         self.dimctrl_state = self._fetch_string(
             self.status_page_payload, 2, 1)
-        
+
         self.current_time = datetime.fromtimestamp(
-            self._fetch_float(self.main_page_payload, 0, 0) / 1000., 
+            self._fetch_float(self.main_page_payload, 0, 0) / 1000.,
             UTC)
         self.last_update_time = datetime.fromtimestamp(
-            self._fetch_float(self.main_page_payload, 0, 1) / 1000., 
+            self._fetch_float(self.main_page_payload, 0, 1) / 1000.,
             UTC)
 
         self.currents_median = self._fetch_float(
@@ -163,7 +163,7 @@ class WebDimCheck(Check):
 
 
 class MainJsStatusCheck(WebDimCheck):
-    
+
     def check(self):
         self._load_data_from_webdim_page()
         if 'Running' not in self.dimctrl_state:
@@ -198,13 +198,13 @@ class CurrentCheck(WebDimCheck):
     def check(self):
         self._load_data_from_webdim_page()
         self.update_system_status(
-            'bias current median', 
-            '{:2.0f}'.format(self.currents_median), 
+            'bias current median',
+            '{:2.0f}'.format(self.currents_median),
             u'uA'
         )
         self.update_system_status(
-            'bias current max', 
-            '{:2.0f}'.format(self.currents_max), 
+            'bias current max',
+            '{:2.0f}'.format(self.currents_max),
             u'uA'
         )
 
@@ -226,7 +226,7 @@ class RelativeCameraTemperatureCheck(WebDimCheck):
         )
 
         if self.rel_cam_temp > 10.0:
-            mesg = "relative camera temp > 10 K: {:2.1f} %"
+            mesg = "relative camera temp > 10 K: {:2.1f} K"
             self.queue.append(mesg.format(self.rel_cam_temp))
 
 class RelativeCameraHumidityCheck(WebDimCheck):
