@@ -30,7 +30,7 @@ for key, val in config.items('qla'):
 colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
 
 factdb = create_engine(
-    "mysql+mysqldb://{user}:{pw}@{host}/{db}".format(
+    "mysql://{user}:{pw}@{host}/{db}".format(
         user=config.get('database', 'user'),
         pw=config.get('database', 'password'),
         host=config.get('database', 'host'),
