@@ -25,6 +25,7 @@ from docopt import docopt
 from threading import Event
 from collections import deque
 from ConfigParser import SafeConfigParser
+from getpass import getpass
 
 from communication import TwilioInterface, TelegramInterface
 import cli
@@ -45,6 +46,7 @@ formatter.converter = time.gmtime  # use utc in log
 logfile_handler.setFormatter(formatter)
 log.addHandler(logfile_handler)
 
+
 def read_config_file(config_file_name):
     config = SafeConfigParser()
     list_of_successfully_parsed_files = config.read(config_file_name)
@@ -52,7 +54,14 @@ def read_config_file(config_file_name):
         raise Exception('Can not find a config file named: '+config_file_name)
     return config
 
+
 def main(stop_event):
+    if not os.path.isfile('config.ini'):
+        raise IOError(
+            'You need to decrypt the config file using: \n'
+            '$ gpg -o config.ini --decrypt config.gpg \n'
+            'You will be asked for a password, enter the new FACT password'
+        )
 
     config = read_config_file('config.ini')
 
@@ -65,7 +74,7 @@ def main(stop_event):
         log.debug('started shift helper in debug mode')
 
     print(term.cyan('Twilio Phone Setup'))
-    
+
     caller = TwilioInterface(
         args['<phone_number>'],
         config.getint('caller', 'ringtime'),
@@ -124,7 +133,7 @@ def main(stop_event):
         system_status,
     )
     check_rel_camera_temp.start()
-    
+
     from checks.webdim import RelativeCameraHumidityCheck
     check_rel_camera_hum = RelativeCameraHumidityCheck(
         alert.queue,
