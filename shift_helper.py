@@ -30,6 +30,18 @@ from getpass import getpass
 from communication import TwilioInterface, TelegramInterface
 import cli
 
+from checks import Alert
+
+from checks.qla import FlareAlert
+from checks.webdim import RelativeCameraTemperatureCheck
+from checks.webdim import RelativeCameraHumidityCheck
+from checks.webdim import CurrentCheck
+from checks.webdim import MainJsStatusCheck
+from checks.webdim import WeatherCheck
+from checks.computervision import LidCamCheck
+from checks.computervision import IrCamCheck
+
+
 # setup logging
 if not os.path.exists('logs'):
     os.makedirs('logs')
@@ -94,7 +106,6 @@ def main(stop_event):
     qla_data = {}
     system_status = {}
 
-    from checks import Alert
     alert = Alert(queue=deque(),
                   interval=5,
                   stop_event=stop_event,
@@ -104,7 +115,6 @@ def main(stop_event):
                   )
 
     if not args['--debug']:
-        from checks.webdim import MainJsStatusCheck
         check_mainjs = MainJsStatusCheck(
             alert.queue,
             config.getint('checkintervals', 'mainjs'),
@@ -114,7 +124,6 @@ def main(stop_event):
         )
         check_mainjs.start()
 
-    from checks.webdim import WeatherCheck
     check_weather = WeatherCheck(
         alert.queue,
         config.getint('checkintervals', 'weather'),
@@ -124,7 +133,6 @@ def main(stop_event):
     )
     check_weather.start()
 
-    from checks.webdim import RelativeCameraTemperatureCheck
     check_rel_camera_temp = RelativeCameraTemperatureCheck(
         alert.queue,
         config.getint('checkintervals', 'weather'),
@@ -134,7 +142,6 @@ def main(stop_event):
     )
     check_rel_camera_temp.start()
 
-    from checks.webdim import RelativeCameraHumidityCheck
     check_rel_camera_hum = RelativeCameraHumidityCheck(
         alert.queue,
         config.getint('checkintervals', 'weather'),
@@ -144,7 +151,6 @@ def main(stop_event):
     )
     check_rel_camera_hum.start()
 
-    from checks.webdim import CurrentCheck
     check_currents = CurrentCheck(
         alert.queue,
         config.getint('checkintervals', 'currents'),
@@ -154,7 +160,6 @@ def main(stop_event):
     )
     check_currents.start()
 
-    from checks.computervision import LidCamCheck
     lidcam_response = LidCamCheck(
         alert.queue,
         config.getint('checkintervals', 'weather'),
@@ -164,7 +169,6 @@ def main(stop_event):
     )
     lidcam_response.start()
 
-    from checks.computervision import IrCamCheck
     IRcam_response = IrCamCheck(
         alert.queue,
         config.getint('checkintervals', 'weather'),
@@ -174,7 +178,6 @@ def main(stop_event):
     )
     IRcam_response.start()
 
-    from checks.qla import FlareAlert
     flare_alert = FlareAlert(
         alert.queue,
         config.getint('checkintervals', 'qla'),
