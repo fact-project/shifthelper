@@ -106,6 +106,12 @@ def main(stop_event):
     qla_data = {}
     system_status = {}
 
+    class NoQueue(object):
+        def append(self):
+            pass
+
+    dummy_queue_doing_nothing = NoQueue()
+    
     alert = Alert(queue=deque(),
                   interval=5,
                   stop_event=stop_event,
@@ -161,7 +167,7 @@ def main(stop_event):
     check_currents.start()
 
     lidcam_response = LidCamCheck(
-        alert.queue,
+        dummy_queue_doing_nothing,
         config.getint('checkintervals', 'weather'),
         stop_event,
         qla_data,
@@ -170,7 +176,7 @@ def main(stop_event):
     lidcam_response.start()
 
     IRcam_response = IrCamCheck(
-        alert.queue,
+        dummy_queue_doing_nothing,
         config.getint('checkintervals', 'weather'),
         stop_event,
         qla_data,
