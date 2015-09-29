@@ -19,7 +19,8 @@ from __future__ import print_function
 import time
 from blessings import Terminal
 import logging
-from tools import night
+
+
 import os
 from docopt import docopt
 from threading import Event
@@ -41,13 +42,14 @@ from checks.webdim import WeatherCheck
 from checks.computervision import LidCamCheck
 from checks.computervision import IrCamCheck
 
+import tools
 
 # setup logging
 if not os.path.exists('logs'):
     os.makedirs('logs')
 log = logging.getLogger('shift_helper')
 log.setLevel(logging.INFO)
-logfile = 'logs/shifthelper_{:%Y-%m-%d}.log'.format(night())
+logfile = 'logs/shifthelper_{:%Y-%m-%d}.log'.format(tools.night())
 logfile_handler = logging.FileHandler(filename=logfile)
 logfile_handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
@@ -59,23 +61,10 @@ logfile_handler.setFormatter(formatter)
 log.addHandler(logfile_handler)
 
 
-def read_config_file(config_file_name):
-    config = SafeConfigParser()
-    list_of_successfully_parsed_files = config.read(config_file_name)
-    if config_file_name not in list_of_successfully_parsed_files:
-        raise Exception('Can not find a config file named: '+config_file_name)
-    return config
 
 
 def main(stop_event):
-    if not os.path.isfile('config.ini'):
-        raise IOError(
-            'You need to decrypt the config file using: \n'
-            '$ gpg -o config.ini --decrypt config.gpg \n'
-            'You will be asked for a password, enter the new FACT password'
-        )
-
-    config = read_config_file('config.ini')
+    config = tools.read_config_file('config.ini')
 
     term = Terminal()
 

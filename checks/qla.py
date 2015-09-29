@@ -5,21 +5,18 @@ import numpy as np
 import pandas as pd
 
 from collections import defaultdict
-from sqlalchemy import create_engine
+import sqlalchemy
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from ConfigParser import SafeConfigParser
-from tools import night_integer
 from . import Check
+import tools
 
 if not os.path.exists('plots'):
     os.makedirs('plots')
 
-config = SafeConfigParser()
-config.optionxform = str  # this make the parsing case sensitive
-config.read('config.ini')
+config = tools.read_config_file('config.ini')
 
 alert_rate = defaultdict(lambda: config.getint('qla', 'default'))
 for key, val in config.items('qla'):
@@ -28,7 +25,7 @@ for key, val in config.items('qla'):
 
 colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
 
-factdb = create_engine(
+factdb = sqlalchemy.create_engine(
     "mysql+pymysql://{user}:{pw}@{host}/{db}".format(
         user=config.get('database', 'user'),
         pw=config.get('database', 'password'),
@@ -89,7 +86,7 @@ def get_data(bin_width_minutes=20, timestamp=None):
     """
     sql_query = sql_query.format(
         comma_sep_keys=', '.join(keys),
-        night=night_integer(timestamp),
+        night=tools.night_integer(timestamp),
     )
 
     data = pd.read_sql_query(
