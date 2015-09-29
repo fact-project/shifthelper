@@ -1,0 +1,13 @@
+requests
+scikit
+numpy
+scipy
+matplotlib
+python
+pymongo
+pandas
+sqlalchemy
+PyMySQL
+pytz
+blessings
+twilio
