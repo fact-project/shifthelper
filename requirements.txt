@@ -1,13 +1,13 @@
 requests
-scikit-image
 numpy
 scipy
 matplotlib
-python
-pymongo
+python-dateutil
 pandas
 sqlalchemy
 PyMySQL
+pymongo
 pytz
 blessings
 twilio
+scikit-image
