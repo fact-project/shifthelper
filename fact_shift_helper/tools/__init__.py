@@ -39,7 +39,7 @@ def read_config_file(config_file_name):
 
     else:
         shutil.copyfile(src=pkg_resources.resource_filename(__name__, 'config.gpg'), 
-                        dst=os.path.join(os.getcwd(), 'config.ini')
+                        dst=os.path.join(os.getcwd(), 'config.gpg')
             )
 
         raise IOError('\n'
