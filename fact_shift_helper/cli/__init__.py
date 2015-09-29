@@ -4,6 +4,8 @@ from threading import Thread
 from blessings import Terminal
 from datetime import datetime
 from subprocess import check_output
+from six.moves import input
+import six
 
 term = Terminal()
 
@@ -34,26 +36,26 @@ class StatusDisplay(Thread):
         print(self.term.move(0, 0) + self.term.cyan(timestamp()))
 
         print(self.term.move(2, 0) + 'System Status')
-        for i, (key, val) in enumerate(self.status_data.iteritems()):
+        for i, (key, val) in enumerate(six.iteritems(self.status_data)):
             print(self.term.move(3+i, 0) + u'{:<20}  {:>6} {:<6}'.format(
                 key, *val
             ))
 
         print(self.term.move(2, 40) + 'Maximum Source Activity')
-        for i, (key, val) in enumerate(self.qla_data.iteritems()):
+        for i, (key, val) in enumerate(six.iteritems(self.qla_data)):
             print(self.term.move(3+i, 40) + u'{:<20}  {:>6} {:<6}'.format(
                 key, *val
             ))
 
         if self.logfile is not None:
             logs = check_output('tail -n10 {}'.format(self.logfile), shell=True)
-            print(self.term.move(15, 0) + logs)
+            print(self.term.move(15, 0) + logs.decode('utf-8'))
 
         print(self.term.move(25, 0))
 
 
 def enter_phone_number():
-    my_phone_number = raw_input(
+    my_phone_number = input(
         'Please enter your phone number (like +4912345)\n'
     )
     my_phone_number = my_phone_number.replace(' ', '')
@@ -90,7 +92,7 @@ def check_phone_number(caller):
 
 
 def ask_user(question):
-    answer = raw_input(question + ' (y/n): ')
+    answer = input(question + ' (y/n): ')
     if answer.lower().startswith('y'):
         return True
     else:

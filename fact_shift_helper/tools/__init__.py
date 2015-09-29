@@ -1,6 +1,6 @@
 import os
 import datetime
-from ConfigParser import SafeConfigParser
+from six.moves.configparser import SafeConfigParser
 import pkg_resources
 import shutil
 
@@ -38,7 +38,7 @@ def read_config_file(config_file_name):
         return config
 
     else:
-        shutil.copyfile(src=pkg_resources.resource_filename(__name__, 'config.gpg'), 
+        shutil.copyfile(src=pkg_resources.resource_filename(__name__, 'config.gpg'),
                         dst=os.path.join(os.getcwd(), 'config.gpg')
             )
 

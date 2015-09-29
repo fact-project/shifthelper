@@ -116,11 +116,11 @@ class WebDimCheck(Check):
             #f0fff0 6.23
             #ffffff 0W [0mW]
         """
-        self.status_page_payload = self.status_page.content.split('\n')
-        self.main_page_payload = self.main_page.content.split('\n')
-        self.weather_page_payload = self.weather_page.content.split('\n')
-        self.bias_current_page_payload = self.bias_current_page.content.split('\n')
-        self.fsc_page_payload = self.fsc_page.content.split('\n')
+        self.status_page_payload = self.status_page.content.decode('utf-8').split('\n')
+        self.main_page_payload = self.main_page.content.decode('utf-8').split('\n')
+        self.weather_page_payload = self.weather_page.content.decode('utf-8').split('\n')
+        self.bias_current_page_payload = self.bias_current_page.content.decode('utf-8').split('\n')
+        self.fsc_page_payload = self.fsc_page.content.decode('utf-8').split('\n')
 
         self.humidity_outside = self._fetch_float(
             self.weather_page_payload, 5, 1)
