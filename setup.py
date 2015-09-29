@@ -33,6 +33,6 @@ setup(
     scripts=['scripts/shift_helper.py'],
     data_files=[
         ('', ['config.gpg']),
-        ]   
+        ],
     zip_safe=False
 )
