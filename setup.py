@@ -14,6 +14,7 @@ setup(
         'fact_shift_helper.cli',
         'fact_shift_helper.communication',
         'fact_shift_helper.tools',
+        'fact_shift_helper.unused',
         ],
     install_requires=[
         'requests',         # 2.7.0 is in anaconda

@@ -1,6 +1,7 @@
 import os
 import datetime
 from ConfigParser import SafeConfigParser
+import pkg_resources
 
 def night(timestamp=None):
     """
@@ -26,6 +27,9 @@ def night_integer(timestamp=None):
     return night
 
 def read_config_file(config_file_name):
+    print "os.getcwd", os.getcwd()
+    print "pkg:", pkg_resources.resource_filename(__name__, 'config.gpg')
+
     if not os.path.isfile(config_file_name):
         raise IOError('\n'
             '\tYou need to decrypt the config file using: \n'
