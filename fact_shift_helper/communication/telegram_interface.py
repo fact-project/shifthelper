@@ -2,7 +2,7 @@
 from __future__ import absolute_import, print_function, division
 import requests
 import json
-from cli import ask_user
+from ..cli import ask_user
 
 
 class TelegramInterface(object):

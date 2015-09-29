@@ -11,28 +11,32 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from . import Check
-import tools
+from .. import tools
 
 if not os.path.exists('plots'):
     os.makedirs('plots')
 
-config = tools.read_config_file('config.ini')
 
-alert_rate = defaultdict(lambda: config.getint('qla', 'default'))
-for key, val in config.items('qla'):
-    if key not in ['default', ]:
-        alert_rate[key] = int(val)
+def create_alert_rate():
+    alert_rate = defaultdict(lambda: config.getint('qla', 'default'))
+    for key, val in config.items('qla'):
+        if key not in ['default', ]:
+            alert_rate[key] = int(val)
+    return alert_rate
 
 colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
 
-factdb = sqlalchemy.create_engine(
-    "mysql+pymysql://{user}:{pw}@{host}/{db}".format(
-        user=config.get('database', 'user'),
-        pw=config.get('database', 'password'),
-        host=config.get('database', 'host'),
-        db=config.get('database', 'database'),
+def create_db_connection():
+    config = tools.read_config_file('config.ini')    
+    factdb = sqlalchemy.create_engine(
+        "mysql+pymysql://{user}:{pw}@{host}/{db}".format(
+            user=config.get('database', 'user'),
+            pw=config.get('database', 'password'),
+            host=config.get('database', 'host'),
+            db=config.get('database', 'database'),
+        )
     )
-)
+    return factdb
 
 
 class FlareAlert(Check):
@@ -56,7 +60,7 @@ class FlareAlert(Check):
             self.update_qla_data(source, '{:3.1f}'.format(rate))
             if rate > self.max_rate[source]:
                 self.max_rate[source] = rate
-                if self.max_rate[source] > alert_rate[source]:
+                if self.max_rate[source] > create_alert_rate()[source]:
                     msg = 'Source {} over alert rate: {:3.1f} Events/h'
                     self.queue.append(msg.format(source, self.max_rate[source]))
 
@@ -91,7 +95,7 @@ def get_data(bin_width_minutes=20, timestamp=None):
 
     data = pd.read_sql_query(
         sql_query,
-        factdb,
+        create_db_connection(),
         parse_dates=['fRunStart', 'fRunStop'],
     )
     # drop rows with NaNs from the table, these are unfinished qla results

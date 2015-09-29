@@ -16,33 +16,15 @@ Options
              and dimctrl status will not be checked for a running Main.js
 '''
 from __future__ import print_function
-import time
-from blessings import Terminal
-import logging
-
-
 import os
-from docopt import docopt
+import time
 from threading import Event
+import logging
+from docopt import docopt
 from collections import deque
-from ConfigParser import SafeConfigParser
-from getpass import getpass
+import blessings
 
-from communication import TwilioInterface, TelegramInterface
-import cli
-
-from checks import Alert
-
-from checks.qla import FlareAlert
-from checks.webdim import RelativeCameraTemperatureCheck
-from checks.webdim import RelativeCameraHumidityCheck
-from checks.webdim import CurrentCheck
-from checks.webdim import MainJsStatusCheck
-from checks.webdim import WeatherCheck
-from checks.computervision import LidCamCheck
-from checks.computervision import IrCamCheck
-
-import tools
+from fact_shift_helper import *
 
 # setup logging
 if not os.path.exists('logs'):
@@ -61,12 +43,10 @@ logfile_handler.setFormatter(formatter)
 log.addHandler(logfile_handler)
 
 
-
-
 def main(stop_event):
     config = tools.read_config_file('config.ini')
 
-    term = Terminal()
+    term = blessings.Terminal()
 
     if args['--debug']:
         mesg = term.red(80*'=' + '\n' + '{:^80}\n' + 80*'=')
@@ -96,7 +76,7 @@ def main(stop_event):
     system_status = {}
 
     class NoQueue(object):
-        def append(self):
+        def append(self, something=None):
             pass
 
     dummy_queue_doing_nothing = NoQueue()
