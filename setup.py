@@ -17,6 +17,7 @@ setup(
         'fact_shift_helper.unused',
         ],
     install_requires=[
+        'pandas',           # 0.16.2 is in anaconda
         'requests',         # 2.7.0 is in anaconda
         'scikit-image',     # 0.11.3 is in anaconda
         'numpy',            # 1.9.2 is in anaconda
@@ -24,10 +25,10 @@ setup(
         'matplotlib>=1.4',  # 1.4.3 is in anaconda
         'python-dateutil',  # 2.4.2 is in anaconda
         'pymongo>=2.7',     # 2.8 is in anaconda
-        'pandas',           # 0.16.2 is in anaconda
         'sqlalchemy',       # 1.0.5 is in anaconda
         'PyMySQL',          # 0.6.6 is in anaconda
         'pytz',             # 2015.4 is in anaconda
+        'sympy',
         'blessings',
         'twilio',
     ],
