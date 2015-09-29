@@ -2,6 +2,7 @@ import os
 import datetime
 from ConfigParser import SafeConfigParser
 import pkg_resources
+import shutil
 
 def night(timestamp=None):
     """
@@ -27,18 +28,22 @@ def night_integer(timestamp=None):
     return night
 
 def read_config_file(config_file_name):
-    print "os.getcwd", os.getcwd()
-    print "pkg:", pkg_resources.resource_filename(__name__, 'config.gpg')
 
-    if not os.path.isfile(config_file_name):
+    if os.path.isfile( os.path.join(os.getcwd(), config_file_name)):
+
+        config = SafeConfigParser()
+        list_of_successfully_parsed_files = config.read(config_file_name)
+        if config_file_name not in list_of_successfully_parsed_files:
+            raise Exception('Could not read {0} succesfully.'.format(config_file_name) )
+        return config
+
+    else:
+        shutil.copyfile(src=pkg_resources.resource_filename(__name__, 'config.gpg'), 
+                        dst=os.path.join(os.getcwd(), 'config.ini')
+            )
+
         raise IOError('\n'
-            '\tYou need to decrypt the config file using: \n'
-            '\t$ gpg -o config.ini --decrypt config.gpg \n'
-            '\tYou will be asked for a password, enter the new FACT password'
-        )
-
-    config = SafeConfigParser()
-    list_of_successfully_parsed_files = config.read(config_file_name)
-    if config_file_name not in list_of_successfully_parsed_files:
-        raise Exception('Can not find a config file named: '+config_file_name)
-    return config
+                '\tYou need to decrypt the config file using: \n'
+                '\t$ gpg -o config.ini --decrypt config.gpg \n'
+                '\tYou will be asked for a password, enter the new FACT password'
+            )
