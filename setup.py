@@ -32,6 +32,6 @@ setup(
         'twilio',
     ],
     scripts=['scripts/shift_helper.py'],
-    package_data={'fact_shift_helper': ['config.gpg']},
+    package_data={'fact_shift_helper.tools': ['config.gpg']},
     zip_safe=False
 )
