@@ -8,7 +8,7 @@ setup(
     author='Dominik Neise, Maximilian Noethe, Sebastian Mueller',
     author_email='neised@phys.ethz.ch',
     license='MIT',
-    packages=['fact_shift_helper'],
+    packages=['_shift_helper'],
     install_requires=[
         'requests',         # 2.7.0 is in anaconda
         'scikit-image',     # 0.11.3 is in anaconda
