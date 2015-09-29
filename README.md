@@ -17,10 +17,8 @@ a dummy is stored in the config_example.ini
 
 # Install 
 
-"""
-see:
-	http://stackoverflow.com/questions/10302417/how-do-i-install-a-package-from-bitbucket-using-pip
-"""
-I still didn't get it to work, but once the setup.py is not full of bugs anymore, I want to find out how to install the stuff directly out of the bitbucket.
+	pip install git+https://bitbucket.org/dneise/fact_shift_helper#egg=fact_shift_helper
 
-pip install https://bitbucket.org/dneise/fact_shift_helper/get/dneise/dim_less.gz
+# Uninstall
+
+	pip uninstall fact_shift_helper
