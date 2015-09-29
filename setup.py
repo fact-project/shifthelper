@@ -8,7 +8,13 @@ setup(
     author='Dominik Neise, Maximilian Noethe, Sebastian Mueller',
     author_email='neised@phys.ethz.ch',
     license='MIT',
-    packages=['_shift_helper'],
+    packages=[ 
+        'fact_shift_helper',
+        'fact_shift_helper.checks',
+        'fact_shift_helper.cli',
+        'fact_shift_helper.communication',
+        'fact_shift_helper.tools',
+        ],
     install_requires=[
         'requests',         # 2.7.0 is in anaconda
         'scikit-image',     # 0.11.3 is in anaconda
@@ -24,6 +30,6 @@ setup(
         'blessings',
         'twilio',
     ],
-    scripts=['shift_helper'],
+    scripts=['scripts/shift_helper.py'],
     zip_safe=False
 )
