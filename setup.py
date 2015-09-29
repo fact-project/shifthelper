@@ -8,7 +8,7 @@ setup(
     author='Dominik Neise, Maximilian Noethe, Sebastian Mueller',
     author_email='neised@phys.ethz.ch',
     license='MIT',
-    packages=[ 
+    packages=[
         'fact_shift_helper',
         'fact_shift_helper.checks',
         'fact_shift_helper.cli',
@@ -31,6 +31,8 @@ setup(
         'sympy',
         'blessings',
         'twilio',
+        'sympy',
+        'docopt',
     ],
     scripts=['scripts/shift_helper.py'],
     package_data={'fact_shift_helper.tools': ['config.gpg']},
