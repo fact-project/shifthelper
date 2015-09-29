@@ -29,7 +29,7 @@ for key, val in config.items('qla'):
 colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
 
 factdb = create_engine(
-    "mysql://{user}:{pw}@{host}/{db}".format(
+    "mysql+pymysql://{user}:{pw}@{host}/{db}".format(
         user=config.get('database', 'user'),
         pw=config.get('database', 'password'),
         host=config.get('database', 'host'),
@@ -64,7 +64,7 @@ class FlareAlert(Check):
                     self.queue.append(msg.format(source, self.max_rate[source]))
 
 
-def get_data(bin_width_minutes=20):
+def get_data(bin_width_minutes=20, timestamp=None):
     ''' this will get the QLA results to call if you have to send an alert '''
     keys = [
         'QLA.fRunID',
@@ -89,7 +89,7 @@ def get_data(bin_width_minutes=20):
     """
     sql_query = sql_query.format(
         comma_sep_keys=', '.join(keys),
-        night=night_integer(),
+        night=night_integer(timestamp),
     )
 
     data = pd.read_sql_query(
