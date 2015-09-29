@@ -31,6 +31,8 @@ setup(
         'twilio',
     ],
     scripts=['scripts/shift_helper.py'],
-    package_data={'':  ['config.gpg']},
+    data_files=[
+        ('wummwummwumm', ['config.gpg']),
+        ],
     zip_safe=False
 )
