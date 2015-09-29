@@ -24,6 +24,6 @@ setup(
         'blessings',
         'twilio',
     ],
-    scripts=['scripts/xmlproc_parse', 'scripts/xmlproc_val'],
+    scripts=['shift_helper'],
     zip_safe=False
 )

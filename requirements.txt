@@ -1,5 +1,5 @@
 requests
-scikit
+scikit-image
 numpy
 scipy
 matplotlib
