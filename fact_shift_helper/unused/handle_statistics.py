@@ -30,6 +30,7 @@ http://community.wolfram.com/groups/-/m/t/102242?p_p_auth=K8r5Y8QR
 """
 from __future__ import print_function, division
 from numpy import frompyfunc, arange
+import numpy as np
 from scipy.optimize import fminbound
 from sympy.mpmath import (
     hyperu,
@@ -116,7 +117,7 @@ def C_lambda(
         method=meth)
 
 
-def S_B_01(Non, Noff, alpha):
+def S_B_01(Non, Noff, alpha=1./5.):
     '''
     calculate the bayesian z-value via the bayes factor, truncated
     to a reasonable number count region
@@ -220,3 +221,25 @@ if __name__ == "__main__":
     plt.clf()
     plt.plot(x_range, y_range)
     plt.show()
+
+def S_Li_Ma(N_on, N_off, alpha=1./5.):
+
+    N_on = float(N_on)
+    N_off = float(N_off)
+    if N_off * alpha > N_on:
+        return 0.
+
+    a = alpha
+    p1 = N_on / (N_on + N_off)
+    p2 = N_off / (N_on + N_off)
+
+    t1 = N_on * np.log( ((1+a)/a) * p1)
+    t2 = N_off * np.log( (1+a) * p2)
+    
+
+    value =  np.sqrt((t1 + t2) * 2)
+    if np.isnan(value):
+        return 0.
+    else:
+        return value
+
