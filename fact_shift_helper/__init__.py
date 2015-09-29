@@ -9,3 +9,4 @@ from checks.webdim import WeatherCheck
 from checks.computervision import LidCamCheck
 from checks.computervision import IrCamCheck
 import cli
+from unused.handle_statistics import S_B_01, S_Li_Ma

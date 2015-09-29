@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 
 from . import Check
 from .. import tools
+from ..unused.handle_statistics import *
 
 if not os.path.exists('plots'):
     os.makedirs('plots')
@@ -48,12 +49,17 @@ class FlareAlert(Check):
             return
         if len(data.index) == 0:
             return
+
+        create_mpl_plot(data)
+
+        # cut in significance > 3.0
+        data = data[data.significance > 3.]
+
         qla_max_rates = data.groupby('fSourceName').agg({
             'rate': 'max',
             'fSourceKEY': 'median',
         })
 
-        create_mpl_plot(data)
 
         for source, data in qla_max_rates.iterrows():
             rate = float(data['rate'])
@@ -131,6 +137,12 @@ def get_data(bin_width_minutes=20, timestamp=None):
         agg['yerr'] /= agg.fOnTimeAfterCuts / 3600
         valid = agg.fOnTimeAfterCuts >= 0.9 * 60 * bin_width_minutes
         binned = binned.append(agg[valid], ignore_index=True)
+
+    binned['significance'] = np.zeros_like(binned.rate)
+    
+    for i in range(len(binned)):
+        binned.loc[i, 'significance'] = S_Li_Ma(binned.iloc[i].fNumSigEvts, binned.iloc[i].fNumBgEvts*5)
+
     return binned
 
 
