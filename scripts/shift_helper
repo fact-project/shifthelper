@@ -59,7 +59,7 @@ def main(stop_event):
         log.setLevel(logging.DEBUG)
         log.debug('started shift helper in debug mode')
 
-    if args['--debug'] and args['--no-call']:
+    if args['--no-call']:
         TwilioInterface = NoCaller
     
     print(term.cyan('Twilio Phone Setup'))
