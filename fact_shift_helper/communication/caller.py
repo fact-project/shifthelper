@@ -12,3 +12,11 @@ class Caller(object):
 
     def place_call(self):
         raise NotImplementedError
+
+class NoCaller(Caller):
+	""" Dummy caller for debugging only """
+    def hangup(self):
+        pass
+
+    def place_call(self):
+        pass
