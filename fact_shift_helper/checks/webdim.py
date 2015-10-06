@@ -16,13 +16,11 @@ class MainJsStatusCheck(Check):
 
     def check(self):
         s = smartfact.status()
-
-        if 'Running' not in s['DIM']:
-            mesg = "'Running' not in dimctrl_state\n\t{}"
-            self.queue.append(mesg.format(s['DIM']))
-            self.update_system_status('Main.js', 'Offline', ' ')
-        else:
-            self.update_system_status('Main.js', 'Running', ' ')
+        state = "".join(list(s['Dim_Control']))
+        if 'Running' not in state:
+            mesg = "'Running' not in dimctrl_state: {!r}"
+            self.queue.append(mesg.format(state))
+        self.update_system_status('Main.js', state, ' ')
 
 class WeatherCheck(Check):
 

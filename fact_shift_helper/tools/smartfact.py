@@ -145,8 +145,8 @@ def status(url=smartfacturl + 'status.data'):
 	return {
 		'Time_Stamp': smartfact_time2datetime(tc[0,0]),
 		'DIM': tc[1,1:],
-		'MCP': tc[2,1:],
-		'Dim_Control': tc[3,1:],
+		'Dim_Control': tc[2,1:],
+		'MCP': tc[3,1:],
 		'Datalogger': tc[4,1:],
 		'Drive_control': tc[5,1:],
 		'Drive_PC_time_check': tc[6,1:],
