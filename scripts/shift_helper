@@ -11,9 +11,11 @@ Usage:
     shift_helper.py [<phone_number>] [options]
 
 Options
-    --debug  Start the program in debug mode, DO NOT USE ON SHIFT!
-             Programming errors are raised normally
-             and dimctrl status will not be checked for a running Main.js
+    --debug       Start the program in debug mode, 
+                  DO NOT USE ON SHIFT!
+                  Programming errors are raised normally
+                  and dimctrl status will not be checked for a running Main.js
+    --version     Show version.
 '''
 from __future__ import print_function
 import os
@@ -23,6 +25,8 @@ import logging
 from docopt import docopt
 from collections import deque
 import blessings
+import pkg_resources
+
 
 from fact_shift_helper import *
 
@@ -117,15 +121,6 @@ def main(stop_event):
     )
     check_rel_camera_temp.start()
 
-    check_rel_camera_hum = RelativeCameraHumidityCheck(
-        alert.queue,
-        config.getint('checkintervals', 'weather'),
-        stop_event,
-        qla_data,
-        system_status,
-    )
-    check_rel_camera_hum.start()
-
     check_currents = CurrentCheck(
         alert.queue,
         config.getint('checkintervals', 'currents'),
@@ -174,7 +169,7 @@ def main(stop_event):
 
 if __name__ == '__main__':
     log.info('shift helper started')
-    args = docopt(__doc__)
+    args = docopt(__doc__, version=pkg_resources.require('fact_shift_helper')[0].version)
     try:
         stop_event = Event()
         main(stop_event)
