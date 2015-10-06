@@ -14,7 +14,11 @@ class Caller(object):
         raise NotImplementedError
 
 class NoCaller(Caller):
-	""" Dummy caller for debugging only """
+    """ Dummy caller for debugging only """
+    def __init__(self, *args, **kwargs):
+        self.phone_number = "nothing"
+        pass
+
     def hangup(self):
         pass
 
