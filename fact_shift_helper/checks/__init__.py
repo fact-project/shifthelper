@@ -1,9 +1,7 @@
 # -*- coding:utf-8 -*-
 from __future__ import print_function
 from threading import Thread
-from blessings import Terminal
 from traceback import format_exc
-term = Terminal()
 
 
 class Check(Thread):
