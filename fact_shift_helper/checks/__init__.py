@@ -2,7 +2,7 @@
 from __future__ import print_function
 from threading import Thread
 from traceback import format_exc
-
+import logging
 
 class Check(Thread):
     '''
@@ -39,8 +39,9 @@ class Check(Thread):
         while not self.stop_event.is_set():
             try:
                 self.check()
-            except Exception:
+            except Exception as e:
                 self.queue.append(format_exc())
+                logging.exception(e)
             self.stop_event.wait(self.interval)
 
     def check(self):

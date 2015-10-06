@@ -36,8 +36,8 @@ if not os.path.exists('logs'):
     os.makedirs('logs')
 log = logging.getLogger('shift_helper')
 log.setLevel(logging.INFO)
-logfile = 'logs/shifthelper_{:%Y-%m-%d}.log'.format(tools.night())
-logfile_handler = logging.FileHandler(filename=logfile)
+logfile_path = 'logs/shifthelper_{:%Y-%m-%d}.log'.format(tools.night())
+logfile_handler = logging.FileHandler(filename=logfile_path)
 logfile_handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
     fmt='%(asctime)s -%(levelname)s- %(message)s',
@@ -80,6 +80,16 @@ def main(stop_event):
     if cli.ask_user('Do you want to use Telegram to receive notifications?'):
         telegram = TelegramInterface(config.get('telegram', 'token'))
         log.info('Using Telegram')
+
+    print(term.bold_white("".join(("\n",
+            "    Thank you for using shift_helper tonight.\n",
+            "    -----------------------------------------\n",
+            "    We hope it was a pleasant experience.\n",
+            "    Please consider sending your log-file:\n",
+            "    ./{}\n".format(logfile_path),
+            "    to: neised@phys.ethz.ch for future improvements\n",
+            ))))
+
 
     qla_data = {}
     system_status = {}
@@ -163,7 +173,7 @@ def main(stop_event):
     flare_alert.start()
 
     log.info('All checkers are running.')
-    status = cli.StatusDisplay(qla_data, system_status, stop_event, logfile)
+    status = cli.StatusDisplay(qla_data, system_status, stop_event, logfile_path)
 
     alert.start()
     status.start()
