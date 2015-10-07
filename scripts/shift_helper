@@ -48,9 +48,8 @@ logfile_handler.setFormatter(formatter)
 log.addHandler(logfile_handler)
 
 
-def main(stop_event):
+def main(stop_event, args):
     config = tools.read_config_file('config.ini')
-
     term = blessings.Terminal()
 
     if args['--debug']:
@@ -60,7 +59,9 @@ def main(stop_event):
         log.debug('started shift helper in debug mode')
 
     if args['--no-call']:
-        TwilioInterface = NoCaller
+        from fact_shift_helper import NoCaller as TwilioInterface
+    else:
+        from fact_shift_helper import TwilioInterface
     
     print(term.cyan('Twilio Phone Setup'))
 
@@ -187,7 +188,7 @@ if __name__ == '__main__':
     args = docopt(__doc__, version=pkg_resources.require('fact_shift_helper')[0].version)
     try:
         stop_event = Event()
-        main(stop_event)
+        main(stop_event, args)
     except (KeyboardInterrupt, SystemExit):
         stop_event.set()
         log.info('Exit')
