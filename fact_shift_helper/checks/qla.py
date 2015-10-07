@@ -19,6 +19,7 @@ if not os.path.exists('plots'):
 
 
 def create_alert_rate():
+    config = tools.read_config_file('config.ini')
     alert_rate = defaultdict(lambda: config.getint('qla', 'default'))
     for key, val in config.items('qla'):
         if key not in ['default', ]:
