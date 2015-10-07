@@ -22,3 +22,7 @@ a dummy is stored in the config_example.ini
 # Uninstall
 
 	pip uninstall fact_shift_helper
+
+### Developers: Create the config.gpg
+
+    gpg --cipher-algo AES256 --symmetric config.ini
