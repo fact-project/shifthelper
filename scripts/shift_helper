@@ -70,8 +70,6 @@ def main(stop_event, args):
 
     print(term.cyan('Twilio Phone Setup'))
 
-    print(term.cyan('Twilio Phone Setup'))
-
     caller = TwilioInterface(
         args['<phone_number>'],
         config.getint('caller', 'ringtime'),
@@ -89,14 +87,17 @@ def main(stop_event, args):
         telegram = TelegramInterface(config.get('telegram', 'token'))
         log.info('Using Telegram')
 
-    print(term.bold_white("".join(("\n",
-            "    Thank you for using shift_helper tonight.\n",
-            "    -----------------------------------------\n",
-            "    We hope it was a pleasant experience.\n",
-            "    Please consider sending your log-file:\n",
-            "    ./{}\n".format(logfile_path),
-            "    to: neised@phys.ethz.ch for future improvements\n",
-            ))))
+    print(
+        term.bold_white(
+            "\n"
+            "    Thank you for using shift_helper tonight.\n"
+            "    -----------------------------------------\n"
+            "    We hope it was a pleasant experience.\n"
+            "    Please consider sending your log-file:\n"
+            "    {}\n".format(logfile_path) +
+            "    to: neised@phys.ethz.ch for future improvements\n"
+        )
+    )
 
     qla_data = {}
     system_status = {}
