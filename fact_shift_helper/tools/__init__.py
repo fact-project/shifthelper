@@ -30,8 +30,7 @@ def night_integer(timestamp=None):
 
 
 def read_config_file(config_file_name):
-
-    if os.path.isfile(os.path.join('~/.shifthelper', config_file_name)):
+    if os.path.isfile(config_file_name):
 
         config = SafeConfigParser()
         list_of_successfully_parsed_files = config.read(config_file_name)
@@ -44,7 +43,7 @@ def read_config_file(config_file_name):
     else:
         shutil.copyfile(
             src=pkg_resources.resource_filename(__name__, 'config.gpg'),
-            dst=os.path.join('~/.shifthelper', 'config.gpg'),
+            dst=config_file_name.replace('ini', 'gpg'),
         )
 
         raise IOError(
