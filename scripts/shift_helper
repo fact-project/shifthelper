@@ -34,10 +34,9 @@ from fact_shift_helper import *
 
 # setup logging
 logdir = os.path.join(os.environ['HOME'], '.shifthelper')
-print(logdir)
 if not os.path.exists(logdir):
-    print('made logdir')
     os.makedirs(logdir)
+
 log = logging.getLogger('shift_helper')
 log.setLevel(logging.INFO)
 logfile_path = os.path.join(
