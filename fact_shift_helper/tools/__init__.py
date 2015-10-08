@@ -32,6 +32,7 @@ def read_config_file(config_file_name):
     if os.path.isfile( os.path.join(os.getcwd(), config_file_name)):
 
         config = SafeConfigParser()
+        config.optionxform = str
         list_of_successfully_parsed_files = config.read(config_file_name)
         if config_file_name not in list_of_successfully_parsed_files:
             raise Exception('Could not read {0} succesfully.'.format(config_file_name) )

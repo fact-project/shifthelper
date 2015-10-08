@@ -237,9 +237,16 @@ def S_Li_Ma(N_on, N_off, alpha=1./5.):
     t2 = N_off * np.log( (1+a) * p2)
     
 
-    value =  np.sqrt((t1 + t2) * 2)
+    ts = (t1 + t2)
+    
+    if ts < 0:
+        return 0.
+
+    value =  np.sqrt(ts * 2)
     if np.isnan(value):
         return 0.
-    else:
-        return value
+    
+    
+
+    return value
 
