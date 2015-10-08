@@ -19,7 +19,9 @@ if not os.path.exists('plots'):
 
 
 def create_alert_rate():
-    config = tools.read_config_file('config.ini')
+    config = tools.read_config_file(
+        os.path.join(os.environ['HOME'], '.shifthelper', 'config.ini')
+    )
     alert_rate = defaultdict(lambda: config.getint('qla', 'default'))
     for key, val in config.items('qla'):
         if key not in ['default', ]:
@@ -28,8 +30,11 @@ def create_alert_rate():
 
 colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
 
+
 def create_db_connection():
-    config = tools.read_config_file('config.ini')    
+    config = tools.read_config_file(
+        os.path.join(os.environ['HOME'], '.shifthelper', 'config.ini')
+    )
     factdb = sqlalchemy.create_engine(
         "mysql+pymysql://{user}:{pw}@{host}/{db}".format(
             user=config.get('database', 'user'),
@@ -60,7 +65,6 @@ class FlareAlert(Check):
             'rate': 'max',
             'fSourceKEY': 'median',
         })
-
 
         for source, data in qla_max_rates.iterrows():
             rate = float(data['rate'])
@@ -140,7 +144,7 @@ def get_data(bin_width_minutes=20, timestamp=None):
         binned = binned.append(agg[valid], ignore_index=True)
 
     binned['significance'] = np.zeros_like(binned.rate)
-    
+
     for i in range(len(binned)):
         binned.loc[i, 'significance'] = S_Li_Ma(binned.iloc[i].fNumSigEvts, binned.iloc[i].fNumBgEvts*5)
 
