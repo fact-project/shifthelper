@@ -33,13 +33,15 @@ import pkg_resources
 from fact_shift_helper import *
 
 # setup logging
-logdir = '~/.shifthelper'
+logdir = os.path.join(os.environ['HOME'], '.shifthelper')
+print(logdir)
 if not os.path.exists(logdir):
+    print('made logdir')
     os.makedirs(logdir)
 log = logging.getLogger('shift_helper')
 log.setLevel(logging.INFO)
 logfile_path = os.path.join(
-    logdir, '/shifthelper_{:%Y-%m-%d}.log'.format(tools.night()),
+    logdir, 'shifthelper_{:%Y-%m-%d}.log'.format(tools.night()),
 )
 logfile_handler = logging.FileHandler(filename=logfile_path)
 logfile_handler.setLevel(logging.DEBUG)
@@ -53,7 +55,7 @@ log.addHandler(logfile_handler)
 
 
 def main(stop_event):
-    config = tools.read_config_file('config.ini')
+    config = tools.read_config_file(os.path.join(logdir, 'config.ini'))
 
     term = blessings.Terminal()
 
@@ -74,7 +76,7 @@ def main(stop_event):
         config.get('twilio', 'sid'),
         config.get('twilio', 'auth_token'),
         config.get('twilio', 'number'),
-        )
+    )
 
     cli.check_phone_number(caller)
     log.info('Using phone_number: {}'.format(caller.phone_number))
