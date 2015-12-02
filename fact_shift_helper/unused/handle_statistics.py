@@ -230,6 +230,10 @@ def S_Li_Ma(N_on, N_off, alpha=1./5.):
         return 0.
 
     a = alpha
+    
+    if N_on + N_off == 0:
+        return 0.
+    
     p1 = N_on / (N_on + N_off)
     p2 = N_off / (N_on + N_off)
 
@@ -238,6 +242,7 @@ def S_Li_Ma(N_on, N_off, alpha=1./5.):
     
 
     ts = (t1 + t2)
+    
     
     if ts < 0:
         return 0.
