@@ -7,11 +7,13 @@ Please do not accept or deny the call as this will
 create costs for us. Just let it ring.
 <phone_number> can either be a real phone_number or a twilio account.
 
+Logs are stored in ~/.shifthelper
+
 Usage:
     shift_helper.py [<phone_number>] [options]
 
 Options
-    --debug       Start the program in debug mode, 
+    --debug       Start the program in debug mode,
                   DO NOT USE ON SHIFT!
                   Programming errors are raised normally
                   and dimctrl status will not be checked for a running Main.js
@@ -28,15 +30,18 @@ from collections import deque
 import blessings
 import pkg_resources
 
-
 from fact_shift_helper import *
 
 # setup logging
-if not os.path.exists('logs'):
-    os.makedirs('logs')
+logdir = os.path.join(os.environ['HOME'], '.shifthelper')
+if not os.path.exists(logdir):
+    os.makedirs(logdir)
+
 log = logging.getLogger('shift_helper')
 log.setLevel(logging.INFO)
-logfile_path = 'logs/shifthelper_{:%Y-%m-%d}.log'.format(tools.night())
+logfile_path = os.path.join(
+    logdir, 'shifthelper_{:%Y-%m-%d}.log'.format(tools.night()),
+)
 logfile_handler = logging.FileHandler(filename=logfile_path)
 logfile_handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
@@ -49,7 +54,7 @@ log.addHandler(logfile_handler)
 
 
 def main(stop_event, args):
-    config = tools.read_config_file('config.ini')
+    config = tools.read_config_file(os.path.join(logdir, 'config.ini'))
     term = blessings.Terminal()
 
     if args['--debug']:
@@ -62,9 +67,8 @@ def main(stop_event, args):
         from fact_shift_helper import NoCaller as TwilioInterface
     else:
         from fact_shift_helper import TwilioInterface
-    
-    print(term.cyan('Twilio Phone Setup'))
 
+    print(term.cyan('Twilio Phone Setup'))
 
     caller = TwilioInterface(
         args['<phone_number>'],
@@ -72,7 +76,8 @@ def main(stop_event, args):
         config.get('twilio', 'sid'),
         config.get('twilio', 'auth_token'),
         config.get('twilio', 'number'),
-        )
+    )
+
     cli.check_phone_number(caller)
     log.info('Using phone_number: {}'.format(caller.phone_number))
 
@@ -82,15 +87,17 @@ def main(stop_event, args):
         telegram = TelegramInterface(config.get('telegram', 'token'))
         log.info('Using Telegram')
 
-    print(term.bold_white("".join(("\n",
-            "    Thank you for using shift_helper tonight.\n",
-            "    -----------------------------------------\n",
-            "    We hope it was a pleasant experience.\n",
-            "    Please consider sending your log-file:\n",
-            "    ./{}\n".format(logfile_path),
-            "    to: neised@phys.ethz.ch for future improvements\n",
-            ))))
-
+    print(
+        term.bold_white(
+            "\n"
+            "    Thank you for using shift_helper tonight.\n"
+            "    -----------------------------------------\n"
+            "    We hope it was a pleasant experience.\n"
+            "    Please consider sending your log-file:\n"
+            "    {}\n".format(logfile_path) +
+            "    to: neised@phys.ethz.ch for future improvements\n"
+        )
+    )
 
     qla_data = {}
     system_status = {}
@@ -100,7 +107,7 @@ def main(stop_event, args):
             pass
 
     dummy_queue_doing_nothing = NoQueue()
-    
+
     alert = Alert(queue=deque(),
                   interval=5,
                   stop_event=stop_event,
@@ -174,7 +181,12 @@ def main(stop_event, args):
     flare_alert.start()
 
     log.info('All checkers are running.')
-    status = cli.StatusDisplay(qla_data, system_status, stop_event, logfile_path)
+    status = cli.StatusDisplay(
+        qla_data,
+        system_status,
+        stop_event,
+        logfile_path,
+    )
 
     alert.start()
     status.start()
@@ -185,7 +197,10 @@ def main(stop_event, args):
 
 if __name__ == '__main__':
     log.info('shift helper started')
-    args = docopt(__doc__, version=pkg_resources.require('fact_shift_helper')[0].version)
+    args = docopt(
+        __doc__,
+        version=pkg_resources.require('fact_shift_helper')[0].version,
+    )
     try:
         stop_event = Event()
         main(stop_event, args)
