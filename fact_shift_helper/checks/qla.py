@@ -30,9 +30,7 @@ colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
 
 
 def create_db_connection():
-    config = tools.read_config_file(
-        os.path.join(os.environ['HOME'], '.shifthelper', 'config.ini')
-    )
+    config = tools.read_config_file()
     factdb = sqlalchemy.create_engine(
         "mysql+pymysql://{user}:{pw}@{host}/{db}".format(
             user=config.get('database', 'user'),
