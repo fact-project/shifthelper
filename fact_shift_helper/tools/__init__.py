@@ -50,8 +50,15 @@ def read_config_file():
                 '--decrypt',
                 config_file.replace('.ini', '.gpg'),
             ])
-        except CalledProcessError:
-            raise OSError('You need gpg installed to decrypt the config file')
+        except CalledProcessError as e:
+            if e.returncode == 2:
+                raise OSError('You entered the wrong password')
+            elif e.returncode == 127:
+                raise OSError(
+                    'You need gpg installed to decrypt the config file'
+                )
+            else:
+                raise
 
     config = SafeConfigParser()
     config.optionxform = str
