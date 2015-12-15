@@ -54,7 +54,7 @@ log.addHandler(logfile_handler)
 
 
 def main(stop_event, args):
-    config = tools.read_config_file(os.path.join(logdir, 'config.ini'))
+    config = tools.read_config_file()
     term = blessings.Terminal()
 
     if args['--debug']:
