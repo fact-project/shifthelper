@@ -11,13 +11,6 @@ config_file = os.path.join(
     '.shifthelper/config-{}.ini'.format(__version__)
 )
 
-decrypt_message = '''\n
-\tYou need to decrypt the config file using:
-\t$ cd ~/.shifthelper
-\t$ gpg -o config-{version}.ini --decrypt config-{version}.gpg
-\tYou will be asked for a password, enter the new FACT password
-'''.format(version=__version__)
-
 
 def night(timestamp=None):
     """
