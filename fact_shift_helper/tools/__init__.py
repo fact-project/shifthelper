@@ -6,7 +6,7 @@ from getpass import getpass
 from subprocess import check_call, CalledProcessError, PIPE
 from fact_shift_helper import __version__
 
-config_file = os.path.join(
+config_file_path = os.path.join(
     os.environ['HOME'],
     '.shifthelper/config-{}.ini'.format(__version__)
 )
@@ -36,21 +36,31 @@ def night_integer(timestamp=None):
     return night
 
 
-def decrypt_config_file():
-    gpg_file = pkg_resources.resource_filename(__name__, 'config.gpg')
+def let_user_decrypt_config_file():
+    decrypt_config_file(
+        passphrase=query_user_for_config_passphrase())
+
+def query_user_for_config_passphrase():
     print('You need to decrypt the config file.')
-    passwd = getpass('Please enter the new FACT password\n> ')
+    return getpass('Please enter the new FACT password\n> ')
+
+def decrypt_config_file(
+        passphrase,
+        input_path=pkg_resources.resource_filename(__name__, 'config.gpg'), 
+        output_path=config_file_path
+    ):
+
     try:
         check_call(
             [
                 'gpg',
                 '-o',
-                config_file,
+                output_path,
                 '--batch',
                 '--passphrase',
-                passwd,
+                passphrase,
                 '--decrypt',
-                gpg_file,
+                input_path,
 
             ],
             stdout=PIPE, stderr=PIPE,
@@ -68,14 +78,14 @@ def decrypt_config_file():
 
 
 def read_config_file():
-    if not os.path.isfile(config_file):
-        decrypt_config_file()
+    if not os.path.isfile(config_file_path):
+        let_user_decrypt_config_file()
 
     config = SafeConfigParser()
     config.optionxform = str
-    list_of_successfully_parsed_files = config.read(config_file)
-    if config_file not in list_of_successfully_parsed_files:
+    list_of_successfully_parsed_files = config.read(config_file_path)
+    if config_file_path not in list_of_successfully_parsed_files:
         raise Exception(
-            'Could not read {0} succesfully.'.format(config_file)
+            'Could not read {0} succesfully.'.format(config_file_path)
         )
     return config
