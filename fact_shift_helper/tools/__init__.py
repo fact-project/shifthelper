@@ -3,7 +3,7 @@ import datetime
 from six.moves.configparser import SafeConfigParser
 import pkg_resources
 from getpass import getpass
-from subprocess import check_call, CalledProcessError, PIPE
+from subprocess import Popen, CalledProcessError, PIPE
 from fact_shift_helper import __version__
 
 config_file_path = os.path.join(
@@ -40,41 +40,32 @@ def let_user_decrypt_config_file():
     decrypt_config_file(
         passphrase=query_user_for_config_passphrase())
 
+
 def query_user_for_config_passphrase():
     print('You need to decrypt the config file.')
     return getpass('Please enter the new FACT password\n> ')
 
+
 def decrypt_config_file(
         passphrase,
-        input_path=pkg_resources.resource_filename(__name__, 'config.gpg'), 
+        input_path=pkg_resources.resource_filename(__name__, 'config.gpg'),
         output_path=config_file_path
-    ):
+        ):
 
-    try:
-        check_call(
-            [
-                'gpg',
-                '-o',
-                output_path,
-                '--batch',
-                '--passphrase',
-                passphrase,
-                '--decrypt',
-                input_path,
-
-            ],
-            stdout=PIPE, stderr=PIPE,
-
-        )
-    except CalledProcessError as e:
-        if e.returncode == 2:
-            raise OSError('You entered the wrong password')
-        elif e.returncode == 127:
-            raise OSError(
-                'You need gpg installed to decrypt the config file'
-            )
-        else:
-            raise
+    process = Popen(
+        [
+            'gpg',
+            '-o',
+            output_path,
+            '--batch',
+            '--passphrase-fd',
+            '0',
+            '--decrypt',
+            input_path,
+        ],
+        stdout=PIPE, stderr=PIPE, stdin=PIPE,
+    )
+    out, err = process.communicate(input=passphrase.encode('utf-8'))
 
 
 def read_config_file():
