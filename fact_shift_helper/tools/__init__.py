@@ -67,6 +67,12 @@ def decrypt_config_file(
     )
     out, err = process.communicate(input=passphrase.encode('utf-8'))
 
+    if process.returncode != 0:
+        if process.returncode == 2:
+            raise OSError('Wrong password, try again please.')
+        else:
+            raise OSError(err)
+
 
 def read_config_file():
     if not os.path.isfile(config_file_path):
