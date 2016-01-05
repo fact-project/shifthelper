@@ -48,15 +48,17 @@ class StatusDisplay(Thread):
             ))
 
         if self.logfile is not None:
-            logs = check_output('tail -n10 {}'.format(self.logfile), shell=True)
-            print(self.term.move(15, 0) + logs.decode('utf-8'))
-
-        print(self.term.move(25, 0))
+            logs = check_output('tail -n20 {}'.format(self.logfile), shell=True)
+            n_lines = term.height - 15
+            loglines = list(
+                reversed(logs.decode('utf-8').splitlines())
+            )[:n_lines]
+            print(self.term.move(14, 0) + '\n'.join(loglines))
 
 
 def enter_phone_number():
     my_phone_number = input(
-        'Please enter your phone number (like +4912345)\n'
+        'Please enter your phone number (like +4912345)\n> '
     )
     my_phone_number = my_phone_number.replace(' ', '')
     return my_phone_number
