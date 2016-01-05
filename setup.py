@@ -2,7 +2,7 @@ from distutils.core import setup, Extension
 
 setup(
     name='fact_shift_helper',
-    version='0.3.1',
+    version='0.3.2',
     description='a tool for helping people with a FACT night shift',
     url='https://bitbucket.org/dneise/fact_shift_helper',
     author='Dominik Neise, Maximilian Noethe, Sebastian Mueller',
@@ -14,24 +14,21 @@ setup(
         'fact_shift_helper.cli',
         'fact_shift_helper.communication',
         'fact_shift_helper.tools',
-        'fact_shift_helper.unused',
         ],
     install_requires=[
-        'pandas',           # 0.16.2 is in anaconda
-        'requests',         # 2.7.0 is in anaconda
-        'numpy',            # 1.9.2 is in anaconda
-        'scipy',            # 0.15.1 is in anaconda
-        'matplotlib>=1.4',  # 1.4.3 is in anaconda
-        'python-dateutil',  # 2.4.2 is in anaconda
-        'pymongo>=2.7',     # 2.8 is in anaconda
-        'sqlalchemy',       # 1.0.5 is in anaconda
-        'PyMySQL',          # 0.6.6 is in anaconda
-        'pytz',             # 2015.4 is in anaconda
-        'scikit-image',     # 0.11.3 is in anaconda
-        'sympy',
+        'pandas',           # in anaconda
+        'requests',         # in anaconda
+        'numpy',            # in anaconda
+        'scipy',            # in anaconda
+        'matplotlib>=1.4',  # in anaconda
+        'python-dateutil',  # in anaconda
+        'pymongo>=2.7',     # in anaconda
+        'sqlalchemy',       # in anaconda
+        'PyMySQL',          # in anaconda
+        'pytz',             # in anaconda
+        'scikit-image',     # in anaconda
         'blessings',
         'twilio',
-        'sympy',
         'docopt',
     ],
     scripts=['scripts/shift_helper'],
