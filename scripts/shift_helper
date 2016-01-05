@@ -54,8 +54,17 @@ log.addHandler(logfile_handler)
 
 
 def main(stop_event, args):
-    config = tools.read_config_file(os.path.join(logdir, 'config.ini'))
     term = blessings.Terminal()
+
+    print(term.red)
+    print(term.width * '=')
+    print('{{:^{}}}'.format(term.width).format(
+        'Welcome to the shift_helper!'
+    ))
+    print(term.width * '=')
+    print(term.normal)
+
+    config = tools.read_config_file()
 
     if args['--debug']:
         mesg = term.red(80*'=' + '\n' + '{:^80}\n' + 80*'=')
@@ -194,6 +203,7 @@ def main(stop_event, args):
     log.info('Entering main loop.')
     while True:
         time.sleep(10)
+
 
 if __name__ == '__main__':
     log.info('shift helper started')

@@ -19,9 +19,7 @@ if not os.path.exists('plots'):
 
 
 def create_alert_rate():
-    config = tools.read_config_file(
-        os.path.join(os.environ['HOME'], '.shifthelper', 'config.ini')
-    )
+    config = tools.read_config_file()
     alert_rate = defaultdict(lambda: config.getint('qla', 'default'))
     for key, val in config.items('qla'):
         if key not in ['default', ]:
@@ -32,9 +30,7 @@ colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
 
 
 def create_db_connection():
-    config = tools.read_config_file(
-        os.path.join(os.environ['HOME'], '.shifthelper', 'config.ini')
-    )
+    config = tools.read_config_file()
     factdb = sqlalchemy.create_engine(
         "mysql+pymysql://{user}:{pw}@{host}/{db}".format(
             user=config.get('database', 'user'),
