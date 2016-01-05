@@ -2,13 +2,16 @@
 from __future__ import print_function, absolute_import
 import numpy as np
 from datetime import datetime
-from pytz import UTC
-import requests
-from . import Check
+import os
 
 import skimage.io as io
 import skimage
-import numpy as np
+
+from . import Check
+
+outdir = os.path.join(os.environ['HOME'], '.shifthelper', 'plots')
+if not os.path.exists(outdir):
+    os.makedirs(outdir)
 
 
 def timestamp():
@@ -16,14 +19,14 @@ def timestamp():
 
 
 class CamResponseInRoi:
-    """
-    in: 
+    '''
+    in:
         image url
             __init__(url)
 
         Regions of Interest (RoIs)
             add_roi_disc_in_row_col_with_radius(row,col,radius)
-            You can call add_roi several times on different image parts 
+            You can call add_roi several times on different image parts
             to enlarge the total RoI
 
     out:
@@ -32,7 +35,7 @@ class CamResponseInRoi:
 
         image can be saved to disc
             imsave(path)
-    """
+    '''
 
     def __init__(self, url):
         self.url = url
@@ -86,17 +89,17 @@ class CamResponseInRoi:
 
 
 class LidCamCheck(Check):
-    """
+    '''
     FACT's focal plane is expected to be dark during operation.
     The roi is on the focal plane and camera housing visible
     from the lid cam on FACT's shoulder.
-    Since we dont know absolute fluxes, we call it an alarm when the 
+    Since we dont know absolute fluxes, we call it an alarm when the
     ratio of possible brightness in the roi to maximum possible brightness
     in the roi reaches a threshold of about 1%.
-    """
+    '''
 
     def check(self):
-        url = "http://www.fact-project.org/cam/lidcam.php"
+        url = 'http://www.fact-project.org/cam/lidcam.php'
         res = CamResponseInRoi(url)
         res.add_roi_disc_in_row_col_with_radius(415, 525, 75)
         relative_response = res.get_relative_response()
@@ -105,22 +108,25 @@ class LidCamCheck(Check):
         self.update_system_status(
             'lid cam response',
             fmt.format(100.0 * relative_response),
-            '%')
+            '%',
+        )
 
         if relative_response >= 0.05:
-            mesg = "lid cam image is bright, response > 1%: {:2.1f} %"
+            mesg = 'lid cam image is bright, response > 1%: {:2.1f} %'
             self.queue.append(mesg.format(100.0 * relative_response))
-            res.imsave("plots/fact_lid_camera_" + timestamp() + ".jpg")
+            res.imsave(os.path.join(
+                outdir, 'fact_lid_camera_' + timestamp() + '.jpg'
+            ))
 
 
 class IrCamCheck(Check):
-    """
+    '''
     FACT's IR cam on the container is meant to see only a dark frame during
     operation.
-    """
+    '''
 
     def check(self):
-        url = "http://www.fact-project.org/cam/cam.php"
+        url = 'http://www.fact-project.org/cam/cam.php'
         res = CamResponseInRoi(url)
         res.add_roi_disc_in_row_col_with_radius(240, 320, 240)
         relative_response = res.get_relative_response()
@@ -132,6 +138,8 @@ class IrCamCheck(Check):
             '%')
 
         if relative_response >= 0.05:
-            mesg = "IR camera is bright, response > 1%: {:2.1f} %"
+            mesg = 'IR camera is bright, response > 1%: {:2.1f} %'
             self.queue.append(mesg.format(100.0 * relative_response))
-            res.imsave("plots/fact_ir_camera_" + timestamp() + ".jpg")
+            res.imsave(os.path.join(
+                outdir, 'fact_ir_camera_' + timestamp() + '.jpg'
+            ))
