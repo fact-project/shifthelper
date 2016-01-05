@@ -64,35 +64,6 @@ def enter_phone_number():
     return my_phone_number
 
 
-def confirm_phone_number(caller):
-    print("You entered: ", caller.phone_number)
-    if not ask_user('Is that number correct?'):
-        caller.phone_number = None
-
-
-def try_to_call(caller):
-    """ Returns if the call worked or not.
-    """
-    print("I will try to call you now")
-    caller.place_call()
-
-    if ask_user('Did your phone ring?'):
-        caller.hangup()
-        return True
-    return False
-
-
-def check_phone_number(caller):
-    calling_worked = False
-    while (not calling_worked or caller.phone_number is None):
-        if caller.phone_number is None:
-            caller.phone_number = enter_phone_number()
-        confirm_phone_number(caller)
-
-        if caller.phone_number is not None:
-            calling_worked = try_to_call(caller)
-
-
 def ask_user(question):
     answer = input(question + ' (y/n): ')
     if answer.lower().startswith('y'):
