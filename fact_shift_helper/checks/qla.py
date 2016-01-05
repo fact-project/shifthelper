@@ -13,8 +13,11 @@ import matplotlib.pyplot as plt
 from . import Check
 from .. import tools
 
-if not os.path.exists('plots'):
-    os.makedirs('plots')
+colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
+
+outdir = os.path.join(os.environ['HOME'], '.shifthelper', 'plots')
+if not os.path.exists(outdir):
+    os.makedirs(outdir)
 
 
 def create_alert_rate():
@@ -24,8 +27,6 @@ def create_alert_rate():
         if key not in ['default', ]:
             alert_rate[key] = int(val)
     return alert_rate
-
-colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
 
 
 def create_db_connection():
@@ -167,7 +168,7 @@ def create_mpl_plot(data):
         )
     plt.legend(loc='best')
     plt.tight_layout()
-    plt.savefig('plots/qla.png')
+    plt.savefig(os.path.join(outdir, 'qla.png'))
     plt.close('all')
 
 
