@@ -1,0 +1,154 @@
+#!/usr/bin/env python
+# coding: utf-8
+import requests
+from datetime import datetime, timedelta
+from collections import namedtuple
+from threading import Thread, Event
+import re
+from time import sleep
+from fact_shift_helper.checks.qla import get_data, create_mpl_plot
+from fact_shift_helper.tools import read_config_file
+
+
+qla_command = re.compile(
+    '(/qla(@factShiftHelperBot)?)( [0-9]+)?( [0-9]{4}-[0-9]{2}-[0-9]{2})?'
+)
+
+Message = namedtuple(
+    'Result', ['chat_id', 'update_id', 'text']
+)
+
+caption = 'Binning: {:2.0f} min, Night: {:%Y-%m-%d}'
+
+
+class QlaBot(Thread):
+    url = 'https://api.telegram.org/bot{token}'
+
+    def __init__(self, bot_token):
+        self.url = self.url.format(token=bot_token)
+        self.stop_event = Event()
+        super().__init__()
+
+    def run(self):
+        while not self.stop_event.is_set():
+            messages = self.getUpdates()
+
+            for message in messages:
+                try:
+                    match = qla_command.fullmatch(message.text)
+                    if match:
+                        self.confirm_message(message)
+                        bin_width, timestamp = self.parse_command(match)
+                        data = get_data(bin_width, timestamp)
+
+                        if data is None:
+                            self.send_message(
+                                message.chat_id,
+                                'No QLA data available for {:%Y-%m-%d}'.format(
+                                    timestamp
+                                )
+                            )
+                        else:
+                            night = timestamp - timedelta(hours=12)
+                            create_mpl_plot(data, '/tmp/qla.png')
+                            with open('/tmp/qla.png', 'rb') as img:
+                                self.send_image(
+                                    message.chat_id,
+                                    img,
+                                    caption.format(bin_width, night),
+                                )
+                            print('send image for', bin_width, timestamp)
+                    else:
+                        if message.text.startswith('/qla'):
+                            self.send_message(
+                                message.chat_id,
+                                'Could not parse your request, sorry!'
+                            )
+                except Exception as e:
+                    print(e)
+                    self.send_message(
+                        message.chat_id,
+                        'Could not serve your request, sorry!'
+                    )
+            self.stop_event.wait(1)
+
+    def parse_command(self, match):
+        groups = match.groups()
+        if groups[2] is None:
+            bin_width = 20
+        else:
+            bin_width = float(groups[2].strip())
+        if groups[3] is None:
+            timestamp = datetime.utcnow()
+            if 12 <= timestamp.hour <= 19:
+                timestamp -= timedelta(days=1)
+        else:
+            timestamp = datetime.strptime(
+                groups[3].strip(), '%Y-%m-%d'
+            ) + timedelta(hours=20)
+
+        return bin_width, timestamp
+
+    def terminate(self):
+        self.stop_event.set()
+
+    def getUpdates(self):
+        ret = requests.get(self.url + '/getUpdates', timeout=5).json()
+
+        if ret['ok']:
+            messages = []
+            for update in ret['result']:
+                message_data = update['message']
+                chatdata = message_data['chat']
+
+                message = Message(
+                    update_id=update['update_id'],
+                    chat_id=chatdata['id'],
+                    text=message_data.get('text', ''),
+                )
+                messages.append(message)
+            return messages
+
+    def confirm_message(self, message):
+        requests.get(
+            self.url + '/getUpdates',
+            params={'offset': message.update_id + 1},
+            timeout=5,
+        )
+
+    def send_image(self, chat_id, image, caption=''):
+        try:
+            r = requests.post(
+                self.url + '/sendPhoto',
+                data={'chat_id': chat_id, 'caption': caption},
+                files={'photo': image},
+                timeout=15,
+            )
+        except requests.exceptions.Timeout:
+            print('Telegram "send_message" timed out')
+        return r
+
+    def send_message(self, chat_id, message):
+        try:
+            r = requests.post(
+                self.url + '/sendMessage',
+                data={'chat_id': chat_id, 'text': message},
+                timeout=5,
+            )
+        except requests.exceptions.Timeout:
+            print('Telegram "send_message" timed out')
+        return r
+
+
+if __name__ == '__main__':
+
+    config = read_config_file()
+    bot = QlaBot(config.get('telegram', 'token'))
+    bot.start()
+    print('bot running')
+
+    try:
+        while True:
+            sleep(10)
+    except (KeyboardInterrupt, SystemExit):
+        bot.terminate()
