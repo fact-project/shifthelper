@@ -152,7 +152,7 @@ def get_data(bin_width_minutes=20, timestamp=None):
     return binned
 
 
-def create_mpl_plot(data):
+def create_mpl_plot(data, outfile=os.path.join(outdir, 'qla.png')):
     plt.figure()
     for name, group in data.groupby('fSourceName'):
         if len(group.index) == 0:
@@ -168,7 +168,7 @@ def create_mpl_plot(data):
         )
     plt.legend(loc='best')
     plt.tight_layout()
-    plt.savefig(os.path.join(outdir, 'qla.png'))
+    plt.savefig(outfile)
     plt.close('all')
 
 
