@@ -12,10 +12,12 @@ import matplotlib.pyplot as plt
 
 from . import Check
 from .. import tools
-from ..unused.handle_statistics import *
 
-if not os.path.exists('plots'):
-    os.makedirs('plots')
+colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
+
+outdir = os.path.join(os.environ['HOME'], '.shifthelper', 'plots')
+if not os.path.exists(outdir):
+    os.makedirs(outdir)
 
 
 def create_alert_rate():
@@ -25,8 +27,6 @@ def create_alert_rate():
         if key not in ['default', ]:
             alert_rate[key] = int(val)
     return alert_rate
-
-colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
 
 
 def create_db_connection():
@@ -54,17 +54,23 @@ class FlareAlert(Check):
 
         create_mpl_plot(data)
 
-        # cut in significance > 3.0
-        data = data[data.significance > 3.]
+        significant = data.query('significance >= 3')
 
         qla_max_rates = data.groupby('fSourceName').agg({
             'rate': 'max',
             'fSourceKEY': 'median',
         })
-
         for source, data in qla_max_rates.iterrows():
             rate = float(data['rate'])
             self.update_qla_data(source, '{:3.1f}'.format(rate))
+
+        significant_qla_max_rates = significant.groupby('fSourceName').agg({
+            'rate': 'max',
+            'fSourceKEY': 'median',
+        })
+
+        for source, data in significant_qla_max_rates.iterrows():
+            rate = float(data['rate'])
             if rate > self.max_rate[source]:
                 self.max_rate[source] = rate
                 if self.max_rate[source] > create_alert_rate()[source]:
@@ -139,10 +145,9 @@ def get_data(bin_width_minutes=20, timestamp=None):
         valid = agg.fOnTimeAfterCuts >= 0.9 * 60 * bin_width_minutes
         binned = binned.append(agg[valid], ignore_index=True)
 
-    binned['significance'] = np.zeros_like(binned.rate)
-
-    for i in range(len(binned)):
-        binned.loc[i, 'significance'] = S_Li_Ma(binned.iloc[i].fNumSigEvts, binned.iloc[i].fNumBgEvts*5)
+    binned['significance'] = li_ma_significance(
+        binned.fNumSigEvts, binned.fNumBgEvts * 5, 0.2
+    )
 
     return binned
 
@@ -163,42 +168,8 @@ def create_mpl_plot(data):
         )
     plt.legend(loc='best')
     plt.tight_layout()
-    plt.savefig('plots/qla.png')
+    plt.savefig(os.path.join(outdir, 'qla.png'))
     plt.close('all')
-
-
-def errorbar(
-        fig,
-        x,
-        y,
-        xerr=None,
-        yerr=None,
-        color='red',
-        legend=None,
-        point_kwargs={},
-        error_kwargs={},
-        ):
-    '''
-    draw an errorbar plot with bokeh
-    '''
-
-    fig.circle(x, y, color=color, legend=legend, **point_kwargs)
-
-    if xerr is not None:
-        x_err_x = []
-        x_err_y = []
-        for px, py, err in zip(x, y, xerr):
-            x_err_x.append((px - err, px + err))
-            x_err_y.append((py, py))
-        fig.multi_line(x_err_x, x_err_y, color=color, **error_kwargs)
-
-    if yerr is not None:
-        y_err_x = []
-        y_err_y = []
-        for px, py, err in zip(x, y, yerr):
-            y_err_x.append((px, px))
-            y_err_y.append((py - err, py + err))
-        fig.multi_line(y_err_x, y_err_y, color=color, **error_kwargs)
 
 
 def dorner_binning(data, bin_width_minutes=20):
@@ -212,3 +183,23 @@ def dorner_binning(data, bin_width_minutes=20):
         bins.append(bin_number)
         ontime_sum += row['fOnTimeAfterCuts']
     return pd.Series(bins, index=data.index)
+
+
+def li_ma_significance(N_on, N_off, alpha=0.2):
+    N_on = np.array(N_on, copy=False)
+    N_off = np.array(N_off, copy=False)
+
+    with np.errstate(divide='ignore', invalid='ignore'):
+        p1 = N_on / (N_on + N_off)
+        p2 = N_off / (N_on + N_off)
+
+        t1 = N_on * np.log(((1 + alpha) / alpha) * p1)
+        t2 = N_off * np.log((1 + alpha) * p2)
+
+        ts = (t1 + t2)
+
+        significance = np.sqrt(ts * 2)
+
+    significance[np.isnan(significance)] = 0
+
+    return significance
