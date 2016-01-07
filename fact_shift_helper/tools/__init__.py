@@ -3,7 +3,7 @@ import datetime
 from six.moves.configparser import SafeConfigParser
 import pkg_resources
 from getpass import getpass
-from subprocess import Popen, CalledProcessError, PIPE
+from subprocess import Popen, PIPE
 from fact_shift_helper import __version__
 
 config_file_path = os.path.join(
@@ -51,6 +51,10 @@ def decrypt_config_file(
         input_path=pkg_resources.resource_filename(__name__, 'config.gpg'),
         output_path=config_file_path
         ):
+
+    dotpath = os.path.join(os.environ['HOME'], '.shifthelper')
+    if not os.path.exists(dotpath):
+        os.makedirs(dotpath)
 
     process = Popen(
         [
