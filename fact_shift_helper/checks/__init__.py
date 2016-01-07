@@ -3,6 +3,14 @@ from __future__ import print_function
 from threading import Thread
 from traceback import format_exc
 import logging
+import os
+
+qla_filename = os.path.join(
+    os.environ['HOME'],
+    '.shifthelper',
+    'plots/qla.png',
+)
+
 
 class Check(Thread):
     '''
@@ -113,7 +121,7 @@ class Alert(Thread):
                     if self.messenger is not None:
                         self.messenger.send_message(message)
                         if 'Source' in message:
-                            with open('plots/qla.png', 'rb') as img:
+                            with open(qla_filename, 'rb') as img:
                                 self.messenger.send_image(img)
 
             self.stop_event.wait(self.interval)
