@@ -153,23 +153,57 @@ def get_data(bin_width_minutes=20, timestamp=None):
 
 
 def create_mpl_plot(data, outfile=os.path.join(outdir, 'qla.png')):
-    plt.figure()
-    for name, group in data.groupby('fSourceName'):
-        if len(group.index) == 0:
-            continue
-        plt.errorbar(
-            x=group.timeMean.values,
-            y=group.rate.values,
-            xerr=group.xerr.values,
-            yerr=group.yerr.values,
-            label=name,
-            fmt='o',
-            mec='none',
+    alert_rate = create_alert_rate()
+    with plt.style.context(('ggplot', )):
+        try:
+            cycle = plt.rcParams['axes.prop_cycle']
+            colors = [style['color'] for style in cycle]
+        except KeyError:
+            colors = plt.rcParams['axes.color_cycle']
+        fig = plt.figure()
+        ax_sig = plt.subplot2grid((4, 1), (3, 0))
+        ax_rate = plt.subplot2grid(
+            (4, 1), (0, 0),
+            rowspan=3, sharex=ax_sig
         )
-    plt.legend(loc='best')
-    plt.tight_layout()
-    plt.savefig(outfile)
-    plt.close('all')
+        for (name, group), color in zip(data.groupby('fSourceName'), colors):
+            if len(group.index) == 0:
+                continue
+            ax_rate.errorbar(
+                x=group.timeMean.values,
+                y=group.rate.values,
+                xerr=group.xerr.values,
+                yerr=group.yerr.values,
+                label=name,
+                fmt='o',
+                mec='none',
+                color=color,
+            )
+
+            if name != 'Crab':
+                ax_rate.hlines(
+                    alert_rate[name],
+                    (group.timeMean.values - group.xerr.values).min(),
+                    (group.timeMean.values + group.xerr.values).max(),
+                    color=color,
+                )
+            ax_sig.errorbar(
+                x=group.timeMean.values,
+                y=group.significance.values,
+                xerr=group.xerr.values,
+                label=name,
+                fmt='o',
+                mec='none',
+                color=color,
+            )
+        ax_sig.axhline(3, color='darkgray')
+        ax_rate.legend(loc='upper left', ncol=4)
+        ax_rate.set_ylabel('Excess Event Rate / $\mathrm{h}^{-1}$')
+        ax_sig.set_ylabel('$S_{\mathrm{Li/Ma}} / \sigma$')
+        fig.autofmt_xdate()
+        fig.tight_layout()
+        fig.savefig(outfile)
+        plt.close('all')
 
 
 def dorner_binning(data, bin_width_minutes=20):
