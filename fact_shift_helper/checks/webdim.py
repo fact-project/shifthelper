@@ -22,9 +22,15 @@ class WeatherCheck(Check):
         w = smartfact.weather()
 
         fmt = '{:2.1f}'
-        self.update_system_status('wind speed', fmt.format(w['Wind_speed_in_km_per_h']), 'km/h')
-        self.update_system_status('wind gusts', fmt.format(w['Wind_gusts_in_km_per_h']), 'km/h')
-        self.update_system_status('humidity', fmt.format(w['Humidity_in_Percent']), '%')
+        self.update_system_status(
+            'wind speed', fmt.format(w['Wind_speed_in_km_per_h']), 'km/h'
+        )
+        self.update_system_status(
+            'wind gusts', fmt.format(w['Wind_gusts_in_km_per_h']), 'km/h'
+        )
+        self.update_system_status(
+            'humidity', fmt.format(w['Humidity_in_Percent']), '%'
+        )
 
         if w['Humidity_in_Percent'] >= 98:
             mesg = "humidity_outside >= 98 %: {:2.1f} %"
@@ -64,15 +70,15 @@ class CurrentCheck(Check):
 class RelativeCameraTemperatureCheck(Check):
 
     def check(self):
-        cam_climate = smartfact.camera_climate()
+        main_page = smartfact.main_page()
 
         fmt = '{:2.1f}'
         self.update_system_status(
             'rel. camera temp.',
-            fmt.format(cam_climate['Avg_rel_temp_in_C']),
+            fmt.format(main_page['Rel_temp_in_C']),
             'K'
         )
 
-        if cam_climate['Avg_rel_temp_in_C'] > 10.0:
+        if main_page['Rel_temp_in_C'] > 10.0:
             mesg = "relative camera temp > 10 K: {:2.1f} K"
-            self.queue.append(mesg.format(cam_climate['Avg_rel_temp_in_C']))
+            self.queue.append(mesg.format(main_page['Rel_rel_temp_in_C']))
