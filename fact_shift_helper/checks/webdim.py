@@ -75,10 +75,10 @@ class RelativeCameraTemperatureCheck(Check):
         fmt = '{:2.1f}'
         self.update_system_status(
             'rel. camera temp.',
-            fmt.format(main_page['Rel_temp_in_C']),
+            fmt.format(main_page['Rel_camera_temp_in_C']),
             'K'
         )
 
-        if main_page['Rel_temp_in_C'] > 10.0:
+        if main_page['Rel_camera_temp_in_C'] > 10.0:
             mesg = "relative camera temp > 10 K: {:2.1f} K"
-            self.queue.append(mesg.format(main_page['Rel_rel_temp_in_C']))
+            self.queue.append(mesg.format(main_page['Rel_camera_temp_in_C']))
