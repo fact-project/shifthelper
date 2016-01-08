@@ -7,6 +7,7 @@ from datetime import datetime
 import requests
 import inspect
 
+
 smartfacturl = "http://fact-project.org/smartfact/data/"
 
 
@@ -44,7 +45,7 @@ def str2float(text):
     try:
         number = float(text)
     except:
-        number = float('nan')
+        number = float("nan")
 
     return number
 
@@ -67,6 +68,7 @@ class SmartFact(object):
         self.container_temperature = container_temperature
         self.current_source = current_source
         self.camera_climate = camera_climate
+        self.main_page = main_page
 
     def all(self):
         functions = inspect.getmembers(self, predicate=inspect.isfunction)
@@ -110,7 +112,6 @@ def sun(url=smartfacturl + 'sun.data'):
 
     tc = TableCrawler(url)
     time_stamp = smartfact_time2datetime(tc[0, 0])
-    date_stamp = time_stamp.date()
     date_ms = str2float(tc[0, 0]) - time_stamp.hour * 3600 * 1000 - \
         time_stamp.minute * 60 * 1000 - time_stamp.second * 1000
     next_day_ms = 24 * 3600 * 1000
@@ -223,4 +224,16 @@ def camera_climate(url=smartfacturl + 'fsc.data'):
         'Max_rel_temp_in_C': str2float(tc[2, 1]),
         'Avg_rel_temp_in_C': str2float(tc[3, 1]),
         'Min_rel_temp_in_C': str2float(tc[4, 1]),
+    }
+
+
+def main_page(url=smartfacturl + 'fact.data'):
+    tc = TableCrawler(url)
+    return {
+        'Time_Stamp_1': smartfact_time2datetime(tc[0, 0]),
+        'Time_Stamp_2': smartfact_time2datetime(tc[0, 1]),
+        'System_Status': ' '.join(tc[1, 1:]),
+        'Rel_camera_temp_in_C': str2float(tc[3, 1]),
+        'Humidity_in_Percent': str2float(tc[4, 1]),
+        'Wind_speed_in_km_per_h': str2float(tc[4, 2]),
     }
