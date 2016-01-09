@@ -5,9 +5,36 @@ from datetime import datetime, timedelta
 from collections import namedtuple
 from threading import Thread, Event
 import re
-from time import sleep
+from time import sleep, gmtime
 from fact_shift_helper.checks.qla import get_data, create_mpl_plot
-from fact_shift_helper.tools import read_config_file
+from fact_shift_helper.tools import read_config_file, night
+import logging
+import pkg_resources
+import os
+
+__version__ = pkg_resources.require('fact_shift_helper')[0].version
+# setup logging
+logdir = os.path.join(os.environ['HOME'], '.shifthelper')
+if not os.path.exists(logdir):
+    os.makedirs(logdir)
+
+log = logging.getLogger('shift_helper')
+log.setLevel(logging.INFO)
+logfile_path = os.path.join(
+    logdir, 'qla_bot_{:%Y-%m-%d}.log'.format(night()),
+)
+logfile_handler = logging.FileHandler(filename=logfile_path)
+logfile_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+    fmt='%(asctime)s - %(levelname)s - %(name)s | %(message)s',
+    datefmt='%H:%M:%S',
+)
+formatter.converter = gmtime  # use utc in log
+logfile_handler.setFormatter(formatter)
+log.addHandler(logfile_handler)
+log.addHandler(logging.StreamHandler())
+logging.getLogger('py.warnings').addHandler(logfile_handler)
+logging.captureWarnings(True)
 
 
 qla_command = re.compile(
@@ -57,7 +84,7 @@ class QlaBot(Thread):
                                     img,
                                     caption.format(bin_width, night),
                                 )
-                            print('send image for', bin_width, timestamp)
+                            log.info('send image for', bin_width, timestamp)
                     else:
                         if message.text.startswith('/qla'):
                             self.send_message(
@@ -65,7 +92,7 @@ class QlaBot(Thread):
                                 'Could not parse your request, sorry!'
                             )
                 except Exception as e:
-                    print(e)
+                    log.exception(e)
                     self.send_message(
                         message.chat_id,
                         'Could not serve your request, sorry!'
@@ -125,7 +152,7 @@ class QlaBot(Thread):
                 timeout=15,
             )
         except requests.exceptions.Timeout:
-            print('Telegram "send_message" timed out')
+            log.exception('Telegram "send_message" timed out')
         return r
 
     def send_message(self, chat_id, message):
@@ -136,7 +163,7 @@ class QlaBot(Thread):
                 timeout=5,
             )
         except requests.exceptions.Timeout:
-            print('Telegram "send_message" timed out')
+            log.exception('Telegram "send_message" timed out')
         return r
 
 
@@ -145,7 +172,7 @@ if __name__ == '__main__':
     config = read_config_file()
     bot = QlaBot(config.get('telegram', 'token'))
     bot.start()
-    print('bot running')
+    log.info('bot running')
 
     try:
         while True:
