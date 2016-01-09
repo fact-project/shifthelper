@@ -39,6 +39,7 @@ from fact_shift_helper import (MainJsStatusCheck,
                                FlareAlert,
                                )
 
+__version__ = pkg_resources.require('fact_shift_helper')[0].version
 # setup logging
 logdir = os.path.join(os.environ['HOME'], '.shifthelper')
 if not os.path.exists(logdir):
@@ -52,12 +53,14 @@ logfile_path = os.path.join(
 logfile_handler = logging.FileHandler(filename=logfile_path)
 logfile_handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
-    fmt='%(asctime)s -%(levelname)s- %(message)s',
+    fmt='%(asctime)s - %(levelname)s - %(name)s | %(message)s',
     datefmt='%H:%M:%S',
 )
 formatter.converter = time.gmtime  # use utc in log
 logfile_handler.setFormatter(formatter)
 log.addHandler(logfile_handler)
+logging.getLogger('py.warnings').addHandler(logfile_handler)
+logging.captureWarnings(True)
 
 
 def main(stop_event, args):
@@ -190,9 +193,10 @@ def main(stop_event, args):
 
 if __name__ == '__main__':
     log.info('shift helper started')
+    log.info('version: {}'.format(__version__))
     args = docopt(
         __doc__,
-        version=pkg_resources.require('fact_shift_helper')[0].version,
+        version=__version__,
     )
     try:
         stop_event = Event()
