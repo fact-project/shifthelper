@@ -84,7 +84,11 @@ class QlaBot(Thread):
                                     img,
                                     caption.format(bin_width, night),
                                 )
-                            log.info('send image for', bin_width, timestamp)
+                            log.info(
+                                'send image for {:2.0f}, {:%Y-%m-%d}'.format(
+                                    bin_width, timestamp
+                                )
+                            )
                     else:
                         if message.text.startswith('/qla'):
                             self.send_message(
