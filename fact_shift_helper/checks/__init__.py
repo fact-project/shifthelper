@@ -5,6 +5,7 @@ from traceback import format_exc
 import logging
 import os
 
+
 qla_filename = os.path.join(
     os.environ['HOME'],
     '.shifthelper',
@@ -36,6 +37,7 @@ class Check(Thread):
         self.queue = queue
         self.interval = interval
         self.stop_event = stop_event
+        self.logger = logging.getLogger('shift_helper.Check')
 
         assert isinstance(qla_data, dict), 'qla_data has to be a dict'
         self._qla_data = qla_data
@@ -49,7 +51,7 @@ class Check(Thread):
                 self.check()
             except Exception as e:
                 self.queue.append(format_exc())
-                logging.exception(e)
+                self.logger.exception(e)
             self.stop_event.wait(self.interval)
 
     def check(self):
