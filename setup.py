@@ -31,7 +31,7 @@ setup(
         'twilio',
         'docopt',
     ],
-    scripts=['scripts/shift_helper'],
+    scripts=['scripts/shift_helper', 'scripts/qla_bot'],
     package_data={'fact_shift_helper.tools': ['config.gpg']},
     zip_safe=False
 )
