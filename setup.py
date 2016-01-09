@@ -1,4 +1,4 @@
-from distutils.core import setup, Extension
+from distutils.core import setup
 
 setup(
     name='fact_shift_helper',
@@ -19,17 +19,14 @@ setup(
         'pandas',           # in anaconda
         'requests',         # in anaconda
         'numpy',            # in anaconda
-        'scipy',            # in anaconda
         'matplotlib>=1.4',  # in anaconda
         'python-dateutil',  # in anaconda
-        'pymongo>=2.7',     # in anaconda
         'sqlalchemy',       # in anaconda
         'PyMySQL',          # in anaconda
         'pytz',             # in anaconda
-        'scikit-image',     # in anaconda
         'blessings',
         'twilio',
-        'docopt',
+        'docopt',           # in anaconda
     ],
     scripts=['scripts/shift_helper', 'scripts/qla_bot'],
     package_data={'fact_shift_helper.tools': ['config.gpg']},

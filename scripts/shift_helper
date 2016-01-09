@@ -30,7 +30,14 @@ from collections import deque
 import blessings
 import pkg_resources
 
-from fact_shift_helper import *
+from fact_shift_helper import tools, cli
+from fact_shift_helper import Alert, TelegramInterface
+from fact_shift_helper import (MainJsStatusCheck,
+                               WeatherCheck,
+                               RelativeCameraTemperatureCheck,
+                               CurrentCheck,
+                               FlareAlert,
+                               )
 
 # setup logging
 logdir = os.path.join(os.environ['HOME'], '.shifthelper')
@@ -110,19 +117,14 @@ def main(stop_event, args):
     qla_data = {}
     system_status = {}
 
-    class NoQueue(object):
-        def append(self, something=None):
-            pass
-
-    dummy_queue_doing_nothing = NoQueue()
-
-    alert = Alert(queue=deque(),
-                  interval=5,
-                  stop_event=stop_event,
-                  caller=caller,
-                  messenger=telegram,
-                  logger=log,
-                  )
+    alert = Alert(
+        queue=deque(),
+        interval=5,
+        stop_event=stop_event,
+        caller=caller,
+        messenger=telegram,
+        logger=log,
+    )
 
     if not args['--debug']:
         check_mainjs = MainJsStatusCheck(
@@ -160,24 +162,6 @@ def main(stop_event, args):
         system_status,
     )
     check_currents.start()
-
-    lidcam_response = LidCamCheck(
-        dummy_queue_doing_nothing,
-        config.getint('checkintervals', 'weather'),
-        stop_event,
-        qla_data,
-        system_status,
-    )
-    lidcam_response.start()
-
-    IRcam_response = IrCamCheck(
-        dummy_queue_doing_nothing,
-        config.getint('checkintervals', 'weather'),
-        stop_event,
-        qla_data,
-        system_status,
-    )
-    IRcam_response.start()
 
     flare_alert = FlareAlert(
         alert.queue,
