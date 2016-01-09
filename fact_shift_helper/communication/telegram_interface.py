@@ -4,10 +4,13 @@ import requests
 from datetime import datetime
 from ..cli import ask_user
 from collections import namedtuple
+from logging import getLogger
 
 Message = namedtuple(
     'Result', ['chat_id', 'update_id', 'firstname', 'lastname', 'date']
 )
+
+logger = getLogger('shift_helper.telegram')
 
 
 class TelegramInterface(object):
@@ -74,7 +77,7 @@ class TelegramInterface(object):
                 timeout=15,
             )
         except requests.exceptions.Timeout:
-            print('Telegram "send_message" timed out')
+            logger.exception('Telegram "send_message" timed out')
         return r
 
     def send_message(self, message):
@@ -85,7 +88,7 @@ class TelegramInterface(object):
                 timeout=5,
             )
         except requests.exceptions.Timeout:
-            print('Telegram "send_message" timed out')
+            logger.exception('Telegram "send_message" timed out')
         return r
 
     def check_connection(self):
