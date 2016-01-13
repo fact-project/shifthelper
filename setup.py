@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='fact_shift_helper',
-    version='0.3.3',
+    version='0.3.4',
     description='a tool for helping people with a FACT night shift',
     url='https://bitbucket.org/dneise/fact_shift_helper',
     author='Dominik Neise, Maximilian Noethe, Sebastian Mueller',
