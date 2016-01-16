@@ -36,6 +36,7 @@ from fact_shift_helper import (MainJsStatusCheck,
                                WeatherCheck,
                                RelativeCameraTemperatureCheck,
                                CurrentCheck,
+                               CloudCheck,
                                FlareAlert,
                                )
 
@@ -147,6 +148,16 @@ def main(stop_event, args):
         system_status,
     )
     check_weather.start()
+
+
+    check_clouds = CloudCheck(
+        alert.queue,
+        config.getint('checkintervals', 'weather'),
+        stop_event,
+        qla_data,
+        system_status,
+    )
+    check_clouds.start()
 
     check_rel_camera_temp = RelativeCameraTemperatureCheck(
         alert.queue,
