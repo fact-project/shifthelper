@@ -152,8 +152,8 @@ def main(stop_event, args):
     )
     check_weather.start()
 
-    if not args['--sky-covered'] :
-        print("Calling you when sky coverage is above 30 percent")
+    if args['--sky-clear'] :
+        #print("Calling you when sky coverage is above ")
         check_clouds = CloudCheck(
             alert.queue,
             config.getint('checkintervals', 'weather'),
@@ -162,8 +162,8 @@ def main(stop_event, args):
             system_status,
         )
         check_clouds.start()
-    else:
-        print("Calling you when sky coverage is less than 30 percent")
+    elif args['--sky-covered'] :
+        #print("Calling you when sky coverage is less than 30 percent")
         check_clouds = ClearCheck(
             alert.queue,
             config.getint('checkintervals', 'weather'),
@@ -172,6 +172,7 @@ def main(stop_event, args):
             system_status,
         )
         check_clouds.start()
+
 
     check_rel_camera_temp = RelativeCameraTemperatureCheck(
         alert.queue,
