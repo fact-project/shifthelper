@@ -10,3 +10,4 @@ from .checks.webdim import CurrentCheck
 from .checks.webdim import MainJsStatusCheck
 from .checks.webdim import WeatherCheck
 from .checks.clouds import CloudCheck
+from .checks.clouds import ClearCheck

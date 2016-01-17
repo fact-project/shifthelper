@@ -19,6 +19,8 @@ Options
                   and dimctrl status will not be checked for a running Main.js
     --version     Show version.
     --no-call     FOR DEBUGGING ONLY. Omit every call.
+    --sky-clear    Call when there are clouds.
+    --sky-covered    Call when there are no more clouds.
 '''
 from __future__ import print_function
 import os
@@ -37,6 +39,7 @@ from fact_shift_helper import (MainJsStatusCheck,
                                RelativeCameraTemperatureCheck,
                                CurrentCheck,
                                CloudCheck,
+                               ClearCheck,
                                FlareAlert,
                                )
 
@@ -149,15 +152,26 @@ def main(stop_event, args):
     )
     check_weather.start()
 
-
-    check_clouds = CloudCheck(
-        alert.queue,
-        config.getint('checkintervals', 'weather'),
-        stop_event,
-        qla_data,
-        system_status,
-    )
-    check_clouds.start()
+    if not args['--sky-covered'] :
+        print("Calling you when sky coverage is above 30 percent")
+        check_clouds = CloudCheck(
+            alert.queue,
+            config.getint('checkintervals', 'weather'),
+            stop_event,
+            qla_data,
+            system_status,
+        )
+        check_clouds.start()
+    else:
+        print("Calling you when sky coverage is less than 30 percent")
+        check_clouds = ClearCheck(
+            alert.queue,
+            config.getint('checkintervals', 'weather'),
+            stop_event,
+            qla_data,
+            system_status,
+        )
+        check_clouds.start()
 
     check_rel_camera_temp = RelativeCameraTemperatureCheck(
         alert.queue,
