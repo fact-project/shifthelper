@@ -5,7 +5,7 @@ from . import Check
 from ..tools.smartfact import TableCrawler
 
 clouds_url = "http://catserver.ing.iac.es/weather/archive/concam/index.php"
-
+limit = 20 #percent
 #check whether sky is covered.
 class CloudCheck(Check):
     def check(self):
@@ -16,15 +16,15 @@ class CloudCheck(Check):
         try:
             #ugliest way to do this ever. It seems to work though.
             coverage = int(a[0].split("Coverage: ")[1].split('%')[0])
-            if coverage >= 0 and coverage < 30:
+            if coverage >= 0 and coverage < limit:
                 self.update_system_status(
                     'cloud cover', fmt.format(coverage), '%'
                 )
             else:
                 raise ValueError
         except ValueError:
-            mesg = "Check Cameras. coverage >= 30 %: {:2.1f} %"
-            self.queue.append(mesg.format(coverage))
+            mesg = "Check Cameras. coverage >= {} %: {:2.1f} %"
+            self.queue.append(mesg.format(limit, coverage))
 
 #check whether sky is clear.
 class ClearCheck(Check):
@@ -36,12 +36,12 @@ class ClearCheck(Check):
         try:
             #ugliest way to do this ever. It seems to work though.
             coverage = int(a[0].split("Coverage: ")[1].split('%')[0])
-            if coverage >= 30:
+            if coverage >= limit:
                 self.update_system_status(
                     'cloud cover', fmt.format(coverage), '%'
                 )
             else:
                 raise ValueError
         except ValueError:
-            mesg = "Check images. Coverage < 30 %: {:2.1f} %"
-            self.queue.append(mesg.format(coverage))
+            mesg = "Check Cameras. coverage < {} %: {:2.1f} %"
+            self.queue.append(mesg.format(limit, coverage))
