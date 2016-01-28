@@ -1,43 +1,44 @@
-# Evaluation Form:
-
-http://goo.gl/forms/hgVoiFNzxB
-
 # FACT shift helper
 
 * Calls you via twilio if security limits are
 reached, data taking stopped or the QLA exceeds alert limits
 
-* just enter your phone number, check for the incoming
-call
+* Sends you messages and QLA plots via Telegram Messenger
 
-* go to bed
+* Just enter your phone number, check for the incoming call
 
-You can give the number directly as firs command line option
+* Send the `/start` message to the @factShiftHelperBot
+
+* Go to bed
+
+You can also give the number directly as first command line argument
 
 # the config file
 
-Credentials and other config data is stored in the config.ini file
-a dummy is stored in the config_example.ini
+The shift_helper needs some credentials, for example database access to
+monitor the QLA results.
+At first start of the shift_helper you will be asked for the well known password
+to decrypt those credentials
 
 # Install 
 
-	pip install git+https://bitbucket.org/dneise/fact_shift_helper#egg=fact_shift_helper
+We recommend to install `python3` via `anaconda3`: https://www.continuum.io/downloads
+
+```
+pip install http://fact-project.org/sandbox/shifthelper/fact_shift_helper-0.3.4.tar.gz
+```
 
 # Use
 
-Call the `shift_helper` from a dedicated folder:
+Just start the `shift_helper` executable, it's in your path after 
+you installed the packages
 
-    $ mkdir shift_helper_dir
-    $ cd shift_helper_dir
-    $ shift_helper [--help]
-
-Have a look at the `--help` page if you like to learn more about the available Options.
-
-If you use it for the **first time** the helper will complain about a missing `config.ini` File. In order to make life easier for you, we provided an encrypted default config-file, which you just need to decrypt, using the password you all know. 
 
 # Uninstall
 
-	pip uninstall fact_shift_helper
+```
+pip uninstall fact_shift_helper
+```
 
 ### Developers: Create the config.gpg
 
