@@ -13,7 +13,7 @@ from getpass import getpass
 from docopt import docopt
 import sys
 
-URL = 'http://fact-project.org/cam/ir/index.php'
+URL = 'https://fact-project.org/cam/ir/index.php'
 
 
 def change_ir_setting(action='off'):
@@ -26,6 +26,7 @@ def change_ir_setting(action='off'):
         URL,
         auth=(user, passwd),
         params={'action': action},
+        verify=False,
     )
     return ret
 
