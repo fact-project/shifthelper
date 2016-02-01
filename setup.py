@@ -28,7 +28,7 @@ setup(
         'twilio',
         'docopt',           # in anaconda
     ],
-    scripts=['scripts/shift_helper', 'scripts/qla_bot'],
+    scripts=['scripts/shift_helper', 'scripts/qla_bot', 'scripts/fact_ircam'],
     package_data={'fact_shift_helper.tools': ['config.gpg']},
     zip_safe=False
 )
