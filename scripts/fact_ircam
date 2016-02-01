@@ -3,8 +3,8 @@
 Switch on or off the IR cams
 
 Usage:
-    fact_ir_cam on
-    fact_ir_cam off
+    fact_ircam on
+    fact_ircam off
 '''
 from __future__ import print_function
 from six.moves import input
