@@ -8,6 +8,7 @@ import re
 from time import sleep, gmtime
 from fact_shift_helper.checks.qla import get_data, create_mpl_plot
 from fact_shift_helper.tools import read_config_file, night
+from functools import wraps
 import logging
 import pkg_resources
 import os
@@ -48,6 +49,27 @@ Message = namedtuple(
 caption = 'Binning: {:2.0f} min, Night: {:%Y-%m-%d}'
 
 
+def try_again(function):
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+        success = False
+        tries = 0
+        max_tries = 10
+        while not success:
+            if tries >= max_tries:
+                raise requests.exceptions.Timeout('Connection timed out ')
+            try:
+                ret = function(*args, **kwargs)
+                success = ret.status_code == 200
+            except requests.exceptions.ConnectionError:
+                log.exception('Failed to conncet to Telegram')
+                tries += 1
+                sleep(5)
+        return ret
+
+    return wrapper
+
+
 class QlaBot(Thread):
     url = 'https://api.telegram.org/bot{token}'
 
@@ -58,7 +80,11 @@ class QlaBot(Thread):
 
     def run(self):
         while not self.stop_event.is_set():
-            messages = self.getUpdates()
+            try:
+                messages = self.get_messages()
+            except:
+                self.stop_event.wait(5)
+                continue
 
             for message in messages:
                 try:
@@ -123,8 +149,14 @@ class QlaBot(Thread):
     def terminate(self):
         self.stop_event.set()
 
+    @try_again
     def getUpdates(self):
-        ret = requests.get(self.url + '/getUpdates', timeout=5).json()
+        ret = requests.get(self.url + '/getUpdates', timeout=5)
+        return ret
+
+    def get_messages(self):
+
+        ret = self.getUpdates().json()
 
         if ret['ok']:
             messages = []
@@ -140,35 +172,33 @@ class QlaBot(Thread):
                 messages.append(message)
             return messages
 
+    @try_again
     def confirm_message(self, message):
-        requests.get(
+        ret = requests.get(
             self.url + '/getUpdates',
             params={'offset': message.update_id + 1},
             timeout=5,
         )
+        return ret
 
+    @try_again
     def send_image(self, chat_id, image, caption=''):
-        try:
-            r = requests.post(
-                self.url + '/sendPhoto',
-                data={'chat_id': chat_id, 'caption': caption},
-                files={'photo': image},
-                timeout=15,
-            )
-        except requests.exceptions.Timeout:
-            log.exception('Telegram "send_message" timed out')
-        return r
+        ret = requests.post(
+            self.url + '/sendPhoto',
+            data={'chat_id': chat_id, 'caption': caption},
+            files={'photo': image},
+            timeout=15,
+        )
+        return ret
 
+    @try_again
     def send_message(self, chat_id, message):
-        try:
-            r = requests.post(
-                self.url + '/sendMessage',
-                data={'chat_id': chat_id, 'text': message},
-                timeout=5,
-            )
-        except requests.exceptions.Timeout:
-            log.exception('Telegram "send_message" timed out')
-        return r
+        ret = requests.post(
+            self.url + '/sendMessage',
+            data={'chat_id': chat_id, 'text': message},
+            timeout=5,
+        )
+        return ret
 
 
 if __name__ == '__main__':
