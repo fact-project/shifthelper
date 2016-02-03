@@ -57,7 +57,9 @@ def try_again(function):
         max_tries = 10
         while not success:
             if tries >= max_tries:
-                raise requests.exceptions.Timeout('Connection timed out ')
+                raise requests.exceptions.ConnectionError(
+                    'Could not conenct to Telegram'
+                )
             try:
                 ret = function(*args, **kwargs)
                 success = ret.status_code == 200
