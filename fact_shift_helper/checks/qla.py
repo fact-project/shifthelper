@@ -142,8 +142,11 @@ def get_data(bin_width_minutes=20, timestamp=None):
         agg['timeMean'] = agg.fRunStart + agg.xerr
         agg['yerr'] = np.sqrt(np.abs(agg.fNumSigEvts) + np.abs(agg.fNumExcEvts))
         agg['yerr'] /= agg.fOnTimeAfterCuts / 3600
-        valid = agg.fOnTimeAfterCuts >= 0.9 * 60 * bin_width_minutes
-        binned = binned.append(agg[valid], ignore_index=True)
+        # remove last bin if it has less then 90% OnTime of the required
+        # binning
+        if agg['fOnTimeAfterCuts'].iloc[-1] < 0.9 * 60 * bin_width_minutes:
+            agg = agg.iloc[:-1]
+        binned = binned.append(agg, ignore_index=True)
 
     binned['significance'] = li_ma_significance(
         binned.fNumSigEvts, binned.fNumBgEvts * 5, 0.2
@@ -214,7 +217,7 @@ def dorner_binning(data, bin_width_minutes=20):
     ontime_sum = 0
     bins = []
     for key, row in data.iterrows():
-        if ontime_sum + row.fOnTimeAfterCuts >= bin_width_minutes * 60:
+        if ontime_sum + row.fOnTimeAfterCuts > bin_width_minutes * 60:
             bin_number += 1
             ontime_sum = 0
         bins.append(bin_number)
