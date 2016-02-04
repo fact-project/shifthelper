@@ -140,7 +140,7 @@ def get_data(bin_width_minutes=20, timestamp=None):
         agg['rate'] = agg.fNumExcEvts / agg.fOnTimeAfterCuts * 3600
         agg['xerr'] = (agg.fRunStop - agg.fRunStart) / 2
         agg['timeMean'] = agg.fRunStart + agg.xerr
-        agg['yerr'] = np.sqrt(np.abs(agg.fNumSigEvts) + np.abs(agg.fNumExcEvts))
+        agg['yerr'] = np.sqrt(agg.fNumSigEvts + 0.2 * agg.fNumBgEvts)
         agg['yerr'] /= agg.fOnTimeAfterCuts / 3600
         # remove last bin if it has less then 90% OnTime of the required
         # binning
