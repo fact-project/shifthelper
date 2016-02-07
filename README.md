@@ -1,6 +1,6 @@
 # FACT shift helper
 
-* Calls you via twilio if security limits are
+* Calls you on your phone if security limits are
 reached, data taking stopped or the QLA exceeds alert limits
 
 * Sends you messages and QLA plots via Telegram Messenger
@@ -8,8 +8,6 @@ reached, data taking stopped or the QLA exceeds alert limits
 * Just enter your phone number, check for the incoming call
 
 * Send the `/start` message to the @factShiftHelperBot
-
-* Go to bed
 
 You can also give the number directly as first command line argument
 
