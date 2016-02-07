@@ -27,6 +27,7 @@ setup(
         'blessings',
         'twilio',
         'docopt',           # in anaconda
+        'numexpr',
     ],
     scripts=['scripts/shift_helper', 'scripts/qla_bot', 'scripts/fact_ircam'],
     package_data={'fact_shift_helper.tools': ['config.gpg']},
