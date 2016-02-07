@@ -3,13 +3,13 @@
 * Calls you on your phone if security limits are
 reached, data taking stopped or the QLA exceeds alert limits
 
-* Sends you messages and QLA plots via Telegram Messenger
+    * Just enter your phone number
+    * It will call you once at startup for verification.
 
-* Just enter your phone number, check for the incoming call
+* *If you want*, it sends you messages and QLA plots via [Telegram Messenger App](https://telegram.org/)
 
-* Send the `/start` message to the @factShiftHelperBot
+    * Send the `/start` message to the [@factShiftHelperBot](https://telegram.me/factShiftHelperBot) in order to tell it, you are the shifter for tonight.
 
-You can also give the number directly as first command line argument
 
 # the config file
 
@@ -20,16 +20,24 @@ to decrypt those credentials
 
 # Install 
 
-We recommend to install `python3` via `anaconda3`: https://www.continuum.io/downloads
+We strongly recommend installing `python3` via [Anaconda](https://www.continuum.io/downloads). 
+Available for Win, OSX and Linux.
 
-```
-pip install http://fact-project.org/sandbox/shifthelper/fact_shift_helper-0.3.4.tar.gz
+You can install the bleeding edge version of the `shift_helper` like this:
+
+```bash
+pip install git+https://github.com/fact-project/shifthelper.git
 ```
 
 # Use
 
-Just start the `shift_helper` executable, it's in your path after 
-you installed the packages
+
+Just start the `shift_helper` executable, it's in your path after you installed the packages.
+Invoke it e.g. like this
+
+```bash
+shift_helper +4123456789
+```
 
 
 # Uninstall
