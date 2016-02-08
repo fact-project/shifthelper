@@ -21,7 +21,7 @@ to decrypt those credentials
 # Install 
 
 We strongly recommend installing `python3` via [Anaconda](https://www.continuum.io/downloads). 
-Available for Win, OSX and Linux.
+Available for OSX and Linux.
 
 You can install the bleeding edge version of the `shift_helper` like this:
 
