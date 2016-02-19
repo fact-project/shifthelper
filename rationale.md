@@ -23,9 +23,9 @@ We needed to provide more detailed specifications based on our prior knowledge.
 
 This reminded me of a book about software design I read once.
 
-```
- [...] specifying requirements in such detail [...] is programming. Such a specification is code.
-```
+
+> [...] specifying requirements in such detail [...] is programming. Such a specification is code.
+
 
 This was the time, when we first thought: This can all be scripted.
 
@@ -118,6 +118,7 @@ Not mentioned in the list of DataTakingLimits, are the flare alerts. By studying
 The following list of alerts has been subsequently derived from the available information.
 
 Check every minute:
+
  * Is Main.js still runnning?
  * Is wind speed below 50 km/h?
  * Are wind gusts below 50 km/h?
@@ -127,6 +128,7 @@ Check every minute:
  * Is the relative camera temperature below 10°C?
 
 Check every 5 minutes:
+
  * Is the excess event rate of each observed source below its own limit
  	* Is it significant?
 
