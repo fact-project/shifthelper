@@ -10,6 +10,10 @@ config_file_name = 'config-{}.ini'.format(__version__)
 config_file_path = os.path.join(
     os.environ['HOME'],'.shifthelper', config_file_name)
 
+remote_config_file_location = "{host}:{path}/{cn}".format(
+    host="fact-project.org",
+    path="/home/dneise/shifthelper",
+    cn=config_file_name)
 
 def night(timestamp=None):
     """
@@ -40,19 +44,10 @@ def download_config_file():
     if not os.path.exists(dotpath):
         os.makedirs(dotpath)
 
-    command = "scp newdaq:/home/dneise/shifthelper/{cn} {dp}".format(
-        dp=dotpath,
-        cn=config_file_name)
+    command = "scp {remote} {local}".format(
+        remote=remote_config_file_location,
+        local=dotpath)
     print("Trying to do\n   {}".format(command))
-    print("""If it does not work:
-        * please connect to La Palma
-        * go to that directory {dir}
-        * and copy the file {cn}
-        * to {dp} on your own machine.
-    """.format(dir="newdaq:/home/dneise/shifthelper",
-        cn=config_file_name,
-        dp=dotpath))
-
     os.system(command)
 
 def read_config_file():
