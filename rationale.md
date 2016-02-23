@@ -163,7 +163,7 @@ Some time was also spend for streamlining the installation process of the shifth
 
 	pip install git+https://github.com/fact-project/shifthelper.git
 
-In order to access FACTs database for checking the QLA status, login credentials are needed. Also for calling the shifter using a Twilio and/or Plivo account needs certain login credentials. These credentials need to be provided as a configuration file. This configuration file can be found on `newdaq` in `/home/dneise/.shifthelper/config.ini`.
+### Calling it
 
 After installation, a binary called `shift_helper` is available in the users path. The program can be executed as easy as:
 
@@ -171,18 +171,49 @@ After installation, a binary called `shift_helper` is available in the users pat
 	shift_helper +4177123456
 ```
 
+A little help page is available of course.
+
+```
+	shift_helper --help 
+```
+
+
+### First time ever
+
+In order to access FACTs database for checking the QLA status, login credentials are needed. Also for calling the shifter using a Twilio and/or Plivo account needs certain login credentials. 
+
+On the first program start the shifthelper needs to download the necessary config file from fact-project.org to the users machine. The first program start might look like this:
+
+```
+dneise@lair:~$ shift_helper +4177123456
+
+=================================================================================
+                          Welcome to the shift_helper!                           
+=================================================================================
+
+Trying to do
+   scp fact-project.org:/home/dneise/shifthelper/config-0.3.4.ini /home/dneise/.shifthelper
+config-0.3.4.ini                               100%  823     0.8KB/s   00:00    
+Twilio Phone Setup
+You entered:  +4177123456
+Is that number correct? (y/n):
+```
+
+The shifthelper will prompt the user for a password if necessary. 
+The `scp` will fail in case the user has a different username on `fact-project.org` and the current machine. In that case the user needs to manually copy the file from La Palma to his own machine.
+
+
+### Complete start up example
+
 The program starts by checking if the user has entered the correct number. In case the user confirms, the given number is called once, to check the connection. Consequently the user is asked whether she likes to be informed also via telegram. In case of a positive response, the shifthelper expects the user to identify herself by sending a message to "@factShiftHelperBot". Upon reception of the message, it returns the name of the telegram user having sent the message, so the shifter can crosscheck. An example startup of the shifthelper program looks like this:
 
 ```
 dneise@lair:~$ shift_helper +4177123456
 
-=========================================================================================
-                              Welcome to the shift_helper!                               
-=========================================================================================
+=================================================================================
+                          Welcome to the shift_helper!                           
+=================================================================================
 
-You need to decrypt the config file.
-Please enter the new FACT password
-> 
 Twilio Phone Setup
 You entered:  +4177123456
 Is that number correct? (y/n): y
@@ -204,6 +235,10 @@ Did you receive it? (y/n): y
 ```
 
 The user can actually send any message to the @factShiftHelperBot, so identify himself.
+
+\newpage 
+
+### The running shifthelper
 
 After successfully starting the application, the screen will clear and one sees something like this:
 
@@ -229,12 +264,23 @@ humidity               100.0 %
 11:38:58 - INFO - shift_helper | version: 0.3.4
 11:38:58 - INFO - shift_helper | shift helper started
 ```
+The topmost line shows the last time the screen was updated. 
 
-The upper part of the screen shows how the system startus looks for the shifthelper program. So this may be used as a poor mans check to see if the DIM-HTTP-bridge is working at the moment. On the upper right part, a list of sources would show up, together with the maximum excess rate measured for each source during the current night. In the lower power of the user interface one can always see the last few lines of the logfile, with the most recent entry up. The topmost line shows the last time the screen was updated. 
+The upper part of the screen shows how the system status looks for the shifthelper program. 
+So this may be used as a poor mans check to see if the DIM-HTTP-bridge is working at the moment. 
+On the upper right part, a list of sources would show up, together with the maximum excess 
+rate measured for each source during the current night. 
+In the lower part of the user interface one can always see the last few lines of the logfile, 
+with the most recent entry up. 
 
-There is no way for the user to interact with the running shifthelper, no way to change the times between checks or the like, The only use of this command line interface is to show the user, the current status of the program. 
+There is no way for the user to interact with the running shifthelper, 
+no way to change the times between checks or the like. 
+The only use of this command line interface is to show the user the current status of the program. 
 
-In the morning after shutdown the shifthelper can be stopped by simply killing it with Ctrl-C. The screen will be cleared again and one is greeted with this message:
+### Quitting
+
+In the morning after shutdown the shifthelper can be stopped by simply killing it with `Ctrl-C`. 
+The screen will be cleared again and one is greeted with this message:
 
 ```
     Thank you for using shift_helper tonight.
@@ -245,34 +291,98 @@ In the morning after shutdown the shifthelper can be stopped by simply killing i
     to: neised@phys.ethz.ch for future improvements
 ```
 
-As one can see, during the current test phase, there was unfortunately no functionality implemented into the program to automatically send the logfile to the development team. 
+As one can see, during the current test phase, there was unfortunately 
+no functionality implemented into the program to automatically send the logfile to the development team. 
 
 
-----
+\newpage
 
 
 # Future plans
 
-The shifthelper software repository has an issue tracker, which is full of ideas and plans for improvements. So you are missing a feature or found a bug, please head there to report it. Its free.
+The shifthelper software repository has an issue tracker, 
+which is full of ideas and plans for improvements. 
+So in case you are missing a feature or found a bug, 
+please head there to 
+
+> https://github.com/fact-project/shifthelper/issues
+
+and report it. Its free.
 
 ## Redundancy
 
 Under the following conditions the shifthelper program can not do its work properly:
 
- * The shifthelper program has no internet connection, i.e. can not place a call.
- * The shifter has no telephone connection, i.e. cannot recieve the call.
+ * The shifthelper program has no Internet connection, i.e. can not place a call.
+ * The shifter has no telephone connection, i.e. cannot receive the call.
 
-Redundancy is our proposed strategy against these circumstances. We propose to let N shifthelper instances run on 
-independent machines, without any interaction between those shifthelpers in order to prevent dead locking and keep the code as simple as possible.
+Redundancy is our proposed strategy against these circumstances. 
+We propose to run two or more shifthelper instances on independent machines, 
+without any interaction between each other.
 
-In addition we propose to have two shifters on call. The second shifter being called in case the first shifter does not bring the system into a safe state in a certain time. We propose not to check why 
+The code base should stay as simple as possible.
 
-Here I just provide a short list of missing features, based on the issue tracker:
+In addition we propose to have two shifters on call. 
+The second shifter being called in case the first shifter does not 
+bring the system into a safe state in a certain time. 
 
- * Redundancy, have more than 1 shifthelpers running on independent machines, to prevent from network loss.
- 	* needs reworked UI
- 	* possibly needs machine-to-machine communication.
- * Do not call immediately, when DIM-HTTP-bridge not available for 10 minutes.
+We propose not to care for the reason for the delayed reaction of the first shifter. 
+Again to keep the code base extremely simple.
 
- * The code base, can be used to quickly implement checkers, which inform the entire collaboration via email, in case certain conditions are met. E.g. the camera humidity has reached 40% or the container temperature during the night was higher than 29°C.
+This approach needs a modification of the checks done by the shifthelper. 
+The current situation is:
 
+| Check                 | Period  |    Reaction    |
+| --------------------- |:-------:| --------------:|
+| Main.js not running?  |  60 sec | Immediate call |
+| Wind speed > 50 km/h  |  60 sec | Immediate call |
+| Wind gusts > 50 km/h  |  60 sec | Immediate call |
+| Humidity > 98%        |  60 sec | Immediate call |
+| Median Current > 90 uA|  60 sec | Immediate call |
+| Max Current > 110 uA  |  60 sec | Immediate call |
+| Rel. Cam Temp > 10°C  |  60 sec | Immediate call |
+| Excess Rate > Limit   | 300 sec | Immediate call |
+| Significance > 3      | 300 sec | Immediate call |
+
+This check list can in the redundant setup without inter shifthelper communication
+only be valid for one (the master?) shifthelper.
+
+All other (slave?) shifthelpers must check, if the first shifter solved the problem in a certain time. If not
+the must assume either the first shifter is unable to react, or the master shift helper is unable to call.
+So they call the second shifter. 
+
+For some situations however, there is no way to solve the problem. The first shifter cannot slow down the wind
+or stop the rain. So we must define proper reactions, which can be checked by the secondary shift helpers.
+
+For a stopped Main.js there is a defined solution. Get it running again.
+For high currents there are defined solutions. Ramp down the voltage.
+For wind, we say, the telescope must be parked. So in case the drive gets damaged, it does not matter,
+since it is already parked.
+
+High humidity, is not a real danger for the telescope. We want to avoid it, but it does not really damage the telescope.
+So the secondary shifters do not check for this.
+
+If the SiPMs get too hot, the bias must be switched off. The rel. 
+temperature might stay high for some time, so the checkable reaction is to switch off the bias voltage.
+
+Flare alerts are important, but having a flare just when the main shifter is not reachable by phone or the first shifthelper does not have access to the Internet is not very likely. So we propose to take the risk to miss the call and not let the secondary shifterhelpers check for flares.
+
+
+| Check                 | and        | after         | Period  |    Reaction    |
+| --------------------- |:----------:| :-----------: |:-------:| --------------:|
+| Main.js not running?  |            | 5 minutes     |  60 sec | Immediate call |
+| Wind speed > 50 km/h  | not Parked | 5 minutes     |  60 sec | Immediate call |
+| Wind gusts > 50 km/h  | not Parked | 5 minutes     |  60 sec | Immediate call |
+| Humidity > 98%        | False      |               |  60 sec | Immediate call |
+| Median Current > 90 uA|            | 3 minutes     |  60 sec | Immediate call |
+| Max Current > 110 uA  |            | 3 minutes     |  60 sec | Immediate call |
+| Rel. Cam Temp > 10°C  | Bias On    | 3 minutes     |  60 sec | Immediate call |
+| Excess Rate > Limit   | False      |               | 300 sec | Immediate call |
+| Significance > 3      | False      |               | 300 sec | Immediate call |
+
+
+###  Other checks
+
+The namely the monitoring of the telescope status via the HTTP-DIM-bridge, can be used to quickly implement checkers, 
+which inform the entire collaboration via email, in case certain conditions are met, like 
+e.g. the camera humidity has reached 40% or the container temperature during the night was higher than 29°C.
