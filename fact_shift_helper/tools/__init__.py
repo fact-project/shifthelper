@@ -1,19 +1,19 @@
 import os
 import datetime
 from six.moves.configparser import SafeConfigParser
-import pkg_resources
+import requests
 from getpass import getpass
-from subprocess import Popen, PIPE
 from fact_shift_helper import __version__
 
-config_file_name = 'config-{}.ini'.format(__version__) 
+config_file_name = 'config-{}.ini'.format(__version__)
 config_file_path = os.path.join(
-    os.environ['HOME'],'.shifthelper', config_file_name)
+    os.environ['HOME'], '.shifthelper', config_file_name
+)
 
-remote_config_file_location = "{host}:{path}/{cn}".format(
-    host="fact-project.org",
-    path="/home/dneise/shifthelper",
-    cn=config_file_name)
+remote_config_url = "https://fact-project.org/sandbox/shifthelper/{cn}".format(
+    cn=config_file_name
+)
+
 
 def night(timestamp=None):
     """
@@ -44,11 +44,13 @@ def download_config_file():
     if not os.path.exists(dotpath):
         os.makedirs(dotpath)
 
-    command = "scp {remote} {local}".format(
-        remote=remote_config_file_location,
-        local=dotpath)
-    print("Trying to do\n   {}".format(command))
-    os.system(command)
+    passwd = getpass('Please enter the current FACT password')
+
+    ret = requests.get(remote_config_url, auth=('FACT', passwd), verify=False)
+
+    with open(config_file_path, 'wb') as f:
+        f.write(ret.content)
+
 
 def read_config_file():
     if not os.path.isfile(config_file_path):
