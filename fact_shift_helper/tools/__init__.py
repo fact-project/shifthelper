@@ -6,10 +6,9 @@ from getpass import getpass
 from subprocess import Popen, PIPE
 from fact_shift_helper import __version__
 
+config_file_name = 'config-{}.ini'.format(__version__) 
 config_file_path = os.path.join(
-    os.environ['HOME'],
-    '.shifthelper/config-{}.ini'.format(__version__)
-)
+    os.environ['HOME'],'.shifthelper', config_file_name)
 
 
 def night(timestamp=None):
@@ -36,51 +35,29 @@ def night_integer(timestamp=None):
     return night
 
 
-def let_user_decrypt_config_file():
-    decrypt_config_file(
-        passphrase=query_user_for_config_passphrase())
-
-
-def query_user_for_config_passphrase():
-    print('You need to decrypt the config file.')
-    return getpass('Please enter the new FACT password\n> ')
-
-
-def decrypt_config_file(
-        passphrase,
-        input_path=pkg_resources.resource_filename(__name__, 'config.gpg'),
-        output_path=config_file_path
-        ):
-
+def download_config_file():
     dotpath = os.path.join(os.environ['HOME'], '.shifthelper')
     if not os.path.exists(dotpath):
         os.makedirs(dotpath)
 
-    process = Popen(
-        [
-            'gpg',
-            '-o',
-            output_path,
-            '--batch',
-            '--passphrase-fd',
-            '0',
-            '--decrypt',
-            input_path,
-        ],
-        stdout=PIPE, stderr=PIPE, stdin=PIPE,
-    )
-    out, err = process.communicate(input=passphrase.encode('utf-8'))
+    command = "scp newdaq:/home/dneise/shifthelper/{cn} {dp}".format(
+        dp=dotpath,
+        cn=config_file_name)
+    print("Trying to do\n   {}".format(command))
+    print("""If it does not work:
+        * please connect to La Palma
+        * go to that directory {dir}
+        * and copy the file {cn}
+        * to {dp} on your own machine.
+    """.format(dir="newdaq:/home/dneise/shifthelper",
+        cn=config_file_name,
+        dp=dotpath))
 
-    if process.returncode != 0:
-        if process.returncode == 2:
-            raise OSError('Wrong password, try again please.')
-        else:
-            raise OSError(err)
-
+    os.system(command)
 
 def read_config_file():
     if not os.path.isfile(config_file_path):
-        let_user_decrypt_config_file()
+        download_config_file()
 
     config = SafeConfigParser()
     config.optionxform = str
