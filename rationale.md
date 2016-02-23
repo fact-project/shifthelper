@@ -88,18 +88,21 @@ one first test program of the collaborative effort of making FACT robotic.
 
 ## 1. Check the status of the system and the QLA results
 
-In order to sense thimplementation e need to alert a shifter, the shift helper needs access to the relevant status information of the system. 
+In order to sense the need to alert a shifter, the shift helper needs access to the relevant status information of the system. 
 By comparison of the current state with a set of limits, the shifthelper decides about alerting the shifter.
 
 All relevant information about the status of the FACT telescope is accessible via the DIM protocol. 
 The first approach was to implement the shifthelper as a DIM-client, 
 which would listen to the relevant servers in order to 
 understand the current status of the system. Two reasons disqualified this approach. 
-The DIM protocols implementation contains errors, which can lead to dead locks, which completely stall data acquisition.
-Under which conditions these errors actually do show up is unknown.
-Also in order to connect to the DIM protocol one needs to be connected to FACTs internal network. 
+
+First The DIM protocols implementation contains errors, which can lead to dead locks, which completely stall data acquisition.
+
+Second in order to connect to the DIM protocol one needs to be connected to FACTs internal network. 
 This can be either accomplished by running on a local machine or establishing a connection via VPN. 
 It was not clear, how the shifthelper DIM client would affect the DIM network in case the VPN connection breaks.
+
+Also, the shifthelper should monitor the availability of the network connection to the island. In case the island is not accessible anymore the shifter should be called in order to try and reach the MAGIC shift crew via telefone.
 
 The second possibility to learn about the current status of the FACT 
 telescope system is via a custom DIM to HTTP bridge named [smartfact](http://fhttps://www.fact-project.org/logbook/misc.php?page=limitsact-project.org/smartfact)
@@ -115,7 +118,7 @@ A collection of conditions under which a manual interaction is needed, was avail
 
 Not mentioned in the list of DataTakingLimits, are the flare alerts. By studying the  [flare alerts post](https://www.fact-project.org/logbook/showthread.php?tid=3512) in the FACT logbook, the shifter can decide under which conditions a flare alert might be sent to interested members of the cherenkov astronomy community. 
 
-The following list of alerts has been subsequently derived from the available information.
+The following list of alerts has been subsequently derived from the available information. It can of course be easily changed or enhanced.
 
 Check every minute:
 
@@ -132,7 +135,11 @@ Check every 5 minutes:
  * Is the excess event rate of each observed source below its own limit
  	* Is it significant?
 
-That's it already! :-)
+It might be interesting to add
+
+ * Is the Drive Ctrl-Deviation small enough?
+
+At the moment, the maximum current per SiPM does ignore the bias patches containing crazy pixels. One might consider to also ignore channels containing a star, in order to not stop observation in case a bright start is in the FoV. 
 
 
 ## 2. Alert the shifter
@@ -156,7 +163,7 @@ Some time was also spend for streamlining the installation process of the shifth
 
 	pip install git+https://github.com/fact-project/shifthelper.git
 
-In order to access FACTs database for checking the QLA status, login credentials are needed. Requesting the shifter to enter the database login credentials during program installation seemed to much of a hassle, so the package contains the database credentials in an encrypted file, which is decrypted by FACTs default password during first program start. 
+In order to access FACTs database for checking the QLA status, login credentials are needed. Also for calling the shifter using a Twilio and/or Plivo account needs certain login credentials. These credentials need to be provided as a configuration file. This configuration file can be found on `newdaq` in `/home/dneise/.shifthelper/config.ini`.
 
 After installation, a binary called `shift_helper` is available in the users path. The program can be executed as easy as:
 
@@ -167,7 +174,7 @@ After installation, a binary called `shift_helper` is available in the users pat
 The program starts by checking if the user has entered the correct number. In case the user confirms, the given number is called once, to check the connection. Consequently the user is asked whether she likes to be informed also via telegram. In case of a positive response, the shifthelper expects the user to identify herself by sending a message to "@factShiftHelperBot". Upon reception of the message, it returns the name of the telegram user having sent the message, so the shifter can crosscheck. An example startup of the shifthelper program looks like this:
 
 ```
-dneise@lair:~$ shift_helper +41774528842
+dneise@lair:~$ shift_helper +4177123456
 
 =========================================================================================
                               Welcome to the shift_helper!                               
@@ -177,7 +184,7 @@ You need to decrypt the config file.
 Please enter the new FACT password
 > 
 Twilio Phone Setup
-You entered:  +41774528842
+You entered:  +4177123456
 Is that number correct? (y/n): y
 I will try to call you now
 Did your phone ring? (y/n): y
@@ -246,19 +253,26 @@ As one can see, during the current test phase, there was unfortunately no functi
 
 # Future plans
 
-The shifthelper software repository has a nice issue tracker, which is full of ideas and plans for improvements. So you are missing a feature or found a bug, please head there to report it. Its free.
+The shifthelper software repository has an issue tracker, which is full of ideas and plans for improvements. So you are missing a feature or found a bug, please head there to report it. Its free.
+
+## Redundancy
+
+Under the following conditions the shifthelper program can not do its work properly:
+
+ * The shifthelper program has no internet connection, i.e. can not place a call.
+ * The shifter has no telephone connection, i.e. cannot recieve the call.
+
+Redundancy is our proposed strategy against these circumstances. We propose to let N shifthelper instances run on 
+independent machines, without any interaction between those shifthelpers in order to prevent dead locking and keep the code as simple as possible.
+
+In addition we propose to have two shifters on call. The second shifter being called in case the first shifter does not bring the system into a safe state in a certain time. We propose not to check why 
 
 Here I just provide a short list of missing features, based on the issue tracker:
 
  * Redundancy, have more than 1 shifthelpers running on independent machines, to prevent from network loss.
  	* needs reworked UI
  	* possibly needs machine-to-machine communication.
- * Do not call immediately, when DIM-HTTP-bridge not available for 1 minute.
+ * Do not call immediately, when DIM-HTTP-bridge not available for 10 minutes.
 
-----
+ * The code base, can be used to quickly implement checkers, which inform the entire collaboration via email, in case certain conditions are met. E.g. the camera humidity has reached 40% or the container temperature during the night was higher than 29°C.
 
-# Problems:
-
-The major problem with the current approach, I see, is that it is clearly doing stuff, which was traditionally done by smartfact. I.e. it is playing alarm sounds. It is playing alarm sounds less often though, e.g. it is not sounding an alarm, when an FAD disconnects. Only when the disconnect is unrecoverable and leading to an exception in Main.js. It basically defers the question: "Did an error occor, that needs the shifters attention" to Main.js by assuming: "If Main.js cannot handle it, it will for sure throw an exception, it will never hang or stall."
-
-So in a sense, the shifthelper is not needed, its job could be done by Main.js. 
