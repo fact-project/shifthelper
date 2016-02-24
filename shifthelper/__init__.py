@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import pkg_resources
 
-from .communication import TwilioInterface, TelegramInterface, NoCaller
+from .communication import TwilioInterface, TelegramInterface, NoCaller, PlivoInterface
 from .checks import Alert
 from .checks.qla import FlareAlert
 from .checks.webdim import RelativeCameraTemperatureCheck
