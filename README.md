@@ -26,7 +26,7 @@ Available for OSX and Linux.
 You can install the last release version of the `shifthelper` like this:
 
 ```bash
-pip install https://github.com/fact-project/shifthelper/releases/tag/v0.5.0.tar.gz
+pip install https://github.com/fact-project/shifthelper/archive/v0.5.0.tar.gz
 ```
 
 And the bleeding edge version like this:
