@@ -12,6 +12,11 @@ language: en-US
 This document aims to serve as a rationale for the creation of the program `shifthelper`. 
 It should also clarify certain design decisions.
 
+This document can be found in its most recent form here:
+
+https://github.com/fact-project/shifthelper/blob/master/rationale.md
+
+
 \newpage
 
 # Status of operation before
