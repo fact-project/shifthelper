@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='shifthelper',
-    version='0.5.0',
+    version='0.5.1',
     description='a tool for helping people with a FACT night shift',
     url='https://github.com/fact-project/shifthelper',
     author='Dominik Neise, Maximilian Noethe, Sebastian Mueller',
@@ -26,6 +26,7 @@ setup(
         'pytz',             # in anaconda
         'blessings',
         'twilio',
+        'plivo',
         'docopt',           # in anaconda
         'numexpr',
     ],
