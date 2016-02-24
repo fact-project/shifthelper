@@ -3,8 +3,10 @@ import datetime
 from six.moves.configparser import SafeConfigParser
 import requests
 from getpass import getpass
-from fact_shift_helper import __version__
 import sys
+import pkg_resources
+
+__version__ = pkg_resources.require('shifthelper')[0].version
 
 config_file_name = 'config-{}.ini'.format(__version__)
 config_file_path = os.path.join(

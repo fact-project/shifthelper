@@ -1,19 +1,19 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
-    name='fact_shift_helper',
-    version='0.4.0',
+    name='shifthelper',
+    version='0.5.0',
     description='a tool for helping people with a FACT night shift',
-    url='https://bitbucket.org/dneise/fact_shift_helper',
+    url='https://github.com/fact-project/shifthelper',
     author='Dominik Neise, Maximilian Noethe, Sebastian Mueller',
     author_email='neised@phys.ethz.ch',
     license='MIT',
     packages=[
-        'fact_shift_helper',
-        'fact_shift_helper.checks',
-        'fact_shift_helper.cli',
-        'fact_shift_helper.communication',
-        'fact_shift_helper.tools',
+        'shifthelper',
+        'shifthelper.checks',
+        'shifthelper.cli',
+        'shifthelper.communication',
+        'shifthelper.tools',
         ],
     install_requires=[
         'pandas',           # in anaconda
@@ -29,7 +29,11 @@ setup(
         'docopt',           # in anaconda
         'numexpr',
     ],
-    scripts=['scripts/shift_helper', 'scripts/qla_bot', 'scripts/fact_ircam'],
-    package_data={'fact_shift_helper.tools': ['config.gpg']},
+    entry_points={'console_scripts': [
+        'shifthelper = shifthelper.__main__:main',
+        'qlabot = shifthelper.qlabot:main',
+        'fact_ircam = shifthelper.tools.ircam:main',
+    ]},
+    package_data={'shifthelper.tools': ['config.gpg']},
     zip_safe=False
 )

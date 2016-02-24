@@ -20,7 +20,7 @@ Options
     --version     Show version.
     --no-call     FOR DEBUGGING ONLY. Omit every call.
 '''
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 import os
 import time
 from threading import Event
@@ -30,16 +30,17 @@ from collections import deque
 import blessings
 import pkg_resources
 
-from fact_shift_helper import tools, cli
-from fact_shift_helper import Alert, TelegramInterface
-from fact_shift_helper import (MainJsStatusCheck,
-                               WeatherCheck,
-                               RelativeCameraTemperatureCheck,
-                               CurrentCheck,
-                               FlareAlert,
-                               )
+from . import tools, cli
+from . import Alert, TelegramInterface
+from . import (
+    MainJsStatusCheck,
+    WeatherCheck,
+    RelativeCameraTemperatureCheck,
+    CurrentCheck,
+    FlareAlert,
+)
 
-__version__ = pkg_resources.require('fact_shift_helper')[0].version
+__version__ = pkg_resources.require('shifthelper')[0].version
 # setup logging
 logdir = os.path.join(os.environ['HOME'], '.shifthelper')
 if not os.path.exists(logdir):
@@ -63,8 +64,16 @@ logging.getLogger('py.warnings').addHandler(logfile_handler)
 logging.captureWarnings(True)
 
 
-def main(stop_event, args):
+def main():
+    log.info('shift helper started')
+    log.info('version: {}'.format(__version__))
+
+    args = docopt(
+        __doc__,
+        version=__version__,
+    )
     term = blessings.Terminal()
+    stop_event = Event()
 
     print(term.red)
     print(term.width * '=')
@@ -83,9 +92,9 @@ def main(stop_event, args):
         log.debug('started shift helper in debug mode')
 
     if args['--no-call']:
-        from fact_shift_helper import NoCaller as Caller
+        from . import NoCaller as Caller
     else:
-        from fact_shift_helper import TwilioInterface as Caller
+        from . import TwilioInterface as Caller
         print(term.cyan('Twilio Phone Setup'))
 
     caller = Caller(
@@ -120,87 +129,81 @@ def main(stop_event, args):
     qla_data = {}
     system_status = {}
 
-    alert = Alert(
-        queue=deque(),
-        interval=5,
-        stop_event=stop_event,
-        caller=caller,
-        messenger=telegram,
-        logger=log,
-    )
+    try:
+        alert = Alert(
+            queue=deque(),
+            interval=5,
+            stop_event=stop_event,
+            caller=caller,
+            messenger=telegram,
+            logger=log,
+        )
 
-    if not args['--debug']:
-        check_mainjs = MainJsStatusCheck(
+        if not args['--debug']:
+            check_mainjs = MainJsStatusCheck(
+                alert.queue,
+                config.getint('checkintervals', 'mainjs'),
+                stop_event,
+                qla_data,
+                system_status,
+            )
+            check_mainjs.start()
+
+        check_weather = WeatherCheck(
             alert.queue,
-            config.getint('checkintervals', 'mainjs'),
+            config.getint('checkintervals', 'weather'),
             stop_event,
             qla_data,
             system_status,
         )
-        check_mainjs.start()
+        check_weather.start()
 
-    check_weather = WeatherCheck(
-        alert.queue,
-        config.getint('checkintervals', 'weather'),
-        stop_event,
-        qla_data,
-        system_status,
-    )
-    check_weather.start()
+        check_rel_camera_temp = RelativeCameraTemperatureCheck(
+            alert.queue,
+            config.getint('checkintervals', 'weather'),
+            stop_event,
+            qla_data,
+            system_status,
+        )
+        check_rel_camera_temp.start()
 
-    check_rel_camera_temp = RelativeCameraTemperatureCheck(
-        alert.queue,
-        config.getint('checkintervals', 'weather'),
-        stop_event,
-        qla_data,
-        system_status,
-    )
-    check_rel_camera_temp.start()
+        check_currents = CurrentCheck(
+            alert.queue,
+            config.getint('checkintervals', 'currents'),
+            stop_event,
+            qla_data,
+            system_status,
+        )
+        check_currents.start()
 
-    check_currents = CurrentCheck(
-        alert.queue,
-        config.getint('checkintervals', 'currents'),
-        stop_event,
-        qla_data,
-        system_status,
-    )
-    check_currents.start()
+        flare_alert = FlareAlert(
+            alert.queue,
+            config.getint('checkintervals', 'qla'),
+            stop_event,
+            qla_data,
+            system_status,
+        )
+        flare_alert.start()
 
-    flare_alert = FlareAlert(
-        alert.queue,
-        config.getint('checkintervals', 'qla'),
-        stop_event,
-        qla_data,
-        system_status,
-    )
-    flare_alert.start()
+        log.info('All checkers are running.')
+        status = cli.StatusDisplay(
+            qla_data,
+            system_status,
+            stop_event,
+            logfile_path,
+        )
 
-    log.info('All checkers are running.')
-    status = cli.StatusDisplay(
-        qla_data,
-        system_status,
-        stop_event,
-        logfile_path,
-    )
+        alert.start()
+        status.start()
 
-    alert.start()
-    status.start()
+        log.info('Entering main loop.')
+        while True:
+            time.sleep(10)
 
-    log.info('Entering main loop.')
-    while True:
-        time.sleep(10)
-
-
-if __name__ == '__main__':
-    log.info('shift helper started')
-    log.info('version: {}'.format(__version__))
-    args = docopt(
-        __doc__,
-        version=__version__,
-    )
-    try:
-        stop_event = Event()
-        main(stop_event, args)
     except (KeyboardInterrupt, SystemExit):
         stop_event.set()
         log.info('Exit')
+
+
+if __name__ == '__main__':
+    main()
