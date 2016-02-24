@@ -34,6 +34,5 @@ setup(
         'qlabot = shifthelper.qlabot:main',
         'fact_ircam = shifthelper.tools.ircam:main',
     ]},
-    package_data={'shifthelper.tools': ['config.gpg']},
     zip_safe=False
 )
