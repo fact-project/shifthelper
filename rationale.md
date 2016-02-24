@@ -1,6 +1,18 @@
+---
+title: Introduction to the shifthelper program
+author: D. Neise
+rights:  Creative Commons Non-Commercial Share Alike 3.0
+language: en-US
+...
+
+\tableofcontents
+
+# Abstract
+
 This document aims to serve as a rationale for the creation of the program `shifthelper`. 
 It should also clarify certain design decisions.
 
+\newpage
 
 # Status of operation before
 
@@ -161,8 +173,9 @@ In the future, we plan to convert programming errors into calls to the shifthelp
 
 Some time was also spend for streamlining the installation process of the shifthelper program on each shifters PC. The program was developed in Python. The installation process is as easy as:
 
-	pip install git+https://github.com/fact-project/shifthelper.git
+	pip install https://github.com/fact-project/shifthelper/archive/v0.4.0.tar.gz
 
+  
 ### Calling it
 
 After installation, a binary called `shift_helper` is available in the users path. The program can be executed as easy as:
@@ -180,23 +193,25 @@ A little help page is available of course.
 
 ### First time ever
 
-In order to access FACTs database for checking the QLA status, login credentials are needed. Also for calling the shifter using a Twilio and/or Plivo account needs certain login credentials. 
+In order to access FACTs database for checking the QLA status, 
+login credentials are needed. Also for calling the shifter 
+using a Twilio and/or Plivo account needs certain login credentials. 
 
-On the first program start the shifthelper needs to download the necessary config file from fact-project.org to the users machine. The first program start might look like this:
+On the first program start the shifthelper needs to 
+download the necessary config file from fact-project.org to the users machine. 
+The first program start might look like this:
 
 ```
-dneise@lair:~$ shift_helper +4177123456
+ddneise@lair:~$ shift_helper +4177123456
 
-=================================================================================
-                          Welcome to the shift_helper!                           
-=================================================================================
+================================================================================
+                          Welcome to the shift_helper!                          
+================================================================================
 
-Trying to do
-   scp fact-project.org:/home/dneise/shifthelper/config-0.3.4.ini /home/dneise/.shifthelper
-config-0.3.4.ini                               100%  823     0.8KB/s   00:00    
+Please enter the current FACT password
 Twilio Phone Setup
 You entered:  +4177123456
-Is that number correct? (y/n):
+Is that number correct? (y/n): y
 ```
 
 The shifthelper will prompt the user for a password if necessary. 
@@ -381,8 +396,11 @@ Flare alerts are important, but having a flare just when the main shifter is not
 | Significance > 3      | False      |               | 300 sec | Immediate call |
 
 
-###  Other checks
+# Spin offs
 
-The namely the monitoring of the telescope status via the HTTP-DIM-bridge, can be used to quickly implement checkers, 
+Parts of the codebase of shifthelper, 
+namely the monitoring of the telescope status via the HTTP-DIM-bridge, 
+can be used to quickly implement checkers, 
 which inform the entire collaboration via email, in case certain conditions are met, like 
 e.g. the camera humidity has reached 40% or the container temperature during the night was higher than 29°C.
+
