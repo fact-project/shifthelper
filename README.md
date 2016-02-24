@@ -26,7 +26,7 @@ Available for OSX and Linux.
 You can install the bleeding edge version of the `shift_helper` like this:
 
 ```bash
-pip install git+https://github.com/fact-project/shifthelper.git
+pip install https://github.com/fact-project/shifthelper/archive/v0.4.0.tar.gz
 ```
 
 # Use
@@ -43,7 +43,7 @@ shift_helper +4123456789
 # Uninstall
 
 ```
-pip uninstall fact_shift_helper
+pip uninstall shifthelper
 ```
 
 ### Developers: Create the config.gpg

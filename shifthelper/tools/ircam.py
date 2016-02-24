@@ -31,8 +31,7 @@ def change_ir_setting(action='off'):
     return ret
 
 
-if __name__ == '__main__':
-
+def main():
     args = docopt(__doc__)
 
     if args['on']:
@@ -52,3 +51,7 @@ if __name__ == '__main__':
     elif ret.status_code != 200:
         print('Could not change settings')
         sys.exit(2)
+
+
+if __name__ == '__main__':
+    main()

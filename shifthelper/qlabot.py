@@ -6,20 +6,20 @@ from collections import namedtuple
 from threading import Thread, Event
 import re
 from time import sleep, gmtime
-from fact_shift_helper.checks.qla import get_data, create_mpl_plot
-from fact_shift_helper.tools import read_config_file, night
+from .checks.qla import get_data, create_mpl_plot
+from .tools import read_config_file, night
 from functools import wraps
 import logging
 import pkg_resources
 import os
 
-__version__ = pkg_resources.require('fact_shift_helper')[0].version
+__version__ = pkg_resources.require('shifthelper')[0].version
 # setup logging
 logdir = os.path.join(os.environ['HOME'], '.shifthelper')
 if not os.path.exists(logdir):
     os.makedirs(logdir)
 
-log = logging.getLogger('shift_helper')
+log = logging.getLogger('shifthelper')
 log.setLevel(logging.INFO)
 logfile_path = os.path.join(
     logdir, 'qla_bot_{:%Y-%m-%d}.log'.format(night()),
@@ -203,8 +203,7 @@ class QlaBot(Thread):
         return ret
 
 
-if __name__ == '__main__':
-
+def main():
     config = read_config_file()
     bot = QlaBot(config.get('telegram', 'token'))
     bot.start()
@@ -215,3 +214,7 @@ if __name__ == '__main__':
             sleep(10)
     except (KeyboardInterrupt, SystemExit):
         bot.terminate()
+
+
+if __name__ == '__main__':
+    main()
