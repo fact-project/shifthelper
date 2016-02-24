@@ -19,6 +19,7 @@ Options
                   and dimctrl status will not be checked for a running Main.js
     --version     Show version.
     --no-call     FOR DEBUGGING ONLY. Omit every call.
+    --use_plivo   testing
 '''
 from __future__ import print_function, absolute_import
 import os
@@ -93,17 +94,30 @@ def main():
 
     if args['--no-call']:
         from . import NoCaller as Caller
+
+    elif args['--use_plivo']:
+        from . import PlivoInterface as Caller
+        print(term.cyan('Plivo Phone Setup'))
+
+        caller = Caller(
+            args['<phone_number>'],
+            config.getint('caller', 'ringtime'),
+            config.get('plivo', 'auth_id'),
+            config.get('plivo', 'auth_token'),
+            config.get('plivo', 'number'),
+        )
+
     else:
         from . import TwilioInterface as Caller
         print(term.cyan('Twilio Phone Setup'))
 
-    caller = Caller(
-        args['<phone_number>'],
-        config.getint('caller', 'ringtime'),
-        config.get('twilio', 'sid'),
-        config.get('twilio', 'auth_token'),
-        config.get('twilio', 'number'),
-    )
+        caller = Caller(
+            args['<phone_number>'],
+            config.getint('caller', 'ringtime'),
+            config.get('twilio', 'sid'),
+            config.get('twilio', 'auth_token'),
+            config.get('twilio', 'number'),
+        )
     caller.check_phone_number()
 
     log.info('Using phone_number: {}'.format(caller.phone_number))
