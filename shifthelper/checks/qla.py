@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 from __future__ import print_function, division, absolute_import
 import os
+from os.path import expanduser
 import numpy as np
 import pandas as pd
 
@@ -15,7 +16,8 @@ from .. import tools
 
 colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
 
-outdir = os.path.join(os.environ['HOME'], '.shifthelper', 'plots')
+
+outdir = os.path.join(expanduser("~"), '.shifthelper', 'plots')
 if not os.path.exists(outdir):
     os.makedirs(outdir)
 

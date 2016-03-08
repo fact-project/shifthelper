@@ -22,12 +22,12 @@ Options
 '''
 from __future__ import print_function, absolute_import
 import os
+from os.path import expanduser
 import time
 from threading import Event
 import logging
 from docopt import docopt
 from collections import deque
-import blessings
 import pkg_resources
 
 from . import tools, cli
@@ -42,7 +42,7 @@ from . import (
 
 __version__ = pkg_resources.require('shifthelper')[0].version
 # setup logging
-logdir = os.path.join(os.environ['HOME'], '.shifthelper')
+logdir = os.path.join(expanduser('~'), '.shifthelper')
 if not os.path.exists(logdir):
     os.makedirs(logdir)
 
@@ -72,21 +72,16 @@ def main():
         __doc__,
         version=__version__,
     )
-    term = blessings.Terminal()
     stop_event = Event()
 
-    print(term.red)
-    print(term.width * '=')
-    print('{{:^{}}}'.format(term.width).format(
-        'Welcome to the shift_helper!'
-    ))
-    print(term.width * '=')
-    print(term.normal)
+    print(80 * '=')
+    print('Welcome to the shift_helper!')
+    print(80 * '=')
 
     config = tools.read_config_file()
 
     if args['--debug']:
-        mesg = term.red(80*'=' + '\n' + '{:^80}\n' + 80*'=')
+        mesg = 80*'=' + '\n' + '{:^80}\n' + 80*'='
         print(mesg.format('DEBUG MODE - DO NOT USE DURING SHIFT'))
         log.setLevel(logging.DEBUG)
         log.debug('started shift helper in debug mode')
@@ -95,7 +90,7 @@ def main():
         from . import NoCaller as Caller
     else:
         from . import TwilioInterface as Caller
-        print(term.cyan('Twilio Phone Setup'))
+        print('Twilio Phone Setup')
 
     caller = Caller(
         args['<phone_number>'],
@@ -108,14 +103,14 @@ def main():
 
     log.info('Using phone_number: {}'.format(caller.phone_number))
 
-    print(term.cyan('\nTelegram Setup'))
+    print('\nTelegram Setup')
     telegram = None
     if cli.ask_user('Do you want to use Telegram to receive notifications?'):
         telegram = TelegramInterface(config.get('telegram', 'token'))
         log.info('Using Telegram')
 
     print(
-        term.bold_white(
+        (
             "\n"
             "    Thank you for using shift_helper tonight.\n"
             "    -----------------------------------------\n"

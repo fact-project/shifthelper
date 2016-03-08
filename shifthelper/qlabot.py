@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 import requests
+from os.path import expanduser
 from datetime import datetime, timedelta
 from collections import namedtuple
 from threading import Thread, Event
@@ -15,7 +16,9 @@ import os
 
 __version__ = pkg_resources.require('shifthelper')[0].version
 # setup logging
-logdir = os.path.join(os.environ['HOME'], '.shifthelper')
+
+
+logdir = os.path.join(expanduser('~'), '.shifthelper')
 if not os.path.exists(logdir):
     os.makedirs(logdir)
 

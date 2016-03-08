@@ -1,4 +1,5 @@
 import os
+from os.path import expanduser
 import datetime
 from six.moves.configparser import SafeConfigParser
 import requests
@@ -8,9 +9,11 @@ import pkg_resources
 
 __version__ = pkg_resources.require('shifthelper')[0].version
 
+from os.path import expanduser
+
 config_file_name = 'config-{}.ini'.format(__version__)
 config_file_path = os.path.join(
-    os.environ['HOME'], '.shifthelper', config_file_name
+    expanduser("~"), '.shifthelper', config_file_name
 )
 
 remote_config_url = "https://fact-project.org/sandbox/shifthelper/config/{cn}".format(
@@ -43,7 +46,7 @@ def night_integer(timestamp=None):
 
 
 def download_config_file():
-    dotpath = os.path.join(os.environ['HOME'], '.shifthelper')
+    dotpath = os.path.join(expanduser('~'), '.shifthelper')
     if not os.path.exists(dotpath):
         os.makedirs(dotpath)
 

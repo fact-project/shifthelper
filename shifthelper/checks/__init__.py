@@ -5,9 +5,10 @@ from traceback import format_exc
 import logging
 import os
 
+from os.path import expanduser
 
 qla_filename = os.path.join(
-    os.environ['HOME'],
+    expanduser("~"),
     '.shifthelper',
     'plots/qla.png',
 )

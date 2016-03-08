@@ -1,13 +1,10 @@
 # -*- coding:utf-8 -*-
 from __future__ import print_function
 from threading import Thread
-from blessings import Terminal
 from datetime import datetime
 from subprocess import check_output
 from six.moves import input
 import six
-
-term = Terminal()
 
 
 def timestamp():
@@ -19,41 +16,29 @@ class StatusDisplay(Thread):
     def __init__(self, qla_data, status_data, stop_event, logfile=None):
         self.status_data = status_data
         self.qla_data = qla_data
-        self.term = Terminal()
         self.stop_event = stop_event
         self.logfile = logfile
         super(StatusDisplay, self).__init__()
 
-    def run(self):
-        with self.term.fullscreen(), self.term.hidden_cursor():
-            print(self.term.clear())
-            while not self.stop_event.is_set():
-                self.update_status()
-                self.stop_event.wait(5)
+    def run(self):        
+        while not self.stop_event.is_set():
+            self.update_status()
+            self.stop_event.wait(5)
 
     def update_status(self):
-        print(self.term.clear())
-        print(self.term.move(0, 0) + self.term.cyan(timestamp()))
+        print(timestamp())
 
-        print(self.term.move(2, 0) + 'System Status')
+        print('System Status')
         for i, (key, val) in enumerate(six.iteritems(self.status_data)):
-            print(self.term.move(3+i, 0) + u'{:<20}  {:>6} {:<6}'.format(
-                key, *val
-            ))
+            print(u'{:<20}  {:>6} {:<6}'.format(key, *val))
 
-        print(self.term.move(2, 40) + 'Maximum Source Activity')
+        print('Maximum Source Activity')
         for i, (key, val) in enumerate(six.iteritems(self.qla_data)):
-            print(self.term.move(3+i, 40) + u'{:<20}  {:>6} {:<6}'.format(
-                key, *val
-            ))
+            print(u'{:<20}  {:>6} {:<6}'.format(key, *val))
 
         if self.logfile is not None:
-            logs = check_output('tail -n20 {}'.format(self.logfile), shell=True)
-            n_lines = term.height - 15
-            loglines = list(
-                reversed(logs.decode('utf-8').splitlines())
-            )[:n_lines]
-            print(self.term.move(14, 0) + '\n'.join(loglines))
+            loglines = open(self.logfile, 'r').readlines()[-10::-1]
+            print(''.join(loglines))
 
 
 def enter_phone_number():
