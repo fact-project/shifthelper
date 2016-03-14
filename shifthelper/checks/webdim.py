@@ -59,11 +59,11 @@ class CurrentCheck(Check):
             u'uA'
         )
 
-        if c['Med_current_per_GAPD_in_uA'] >= 90:
-            mesg = u"median current >= 90 uA {:2.1f} uA"
+        if c['Med_current_per_GAPD_in_uA'] >= 115:
+            mesg = u"median current >= 115 uA {:2.1f} uA"
             self.queue.append(mesg.format(c['Med_current_per_GAPD_in_uA']))
-        if c['Max_current_per_GAPD_in_uA'] >= 110:
-            mesg = u"maximum current >= 110 uA {:2.1f} uA"
+        if c['Max_current_per_GAPD_in_uA'] >= 160:
+            mesg = u"maximum current >= 160 uA {:2.1f} uA"
             self.queue.append(mesg.format(c['Max_current_per_GAPD_in_uA']))
 
 
