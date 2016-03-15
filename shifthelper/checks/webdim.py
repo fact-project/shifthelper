@@ -79,6 +79,6 @@ class RelativeCameraTemperatureCheck(Check):
             'K'
         )
 
-        if main_page['Rel_camera_temp_in_C'] > 10.0:
-            mesg = "relative camera temp > 10 K: {:2.1f} K"
+        if main_page['Rel_camera_temp_in_C'] > 15.0:
+            mesg = "relative camera temp > 15 K: {:2.1f} K"
             self.queue.append(mesg.format(main_page['Rel_camera_temp_in_C']))
