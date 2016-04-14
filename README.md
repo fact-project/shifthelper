@@ -23,9 +23,10 @@ to download these credentials.
 We strongly recommend installing `python3` via [Anaconda](https://www.continuum.io/downloads). 
 Available for OSX and Linux.
 
-You can install the last release version of the `shifthelper` like this:
+You can install the last release version of the `smart_fact_crawler` and `shifthelper` like this:
 
 ```bash
+pip install https://github.com/fact-project/smart_fact_crawler/archive/v0.0.2.tar.gz
 pip install https://github.com/fact-project/shifthelper/archive/v0.5.0.tar.gz
 ```
 
