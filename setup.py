@@ -28,12 +28,12 @@ setup(
         'twilio',
         'docopt',           # in anaconda
         'numexpr',
-        'smart_fact_crawler',
+        'smart_fact_crawler==0.0.2',
     ],
     entry_points={'console_scripts': [
         'shifthelper = shifthelper.__main__:main',
         'qlabot = shifthelper.qlabot:main',
         'fact_ircam = shifthelper.tools.ircam:main',
     ]},
-    zip_safe=False
+    zip_safe=False,
 )
