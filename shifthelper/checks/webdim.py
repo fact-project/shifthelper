@@ -2,13 +2,13 @@
 from __future__ import print_function, absolute_import
 from . import Check
 
-from ..tools import smartfact
+import smart_fact_crawler
 
 
 class MainJsStatusCheck(Check):
 
     def check(self):
-        s = smartfact.status()
+        s = smart_fact_crawler.status()
         state = s['Dim_Control'][0]
         if 'Running' not in state:
             mesg = "'Running' not in dimctrl_state: {!r}"
@@ -19,7 +19,7 @@ class MainJsStatusCheck(Check):
 class WeatherCheck(Check):
 
     def check(self):
-        w = smartfact.weather()
+        w = smart_fact_crawler.weather()
 
         fmt = '{:2.1f}'
         self.update_system_status(
@@ -46,7 +46,7 @@ class WeatherCheck(Check):
 class CurrentCheck(Check):
 
     def check(self):
-        c = smartfact.currents()
+        c = smart_fact_crawler.currents()
 
         self.update_system_status(
             'bias current median',
@@ -70,7 +70,7 @@ class CurrentCheck(Check):
 class RelativeCameraTemperatureCheck(Check):
 
     def check(self):
-        main_page = smartfact.main_page()
+        main_page = smart_fact_crawler.main_page()
 
         fmt = '{:2.1f}'
         self.update_system_status(
