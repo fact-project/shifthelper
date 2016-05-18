@@ -27,7 +27,7 @@ You can install the last release version of the `smart_fact_crawler` and `shifth
 
 ```bash
 pip install https://github.com/fact-project/smart_fact_crawler/archive/v0.0.2.tar.gz
-pip install https://github.com/fact-project/shifthelper/archive/v0.6.0.tar.gz
+pip install https://github.com/fact-project/shifthelper/archive/v0.6.1.tar.gz
 ```
 
 And the bleeding edge version like this:
