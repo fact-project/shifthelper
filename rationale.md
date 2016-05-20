@@ -181,9 +181,9 @@ In the future, we plan to convert programming errors into calls to the shifthelp
 
 ## 4. Be easy to install and use:
 
-Some time was also spend for streamlining the installation process of the shifthelper program on each shifters PC. The program was developed in Python. The installation process is as easy as:
+Some time was also spend for streamlining the installation process of the shifthelper program on each shifters PC. The program was developed in Python. For details about the installation process please have a look at:
 
-	pip install https://github.com/fact-project/shifthelper/archive/v0.4.0.tar.gz
+  https://github.com/fact-project/shifthelper#install
 
   
 ### Calling it
@@ -191,13 +191,13 @@ Some time was also spend for streamlining the installation process of the shifth
 After installation, a binary called `shift_helper` is available in the users path. The program can be executed as easy as:
 
 ```
-	shift_helper +4177123456
+	shifthelper +4177123456
 ```
 
 A little help page is available of course.
 
 ```
-	shift_helper --help 
+	shifthelper --help 
 ```
 
 
