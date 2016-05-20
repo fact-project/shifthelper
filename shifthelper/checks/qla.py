@@ -21,11 +21,13 @@ if not os.path.exists(outdir):
 
 
 def create_alert_rate():
-    config = tools.read_config_file()
-    alert_rate = defaultdict(lambda: config.getint('qla', 'default'))
-    for key, val in config.items('qla'):
-        if key not in ['default', ]:
-            alert_rate[key] = int(val)
+    default_excess_rate = 15 # excess events / h
+    alert_rate = defaultdict(lambda: default_excess_rate)
+    alert_rate["Mrk 501"] = 60
+    alert_rate["Mrk 421"] = 60
+    # Crab is a steady source, and we certainly will not sent 
+    # Flare alerts of Crab on short notice.
+    alert_rate["Crab"] = 1000
     return alert_rate
 
 
@@ -54,7 +56,8 @@ class FlareAlert(Check):
 
         create_mpl_plot(data)
 
-        significant = data.query('significance >= 3')
+        significance_cut = 3 # sigma
+        significant = data[data.significance >= significance_cut]
 
         qla_max_rates = data.groupby('fSourceName').agg({
             'rate': 'max',
