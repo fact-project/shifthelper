@@ -98,11 +98,11 @@ def main():
         print(term.cyan('Twilio Phone Setup'))
 
     caller = Caller(
-        args['<phone_number>'],
-        config.getint('caller', 'ringtime'),
-        config.get('twilio', 'sid'),
-        config.get('twilio', 'auth_token'),
-        config.get('twilio', 'number'),
+        phone_number=args['<phone_number>'], 
+        ring_time=20,
+        sid=config.get('twilio', 'sid'),
+        auth_token=config.get('twilio', 'auth_token'),
+        twilio_number=config.get('twilio', 'number'),
     )
     caller.check_phone_number()
 
@@ -142,7 +142,7 @@ def main():
         if not args['--debug']:
             check_mainjs = MainJsStatusCheck(
                 alert.queue,
-                config.getint('checkintervals', 'mainjs'),
+                60,  # seconds
                 stop_event,
                 qla_data,
                 system_status,
@@ -151,7 +151,7 @@ def main():
 
         check_weather = WeatherCheck(
             alert.queue,
-            config.getint('checkintervals', 'weather'),
+            60,  # seconds
             stop_event,
             qla_data,
             system_status,
@@ -160,7 +160,7 @@ def main():
 
         check_rel_camera_temp = RelativeCameraTemperatureCheck(
             alert.queue,
-            config.getint('checkintervals', 'weather'),
+            60,  # seconds
             stop_event,
             qla_data,
             system_status,
@@ -169,7 +169,7 @@ def main():
 
         check_currents = CurrentCheck(
             alert.queue,
-            config.getint('checkintervals', 'currents'),
+            60,   # seconds
             stop_event,
             qla_data,
             system_status,
@@ -178,7 +178,7 @@ def main():
 
         flare_alert = FlareAlert(
             alert.queue,
-            config.getint('checkintervals', 'qla'),
+            300,   # seconds
             stop_event,
             qla_data,
             system_status,
