@@ -9,7 +9,7 @@ class MainJsStatusCheck(Check):
 
     def check(self):
         s = smart_fact_crawler.status()
-        state = s['Dim_Control'][0]
+        state = s['Dim_Control']
         if 'Running' not in state:
             mesg = "'Running' not in dimctrl_state: {!r}"
             self.queue.append(mesg.format(state))

@@ -7,6 +7,8 @@ language: en-US
 
 \tableofcontents
 
+\newpage
+
 # Abstract
 
 This document aims to serve as a rationale for the creation of the program `shifthelper`. 
@@ -15,6 +17,9 @@ It should also clarify certain design decisions.
 This document can be found in its most recent form here:
 
 https://github.com/fact-project/shifthelper/blob/master/rationale.md
+
+![shifthelper concept](shifthelper_concept2.png)
+\newpage
 
 
 \newpage
@@ -143,14 +148,14 @@ Check every minute:
  * Is wind speed below 50 km/h?
  * Are wind gusts below 50 km/h?
  * Is outside humidity below 98%?
- * Is median current per SiPM below 90 uA?
- * Is maximum current per SiPM below 110 uA?
+ * Is median current per SiPM below 115 uA?
+ * Is maximum current per SiPM below 160 uA?
  * Is the relative camera temperature below 10°C?
 
 Check every 5 minutes:
 
  * Is the excess event rate of each observed source below its own limit
- 	* Is it significant?
+ 	* Is it significant? ( >= 3 sigma)
 
 It might be interesting to add
 
@@ -176,9 +181,9 @@ In the future, we plan to convert programming errors into calls to the shifthelp
 
 ## 4. Be easy to install and use:
 
-Some time was also spend for streamlining the installation process of the shifthelper program on each shifters PC. The program was developed in Python. The installation process is as easy as:
+Some time was also spend for streamlining the installation process of the shifthelper program on each shifters PC. The program was developed in Python. For details about the installation process please have a look at:
 
-	pip install https://github.com/fact-project/shifthelper/archive/v0.4.0.tar.gz
+  https://github.com/fact-project/shifthelper#install
 
   
 ### Calling it
@@ -186,13 +191,13 @@ Some time was also spend for streamlining the installation process of the shifth
 After installation, a binary called `shift_helper` is available in the users path. The program can be executed as easy as:
 
 ```
-	shift_helper +4177123456
+	shifthelper +4177123456
 ```
 
 A little help page is available of course.
 
 ```
-	shift_helper --help 
+	shifthelper --help 
 ```
 
 
