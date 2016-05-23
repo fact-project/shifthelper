@@ -34,6 +34,7 @@ setup(
         'shifthelper = shifthelper.__main__:main',
         'qlabot = shifthelper.qlabot:main',
         'fact_ircam = shifthelper.tools.ircam:main',
+        'fact_call = shifthelper.tools.call:main',
     ]},
     zip_safe=False,
 )
