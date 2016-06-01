@@ -14,6 +14,7 @@ qla_filename = os.path.join(
 
 
 class Check(Thread):
+    instances = []
     '''
     base class for the checks
     this class is the base implementation for the checks
@@ -43,7 +44,9 @@ class Check(Thread):
         self._qla_data = qla_data
         assert isinstance(system_status, dict), 'system_status has to be a dict'
         self._system_status = system_status
-        super(Check, self).__init__()
+        Check.instances.append(self)
+        super().__init__()
+
 
     def run(self):
         while not self.stop_event.is_set():
