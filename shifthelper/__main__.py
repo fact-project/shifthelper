@@ -30,24 +30,21 @@ from collections import deque
 import blessings
 import pkg_resources
 
-from . import tools, cli
-from . import Alert, TelegramInterface
-from . import (
-    MainJsStatusCheck,
-    WeatherCheck,
-    RelativeCameraTemperatureCheck,
-    CurrentCheck,
-    FlareAlert,
-)
+from . import checks
+from .checks import qla as qla
+from .checks import webdim as webdim
+from . import communication as com
+from .config import config
+from . import tools
+from . import cli
 
 __version__ = pkg_resources.require('shifthelper')[0].version
-# setup logging
 logdir = os.path.join(os.environ['HOME'], '.shifthelper')
 if not os.path.exists(logdir):
     os.makedirs(logdir)
 
 log = logging.getLogger('shift_helper')
-log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 logfile_path = os.path.join(
     logdir, 'shifthelper_{:%Y-%m-%d}.log'.format(tools.night()),
 )
@@ -75,16 +72,6 @@ def main():
     term = blessings.Terminal()
     stop_event = Event()
 
-    print(term.red)
-    print(term.width * '=')
-    print('{{:^{}}}'.format(term.width).format(
-        'Welcome to the shift_helper!'
-    ))
-    print(term.width * '=')
-    print(term.normal)
-
-    config = tools.read_config_file()
-
     if args['--debug']:
         mesg = term.red(80*'=' + '\n' + '{:^80}\n' + 80*'=')
         print(mesg.format('DEBUG MODE - DO NOT USE DURING SHIFT'))
@@ -92,45 +79,19 @@ def main():
         log.debug('started shift helper in debug mode')
 
     if args['--no-call']:
-        from . import NoCaller as Caller
+        Caller = com.NoCaller
     else:
-        from . import TwilioInterface as Caller
-        print(term.cyan('Twilio Phone Setup'))
+        Caller = com.TwilioInterface
 
-    caller = Caller(
-        phone_number=args['<phone_number>'], 
-        ring_time=20,
-        sid=config.get('twilio', 'sid'),
-        auth_token=config.get('twilio', 'auth_token'),
-        twilio_number=config.get('twilio', 'number'),
-    )
-    caller.check_phone_number()
-
-    log.info('Using phone_number: {}'.format(caller.phone_number))
-
-    print(term.cyan('\nTelegram Setup'))
+    caller = Caller(phone_number=args['<phone_number>'])
+    #telegram = com.TelegramInterface(config['telegram']['token'])
     telegram = None
-    if cli.ask_user('Do you want to use Telegram to receive notifications?'):
-        telegram = TelegramInterface(config.get('telegram', 'token'))
-        log.info('Using Telegram')
-
-    print(
-        term.bold_white(
-            "\n"
-            "    Thank you for using shift_helper tonight.\n"
-            "    -----------------------------------------\n"
-            "    We hope it was a pleasant experience.\n"
-            "    Please consider sending your log-file:\n"
-            "    {}\n".format(logfile_path) +
-            "    to: neised@phys.ethz.ch for future improvements\n"
-        )
-    )
 
     qla_data = {}
     system_status = {}
 
     try:
-        alert = Alert(
+        alert = checks.Alert(
             queue=deque(),
             interval=5,
             stop_event=stop_event,
@@ -139,51 +100,44 @@ def main():
             logger=log,
         )
 
-        if not args['--debug']:
-            check_mainjs = MainJsStatusCheck(
-                alert.queue,
-                60,  # seconds
-                stop_event,
-                qla_data,
-                system_status,
-            )
-            check_mainjs.start()
-
-        check_weather = WeatherCheck(
+        check_weather = webdim.WeatherCheck(
             alert.queue,
             60,  # seconds
             stop_event,
             qla_data,
             system_status,
         )
-        check_weather.start()
+        
 
-        check_rel_camera_temp = RelativeCameraTemperatureCheck(
+        check_rel_camera_temp = webdim.RelativeCameraTemperatureCheck(
             alert.queue,
             60,  # seconds
             stop_event,
             qla_data,
             system_status,
         )
-        check_rel_camera_temp.start()
+        
 
-        check_currents = CurrentCheck(
+        check_currents = webdim.CurrentCheck(
             alert.queue,
             60,   # seconds
             stop_event,
             qla_data,
             system_status,
         )
-        check_currents.start()
+        
 
-        flare_alert = FlareAlert(
+        flare_alert = qla.FlareAlert(
             alert.queue,
             300,   # seconds
             stop_event,
             qla_data,
             system_status,
         )
-        flare_alert.start()
+
+        for check in checks.Check.instances:
+            check.start()
+        
 
         log.info('All checkers are running.')
         status = cli.StatusDisplay(
