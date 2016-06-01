@@ -1,12 +1,15 @@
 # -*- coding:utf-8 -*-
 from __future__ import print_function
 from threading import Thread
+from threading import Event
 from traceback import format_exc
 import logging
 import os
 
 class Check(Thread):
     instances = []
+    stop_event = Event()
+
     '''
     base class for the checks
     this class is the base implementation for the checks
@@ -25,11 +28,10 @@ class Check(Thread):
     are catched to first call stop_event.set() and then terminate the
     program.
     '''
-    def __init__(self, queue, interval, stop_event,
+    def __init__(self, queue, interval,
                  qla_data, system_status):
         self.queue = queue
         self.interval = interval
-        self.stop_event = stop_event
         self.logger = logging.getLogger('shift_helper.Check')
 
         assert isinstance(qla_data, dict), 'qla_data has to be a dict'
@@ -41,13 +43,13 @@ class Check(Thread):
 
 
     def run(self):
-        while not self.stop_event.is_set():
+        while not Check.stop_event.is_set():
             try:
                 self.check()
             except Exception as e:
                 self.queue.append(format_exc())
                 self.logger.exception(e)
-            self.stop_event.wait(self.interval)
+            Check.stop_event.wait(self.interval)
 
     def check(self):
         raise NotImplementedError

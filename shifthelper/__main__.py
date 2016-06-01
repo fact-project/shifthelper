@@ -23,7 +23,6 @@ Options
 from __future__ import print_function, absolute_import
 import os
 import time
-from threading import Event
 import logging
 from docopt import docopt
 from collections import deque
@@ -31,6 +30,7 @@ import blessings
 import pkg_resources
 
 from . import checks
+from .checks import Check
 from .checks import qla as qla
 from .checks import webdim as webdim
 from . import communication as com
@@ -76,7 +76,6 @@ def main():
         version=__version__,
     )
     term = blessings.Terminal()
-    stop_event = Event()
 
     if args['--debug']:
         mesg = term.red(80*'=' + '\n' + '{:^80}\n' + 80*'=')
@@ -100,7 +99,6 @@ def main():
         check_weather = webdim.WeatherCheck(
             alert.queue,
             60,  # seconds
-            stop_event,
             qla_data,
             system_status,
         )        
@@ -108,7 +106,6 @@ def main():
         check_rel_camera_temp = webdim.RelativeCameraTemperatureCheck(
             alert.queue,
             60,  # seconds
-            stop_event,
             qla_data,
             system_status,
         )
@@ -117,7 +114,6 @@ def main():
         check_currents = webdim.CurrentCheck(
             alert.queue,
             60,   # seconds
-            stop_event,
             qla_data,
             system_status,
         )
@@ -126,7 +122,6 @@ def main():
         flare_alert = qla.FlareAlert(
             alert.queue,
             300,   # seconds
-            stop_event,
             qla_data,
             system_status,
         )
@@ -139,11 +134,9 @@ def main():
         status = cli.StatusDisplay(
             qla_data,
             system_status,
-            stop_event,
+            Check.stop_event,
             logfile_path,
         )
-
-        alert.start()
         status.start()
 
         log.info('Entering main loop.')
@@ -161,7 +154,7 @@ def main():
             time.sleep(5)
 
     except (KeyboardInterrupt, SystemExit):
-        stop_event.set()
+        Check.stop_event.set()
         log.info('Exit')
 
 
