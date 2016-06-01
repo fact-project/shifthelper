@@ -12,6 +12,7 @@ from functools import wraps
 import logging
 import pkg_resources
 import os
+from shifthelper.config import config
 
 __version__ = pkg_resources.require('shifthelper')[0].version
 # setup logging
@@ -204,8 +205,7 @@ class QlaBot(Thread):
 
 
 def main():
-    config = read_config_file()
-    bot = QlaBot(config.get('telegram', 'token'))
+    bot = QlaBot(config['telegram']['token'])
     bot.start()
     log.info('bot running')
 
