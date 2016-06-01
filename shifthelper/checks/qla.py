@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from collections import defaultdict
-import sqlalchemy
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -30,18 +30,6 @@ def create_alert_rate():
     alert_rate["Crab"] = 1000
     return alert_rate
 
-
-def create_db_connection():
-    config = tools.read_config_file()
-    factdb = sqlalchemy.create_engine(
-        "mysql+pymysql://{user}:{pw}@{host}/{db}".format(
-            user=config.get('database', 'user'),
-            pw=config.get('database', 'password'),
-            host=config.get('database', 'host'),
-            db=config.get('database', 'database'),
-        )
-    )
-    return factdb
 
 
 class FlareAlert(Check):
@@ -111,7 +99,7 @@ def get_data(bin_width_minutes=20, timestamp=None):
 
     data = pd.read_sql_query(
         sql_query,
-        create_db_connection(),
+        tools.create_db_connection(),
         parse_dates=['fRunStart', 'fRunStop'],
     )
     # drop rows with NaNs from the table, these are unfinished qla results
