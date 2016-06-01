@@ -38,6 +38,7 @@ from .config import config
 from . import tools
 from . import cli
 
+
 __version__ = pkg_resources.require('shifthelper')[0].version
 logdir = os.path.join(os.environ['HOME'], '.shifthelper')
 if not os.path.exists(logdir):
@@ -60,6 +61,11 @@ log.addHandler(logfile_handler)
 logging.getLogger('py.warnings').addHandler(logfile_handler)
 logging.captureWarnings(True)
 
+qla_filename = os.path.join(
+    os.environ['HOME'],
+    '.shifthelper',
+    'plots/qla.png',
+)
 
 def main():
     log.info('shift helper started')
@@ -91,23 +97,13 @@ def main():
     system_status = {}
 
     try:
-        alert = checks.Alert(
-            queue=deque(),
-            interval=5,
-            stop_event=stop_event,
-            caller=caller,
-            messenger=telegram,
-            logger=log,
-        )
-
         check_weather = webdim.WeatherCheck(
             alert.queue,
             60,  # seconds
             stop_event,
             qla_data,
             system_status,
-        )
-        
+        )        
 
         check_rel_camera_temp = webdim.RelativeCameraTemperatureCheck(
             alert.queue,
@@ -151,8 +147,18 @@ def main():
         status.start()
 
         log.info('Entering main loop.')
-        while True:
-            time.sleep(10)
+        queue = deque()
+        while True:        
+            if len(queue) > 0:
+                caller.place_call()
+                while len(queue) > 0:
+                    message = queue.popleft()
+                    log.warning(message)
+                    telegram.send_message(message)
+                    if 'Source' in message:
+                        with open(qla_filename, 'rb') as img:
+                            telegram.send_image(img)
+            time.sleep(5)
 
     except (KeyboardInterrupt, SystemExit):
         stop_event.set()

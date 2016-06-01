@@ -5,14 +5,6 @@ from traceback import format_exc
 import logging
 import os
 
-
-qla_filename = os.path.join(
-    os.environ['HOME'],
-    '.shifthelper',
-    'plots/qla.png',
-)
-
-
 class Check(Thread):
     instances = []
     '''
@@ -79,54 +71,3 @@ class Check(Thread):
         self._qla_data[source] = (rate, '1/h')
 
 
-class Alert(Thread):
-    '''
-    This thread listens to the queue and performs the following
-    actions if the queue is not empty:
-        * if the caller was given, caller.place_call is called
-          this should call the shifter
-        * if the messenger was given, each message in the queue is
-          sent via the messenger.send_message command
-
-          If the message is due to a flare alert also the last QLA plot
-          is send with the messenger.send_image method
-
-        * all messages are logged using logger.warning
-
-    This thread runs until stop_event.set() is called.
-    In your main thread, this requires that KeyboardInterrupt and SystemExit
-    are catched to first call stop_event.set() and then terminate the
-    program.
-    '''
-    def __init__(self,
-                 queue,
-                 interval,
-                 stop_event,
-                 logger,
-                 caller=None,
-                 messenger=None,
-                 ):
-        self.queue = queue
-        self.interval = interval
-        self.stop_event = stop_event
-        self.logger = logger
-        self.caller = caller
-        self.messenger = messenger
-
-        super(Alert, self).__init__()
-
-    def run(self):
-        while not self.stop_event.is_set():
-            if len(self.queue) > 0:
-                if self.caller is not None:
-                    self.caller.place_call()
-                while len(self.queue) > 0:
-                    message = self.queue.popleft()
-                    self.logger.warning(message)
-                    if self.messenger is not None:
-                        self.messenger.send_message(message)
-                        if 'Source' in message:
-                            with open(qla_filename, 'rb') as img:
-                                self.messenger.send_image(img)
-
-            self.stop_event.wait(self.interval)
