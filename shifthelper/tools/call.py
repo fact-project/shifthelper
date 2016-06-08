@@ -2,15 +2,18 @@
 # coding: utf-8
 '''
 This script uses the fact twilio account to call a number.
+If you provide a message with <message> this will be read to the
+called person.
 
 Usage:
-    fact_call <phone_number> [options]
+    fact_call <phone_number> [<message>] [options]
 
 Options:
     --ringtime=<N>   ringtime in seconds, defaults to value in the config file
 '''
 from docopt import docopt
 import pkg_resources
+from requests import Request
 
 from . import read_config_file
 from .. import TwilioInterface as Caller
@@ -37,7 +40,20 @@ def main():
         config.get('twilio', 'auth_token'),
         config.get('twilio', 'number'),
     )
-    caller.place_call()
+
+    # encode the url, this does not actually do the request
+    if args['<message>']:
+        r = Request(
+            'GET',
+            'http://twimlets.com/message',
+            params={'Message': args['<message>']}
+        )
+        p = r.prepare()
+        url = p.url
+    else:
+        url = None
+
+    caller.place_call(url=url)
 
 
 if __name__ == '__main__':
