@@ -11,9 +11,10 @@ class TwilioInterface(Caller):
         self.twilio_number = twilio_number
         super(TwilioInterface, self).__init__(phone_number, ring_time)
 
-    def place_call(self):
+    def place_call(self, url=None):
+
         self.call = self.client.calls.create(
-            url='http://fact-project.org/hangup.xml',
+            url=url or 'http://fact-project.org/hangup.xml',
             to=self.phone_number,
             from_=self.twilio_number,
             timeout=self.ring_time,
