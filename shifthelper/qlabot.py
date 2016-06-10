@@ -90,9 +90,11 @@ class QlaBot(Thread):
 
             for message in messages:
                 try:
+                    if message.text.startswith('/start'):
+                        continue
+                    self.confirm_message(message)
                     match = qla_command.fullmatch(message.text)
                     if match:
-                        self.confirm_message(message)
                         bin_width, timestamp = self.parse_command(match)
                         data = get_data(bin_width, timestamp)
 
