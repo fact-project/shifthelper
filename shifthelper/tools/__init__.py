@@ -7,6 +7,8 @@ import sys
 import pkg_resources
 import sqlalchemy
 from ..config import config
+import logging
+from functools import wraps
 
 __version__ = pkg_resources.require('shifthelper')[0].version
 
@@ -46,3 +48,17 @@ def create_db_connection():
         )
     )
     return factdb
+
+def logs_exception(msg=""):
+    def logs_exception_decorator(func):
+        @wraps(func)
+        def func_wrapper(*args, **kwargs):
+            log = logging.getLogger(__name__)
+            try:
+                return func(*args, **kwargs)
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except:
+                log.exception(msg)
+        return func_wrapper
+    return logs_exception_decorator

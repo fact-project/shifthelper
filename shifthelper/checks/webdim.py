@@ -1,84 +1,72 @@
-# -*- encoding:utf-8 -*-
-from __future__ import print_function, absolute_import
-from . import Check
-
+from . import Check, SystemStatusMessage
 import smart_fact_crawler
-
+import logging
+log = logging.getLogger(__name__)
 
 class MainJsStatusCheck(Check):
-
     def check(self):
-        s = smart_fact_crawler.status()
-        state = s['Dim_Control']
-        if 'Running' not in state:
-            mesg = "'Running' not in dimctrl_state: {!r}"
-            self.queue.append(mesg.format(state))
-        self.update_system_status('Main.js', state, ' ')
+        value = smart_fact_crawler.status()['Dim_Control']
+        msg = SystemStatusMessage('Main.js', value, '')
+        log.info(msg)
+        if 'Running' not in value:
+            self.queue.put(msg)
 
-
-class WeatherCheck(Check):
-
+class HumidityCheck(Check):
     def check(self):
-        w = smart_fact_crawler.weather()
+        value = smart_fact_crawler.weather()['Humidity_in_Percent']
+        msg = SystemStatusMessage('humidity', value, '%')
+        log.info(msg)
+        if value >= 98:
+            self.queue.put(msg)
 
-        fmt = '{:2.1f}'
-        self.update_system_status(
-            'wind speed', fmt.format(w['Wind_speed_in_km_per_h']), 'km/h'
-        )
-        self.update_system_status(
-            'wind gusts', fmt.format(w['Wind_gusts_in_km_per_h']), 'km/h'
-        )
-        self.update_system_status(
-            'humidity', fmt.format(w['Humidity_in_Percent']), '%'
-        )
-
-        if w['Humidity_in_Percent'] >= 98:
-            mesg = "humidity_outside >= 98 %: {:2.1f} %"
-            self.queue.append(mesg.format(w['Humidity_in_Percent']))
-        if w['Wind_speed_in_km_per_h'] >= 50:
-            mesg = "wind_speed >= 50 km/h: {:2.1f} km/h"
-            self.queue.append(mesg.format(w['Wind_speed_in_km_per_h']))
-        if w['Wind_gusts_in_km_per_h'] >= 50:
-            mesg = "wind_gusts >= 50 km/h: {:2.1f} km/h"
-            self.queue.append(mesg.format(w['Wind_gusts_in_km_per_h']))
-
-
-class CurrentCheck(Check):
-
+class WindSpeedCheck(Check):
     def check(self):
-        c = smart_fact_crawler.currents()
+        value = smart_fact_crawler.weather()['Wind_speed_in_km_per_h']
+        msg = SystemStatusMessage('humidity', value, 'km/h')
+        log.info(msg)
+        if value >= 50:
+            self.queue.put(msg)
 
-        self.update_system_status(
-            'bias current median',
-            '{:2.0f}'.format(c['Med_current_per_GAPD_in_uA']),
-            u'uA'
-        )
-        self.update_system_status(
-            'bias current max',
-            '{:2.0f}'.format(c['Max_current_per_GAPD_in_uA']),
-            u'uA'
-        )
+class WindGustCheck(Check):
+    def check(self):
+        value = smart_fact_crawler.weather()['Wind_gusts_in_km_per_h']
+        msg = SystemStatusMessage('wind gusts', value, 'km/h')
+        log.info(msg)
+        if value >= 50:
+            self.queue.put(msg)
 
-        if c['Med_current_per_GAPD_in_uA'] >= 115:
-            mesg = u"median current >= 115 uA {:2.1f} uA"
-            self.queue.append(mesg.format(c['Med_current_per_GAPD_in_uA']))
-        if c['Max_current_per_GAPD_in_uA'] >= 160:
-            mesg = u"maximum current >= 160 uA {:2.1f} uA"
-            self.queue.append(mesg.format(c['Max_current_per_GAPD_in_uA']))
 
+class MedianCurrentCheck(Check):
+    def check(self):
+        value = smart_fact_crawler.currents()['Med_current_per_GAPD_in_uA']
+        msg = SystemStatusMessage('median current', value, 'uA')
+        log.info(msg)
+        if value >= 115:
+            self.queue.put(msg)
+
+class MaximumCurrentCheck(Check):
+    def check(self):
+        value = smart_fact_crawler.currents()['Max_current_per_GAPD_in_uA']
+        msg = SystemStatusMessage('maximum current', value, 'uA')
+        log.info(msg)
+        if value >= 160:
+            self.queue.put(msg)
 
 class RelativeCameraTemperatureCheck(Check):
-
     def check(self):
-        main_page = smart_fact_crawler.main_page()
+        value = smart_fact_crawler.main_page()['Rel_camera_temp_in_C']
+        msg = SystemStatusMessage('relative camera temp', value, 'K')
+        log.info(msg)
+        if value >= 15.0:
+            self.queue.put(msg)
 
-        fmt = '{:2.1f}'
-        self.update_system_status(
-            'rel. camera temp.',
-            fmt.format(main_page['Rel_camera_temp_in_C']),
-            'K'
-        )
 
-        if main_page['Rel_camera_temp_in_C'] > 15.0:
-            mesg = "relative camera temp > 15 K: {:2.1f} K"
-            self.queue.append(mesg.format(main_page['Rel_camera_temp_in_C']))
+check_list = [
+    MainJsStatusCheck, 
+    HumidityCheck, 
+    WindSpeedCheck, 
+    WindGustCheck, 
+    MedianCurrentCheck, 
+    MaximumCurrentCheck, 
+    RelativeCameraTemperatureCheck
+]

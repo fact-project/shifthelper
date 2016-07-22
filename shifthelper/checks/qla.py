@@ -12,23 +12,17 @@ import matplotlib.pyplot as plt
 
 from . import Check
 from .. import tools
+from . import FlareMessage
 
 colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
 
-outdir = os.path.join(os.environ['HOME'], '.shifthelper', 'plots')
-if not os.path.exists(outdir):
-    os.makedirs(outdir)
-
-
-def create_alert_rate():
-    default_excess_rate = 15 # excess events / h
-    alert_rate = defaultdict(lambda: default_excess_rate)
-    alert_rate["Mrk 501"] = 60
-    alert_rate["Mrk 421"] = 60
-    # Crab is a steady source, and we certainly will not sent 
-    # Flare alerts of Crab on short notice.
-    alert_rate["Crab"] = 1000
-    return alert_rate
+default_excess_rate = 15 # excess events / h
+alert_rate = defaultdict(lambda: default_excess_rate)
+alert_rate["Mrk 501"] = 60
+alert_rate["Mrk 421"] = 60
+# Crab is a steady source, and we certainly will not sent 
+# Flare alerts of Crab on short notice.
+alert_rate["Crab"] = 1000
 
 
 
@@ -42,7 +36,7 @@ class FlareAlert(Check):
         if len(data.index) == 0:
             return
 
-        create_mpl_plot(data)
+        buf = create_mpl_plot(data)
 
         significance_cut = 3 # sigma
         significant = data[data.significance >= significance_cut]
@@ -64,9 +58,8 @@ class FlareAlert(Check):
             rate = float(data['rate'])
             if rate > self.max_rate[source]:
                 self.max_rate[source] = rate
-                if self.max_rate[source] > create_alert_rate()[source]:
-                    msg = 'Source {} over alert rate: {:3.1f} Events/h'
-                    self.queue.append(msg.format(source, self.max_rate[source]))
+                if self.max_rate[source] > alert_rate[source]:
+                    self.queue.put(FlareMessage(source, self.max_rate[source], buf))
 
 
 def get_data(bin_width_minutes=20, timestamp=None):
@@ -146,8 +139,7 @@ def get_data(bin_width_minutes=20, timestamp=None):
     return binned
 
 
-def create_mpl_plot(data, outfile=os.path.join(outdir, 'qla.png')):
-    alert_rate = create_alert_rate()
+def create_mpl_plot(data):
     with plt.style.context(('ggplot', )):
         try:
             cycle = plt.rcParams['axes.prop_cycle']
@@ -199,8 +191,12 @@ def create_mpl_plot(data, outfile=os.path.join(outdir, 'qla.png')):
         ax_sig.set_ylim(0, ymax)
         fig.autofmt_xdate()
         fig.tight_layout()
-        fig.savefig(outfile)
+
+        buf = io.BytesIO()
+        fig.savefig(buf)
         plt.close('all')
+
+        return buf
 
 
 def dorner_binning(data, bin_width_minutes=20):

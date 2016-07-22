@@ -20,7 +20,7 @@ logdir = os.path.join(os.environ['HOME'], '.shifthelper')
 if not os.path.exists(logdir):
     os.makedirs(logdir)
 
-log = logging.getLogger('shifthelper')
+log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 logfile_path = os.path.join(
     logdir, 'qla_bot_{:%Y-%m-%d}.log'.format(night()),
