@@ -1,5 +1,7 @@
 # Why using the shifthelper?
 
+**Because it calls you, if there is work to be done**
+
 During FACT observations, certain situations may arise, which call for fast human intervention. These include:
 
  * the weather might turn so bad, that the telescope needs to be parked.
