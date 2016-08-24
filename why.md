@@ -9,4 +9,4 @@ During FACT observations, certain situations may arise, which call for fast huma
 So human intervention might also be something nice, in case of a flare :-D
 
 In case human intervention is needed, the shifthelper calls a person and sends a Telegram message.
-What exactly is checked can be seen [here](checks/webdim.py) and [here](checks/qla.py) (just the first 30 lines or so)
+What exactly is checked can be seen [here](shifthelper/checks/webdim.py) and [here](shifthelper/checks/qla.py) (just the first 30 lines or so)
