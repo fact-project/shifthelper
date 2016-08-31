@@ -36,7 +36,7 @@ class FlareAlert(Check):
         if len(data.index) == 0:
             return
 
-        buf = create_mpl_plot(data)
+        image = create_mpl_plot(data)
 
         significance_cut = 3 # sigma
         significant = data[data.significance >= significance_cut]
@@ -59,7 +59,7 @@ class FlareAlert(Check):
             if rate > self.max_rate[source]:
                 self.max_rate[source] = rate
                 if self.max_rate[source] > alert_rate[source]:
-                    self.queue.put(FlareMessage(source, self.max_rate[source], buf))
+                    self.queue.put(FlareMessage(source, self.max_rate[source], image))
 
 
 def get_data(bin_width_minutes=20, timestamp=None):

@@ -33,7 +33,6 @@ Do not forget to check the times of the .data pages in
 smarft fact
 """
 
-      
 import logging
 from docopt import docopt
 from . import checks
@@ -44,54 +43,26 @@ import json
 from .tools import logs_exception
 from shifthelper.tools.whosonshift import whoisonshift
 log = logging.getLogger(__name__)
-
-
 from datetime import datetime, timedelta
-last_time_called = datetime.utcnow() - timedelta(days=1)
-first_time_tried = {}
-
-roles = ["1st shifter", "2nd shifter"]
-role_index = 0
-
 
 @logs_exception("failed to alert shifter via phone")
 def alert_via_phone():
-    global last_time_called
-    global first_time_tried
-    global role_index
-    if datetime.utcnow() - last_time_called < timedelta(minutes=10):
-        log.debug("not calling ... called already recently")
-        return
-
-    shifters = whoisonshift(clear_cache=True)
-    log.debug("using role:"+roles[role_index])
-    log.debug("first_time_tried:"+str(first_time_tried))
-    
-    one_shifter = shifters[shifters.role == roles[role_index]].iloc[0]
+    shifters = whoisonshift(clear_cache=True).iloc[0]
     phone_number = one_shifter["phone_mobile"].replace("-/ ","")
     log.debug("phone_number:"+str(phone_number))
 
-    if roles[role_index] not in first_time_tried:
-        first_time_tried[roles[role_index]] = datetime.utcnow()
-
     call = com.TwilioInterface(phone_number).place_call()
     log.debug(str(call))
-    if call["answered_by"] and "human" in call["answered_by"]:
-        role_index = 0
-        first_time_tried = {}
-        last_time_called = datetime.utcnow()
-        log.debug("set_ last_time_called to:"+str(last_time_called))
-    elif datetime.utcnow() - first_time_tried[roles[role_index]] > timedelta(minutes=1):
-        role_index += 1
-
-
+    if call["answered_by"]:
+        # test if human answered using something like:
+        # "human" in call["answered_by"]
+        log.debug("call answered by " + repr(call["answered_by"]))
 
 
 @logs_exception("failed to alert shifter via telegram")
 def alert_via_telegram(message):
-    shifters = whoisonshift(clear_cache=True)
-    one_shifter = shifters.iloc[0]
-    telegram_chat_id = json.loads(one_shifter["comment_maybe"])["telegram"]
+    one_shifter = whoisonshift(clear_cache=True).iloc[0]
+    telegram_chat_id = json.loads(one_shifter["telegram_json"])["telegram"]
     log.debug("telegram_chat_id:"+str(telegram_chat_id))
     telegram = com.TelegramInterface(telegram_chat_id)
     try:
