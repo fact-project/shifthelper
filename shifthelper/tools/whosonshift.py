@@ -5,6 +5,14 @@ from datetime import datetime
 from datetime import timedelta
 
 def whoisonshift(clear_cache=False):
+    print("WARNING: returning mockup data for dneise only")
+    return pd.DataFrame({'email': {0: 'neised@phys.ethz.ch'},
+     'phone_mobile': {0: '+41774528842'},
+     'skype': {0: 'dominikneise'},
+     'telegram_json': {0: '{"telegram": "123665317"}'},
+     'username': {0: 'dneise'}})
+
+
     if clear_cache:
         retrieve_calendar_entries.cache_clear()
         retrieve_valid_usernames_from_logbook.cache_clear()
