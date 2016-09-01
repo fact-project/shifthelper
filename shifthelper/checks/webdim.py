@@ -22,7 +22,7 @@ class HumidityCheck(Check):
 class WindSpeedCheck(Check):
     def check(self):
         value = smart_fact_crawler.weather()['Wind_speed_in_km_per_h']
-        msg = SystemStatusMessage('humidity', value, 'km/h')
+        msg = SystemStatusMessage('wind speed', value, 'km/h')
         log.info(msg)
         if value >= 50:
             self.queue.put(msg)
