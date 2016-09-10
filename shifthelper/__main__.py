@@ -98,7 +98,7 @@ def main():
         print(term.cyan('Twilio Phone Setup'))
 
     caller = Caller(
-        phone_number=args['<phone_number>'], 
+        phone_number=args['<phone_number>'],
         ring_time=20,
         sid=config.get('twilio', 'sid'),
         auth_token=config.get('twilio', 'auth_token'),
