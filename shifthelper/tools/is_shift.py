@@ -14,7 +14,9 @@ def get_MeasurementType(db=None):
     return df
 
 @lru_cache(10)
-def get_last_startup_or_shutdown(current_time_rounded_to_seconds, db=None):
+def get_last_startup_or_shutdown(current_time_rounded_to_seconds=None, db=None):
+    if current_time_rounded_to_seconds is None:
+        current_time_rounded_to_seconds = datetime.utcnow().replace(microsecond=0)
     if db is None:
         db = tools.create_db_connection()
 
@@ -25,7 +27,7 @@ def get_last_startup_or_shutdown(current_time_rounded_to_seconds, db=None):
         S.fMeasurementTypeKey IN {keys}
     AND
         S.fStart < "{now}"
-    GROUP BY S.fStart ASC
+    GROUP BY S.fStart DESC
     LIMIT 1
     """.format(
         keys=(types.loc["Startup"].fMeasurementTypeKey,
@@ -40,8 +42,11 @@ def get_last_startup_or_shutdown(current_time_rounded_to_seconds, db=None):
     )
 
 
-def is_shift_at_the_moment(time):
-    now = datetime.utcnow().replace(microsecond=0)
+def is_shift_at_the_moment(time=None):
+    if time is None:
+        now = datetime.utcnow().replace(microsecond=0)
+    else:
+        now = time.replace(microsecond=0)
     last_entry = get_last_startup_or_shutdown(current_time_rounded_to_seconds=now, db=None)
     name = last_entry.iloc[0].fMeasurementTypeName
     return name == "Startup"
