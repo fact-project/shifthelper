@@ -6,12 +6,16 @@ from getpass import getpass
 import sys
 import pkg_resources
 import sqlalchemy
-from ..config import config
 import logging
 from functools import wraps
 from . import whosonshift
 
 __version__ = pkg_resources.require('shifthelper')[0].version
+
+import json
+dot_shifthelper_dir = os.path.join(os.environ['HOME'], '.shifthelper')
+with open(os.path.join(dot_shifthelper_dir, "config.json")) as f:
+    config = json.load(f)
 
 
 def night(timestamp=None):
