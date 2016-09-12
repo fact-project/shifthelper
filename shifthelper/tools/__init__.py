@@ -1,46 +1,9 @@
 import os
-import datetime
-from six.moves.configparser import SafeConfigParser
-import requests
-from getpass import getpass
-import sys
-import pkg_resources
 import sqlalchemy
-import logging
-from functools import wraps
-from . import whosonshift
-
-__version__ = pkg_resources.require('shifthelper')[0].version
-
 import json
-dot_shifthelper_dir = os.path.join(os.environ['HOME'], '.shifthelper')
-with open(os.path.join(dot_shifthelper_dir, "config.json")) as f:
+
+with open(os.path.join(os.environ['HOME'], '.shifthelper', 'config.json')) as f:
     config = json.load(f)
-
-
-def night(timestamp=None):
-    """
-    gives the date for a day change at noon instead of midnight
-    """
-    if timestamp is None:
-        timestamp = datetime.datetime.utcnow()
-    if timestamp.hour < 12:
-        timestamp = timestamp - datetime.timedelta(days=1)
-    return timestamp
-
-
-def night_integer(timestamp=None):
-    """ get the correct night in fact format
-        if it is after 0:00, take the date
-        of yesterday
-    """
-    if timestamp is None:
-        timestamp = datetime.datetime.utcnow()
-    if timestamp.hour < 12:
-        timestamp = timestamp - datetime.timedelta(days=1)
-    night = int(timestamp.strftime('%Y%m%d'))
-    return night
-
 
 def create_db_connection():
     db_config = config['database']
@@ -53,17 +16,3 @@ def create_db_connection():
         )
     )
     return factdb
-
-def logs_exception(msg=""):
-    def logs_exception_decorator(func):
-        @wraps(func)
-        def func_wrapper(*args, **kwargs):
-            log = logging.getLogger(__name__)
-            try:
-                return func(*args, **kwargs)
-            except (KeyboardInterrupt, SystemExit):
-                raise
-            except:
-                log.exception(msg)
-        return func_wrapper
-    return logs_exception_decorator
