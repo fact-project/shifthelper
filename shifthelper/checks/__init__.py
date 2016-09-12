@@ -115,15 +115,27 @@ class Alert(Thread):
     def run(self):
         while not self.stop_event.is_set():
             if len(self.queue) > 0:
-                if self.caller is not None:
-                    self.caller.place_call()
+
                 while len(self.queue) > 0:
                     message = self.queue.popleft()
                     self.logger.warning(message)
                     if self.messenger is not None:
-                        self.messenger.send_message(message)
+                        try:
+                            self.messenger.send_message(message)
+                        except:
+                            self.logger.exception('Could not send message')
                         if 'Source' in message:
                             with open(qla_filename, 'rb') as img:
-                                self.messenger.send_image(img)
+                                try:
+                                    self.messenger.send_image(img)
+                                except:
+                                    self.logger.exception('Could not send image')
+
+                if self.caller is not None:
+                    try:
+                        self.caller.place_call()
+                    except:
+                        self.logger.exception('Could not place call')
+                        self.queue.append('Could not place call')
 
             self.stop_event.wait(self.interval)
