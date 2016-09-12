@@ -9,6 +9,7 @@ import sqlalchemy
 from ..config import config
 import logging
 from functools import wraps
+from . import whosonshift
 
 __version__ = pkg_resources.require('shifthelper')[0].version
 

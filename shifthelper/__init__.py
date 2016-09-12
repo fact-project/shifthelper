@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import pkg_resources
 __version__ = pkg_resources.require('shifthelper')[0].version
 
@@ -6,6 +5,7 @@ import logging
 import logging.handlers
 import time
 import os
+from . import tools
 
 logdir = os.path.join(os.environ['HOME'], '.shifthelper')
 os.makedirs(logdir, exist_ok=True)
