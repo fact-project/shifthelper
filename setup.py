@@ -10,7 +10,6 @@ setup(
     license='MIT',
     packages=[
         'shifthelper',
-        'shifthelper.checks',
         'shifthelper.tools',
         ],
     install_requires=[

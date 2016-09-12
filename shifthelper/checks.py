@@ -1,6 +1,6 @@
 from custos import IntervalCheck
 import smart_fact_crawler
-from ..tools.is_shift import is_shift_at_the_moment
+from .tools.is_shift import is_shift_at_the_moment
 
 class MainJsStatusCheck(IntervalCheck):
     def check(self):

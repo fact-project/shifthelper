@@ -50,13 +50,13 @@ def main():
 
     with Custos(
             checks=[
-                checks.webdim.MainJsStatusCheck(interval=60),
-                checks.webdim.HumidityCheck(interval=60),
-                checks.webdim.WindSpeedCheck(interval=60),
-                checks.webdim.WindGustCheck(interval=60),
-                checks.webdim.MedianCurrentCheck(interval=60),
-                checks.webdim.MaximumCurrentCheck(interval=60),
-                checks.webdim.RelativeCameraTemperatureCheck(interval=60),
+                checks.MainJsStatusCheck(interval=60),
+                checks.HumidityCheck(interval=60),
+                checks.WindSpeedCheck(interval=60),
+                checks.WindGustCheck(interval=60),
+                checks.MedianCurrentCheck(interval=60),
+                checks.MaximumCurrentCheck(interval=60),
+                checks.RelativeCameraTemperatureCheck(interval=60),
             ],
             notifiers=[
                 TwilioNotifier(
