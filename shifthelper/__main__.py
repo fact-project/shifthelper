@@ -9,6 +9,7 @@ from custos import TwilioNotifier, TelegramNotifier
 
 from . import checks
 from .tools.whosonshift import whoisonshift
+from .tools import config
 
 dot_shifthelper_dir = os.path.join(os.environ['HOME'], '.shifthelper')
 os.makedirs(dot_shifthelper_dir, exist_ok=True)
@@ -43,11 +44,6 @@ def telegram_book(category):
     return [whoisonshift().iloc[0].telegram_id]
 
 def main():
-
-    with open(os.path.join(dot_shifthelper_dir, "config.json")) as f:
-        config = json.load(f)
-    
-
     with Custos(
             checks=[
                 checks.MainJsStatusCheck(interval=60),
