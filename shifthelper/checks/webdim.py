@@ -5,25 +5,25 @@ class MainJsStatusCheck(IntervalCheck):
     def check(self):
         value = smart_fact_crawler.status()['Dim_Control']
         if 'Running' not in value:
-            self.warn("Main.js is not running")
+            self.warning("Main.js is not running")
 
 class HumidityCheck(IntervalCheck):
     def check(self):
         value = smart_fact_crawler.weather()['Humidity_in_Percent']
         if value >= 98:
-            self.warn("Humidity > 98%")
+            self.warning("Humidity > 98%")
 
 
 class WindSpeedCheck(IntervalCheck):
     def check(self):
         value = smart_fact_crawler.weather()['Wind_speed_in_km_per_h']
         if value >= 50:
-            self.warn("Wind speed > 50 km/h")
+            self.warning("Wind speed > 50 km/h")
 class WindGustCheck(IntervalCheck):
     def check(self):
         value = smart_fact_crawler.weather()['Wind_gusts_in_km_per_h']
         if value >= 50:
-            self.warn("Wind gusts > 50 km/h")
+            self.warning("Wind gusts > 50 km/h")
 
 class MedianCurrentCheck(IntervalCheck):
     def check(self):
