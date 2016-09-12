@@ -4,8 +4,8 @@ import os
 import json
 import logging
 import time
-from custos TwilioNotifier, TelegramNotifier
 from custos import Custos, levels
+from custos import TwilioNotifier, TelegramNotifier
 
 from . import checks
 from .tools.whosonshift import whoisonshift
