@@ -31,7 +31,6 @@ setup(
     ],
     entry_points={'console_scripts': [
         'shifthelper = shifthelper.__main__:main',
-        'qlabot = shifthelper.qlabot:main',
         'fact_ircam = shifthelper.tools.ircam:main',
     ]},
     zip_safe=False,
