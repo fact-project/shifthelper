@@ -11,7 +11,7 @@ def whoisonshift(clear_cache=False):
         retrieve_valid_usernames_from_logbook.cache_clear()
 
     full_shifter_info = retrieve_shifters_from_calendar()
-    only_interesting_stuff = full_shifter_info[["phone_mobile", "telegram_json", "skype", "username", "email"]]
+    only_interesting_stuff = full_shifter_info[["phone_mobile", "telegram_id", "skype", "username", "email"]]
     return only_interesting_stuff
 
 def retrieve_shifters_from_calendar(
@@ -60,9 +60,10 @@ def retrieve_valid_usernames_from_logbook(db=None):
             "fid3": "gender",
             "fid4": "phone_office",
             "fid5": "phone_mobile",
-            "fid6": "telegram_json",
+            "fid6": "comment",
             "fid7": "skype",
             "fid8": "contact_blob",
+            "fid9": "telegram_id",
         })
 
     return memberlist
