@@ -11,7 +11,6 @@ setup(
     packages=[
         'shifthelper',
         'shifthelper.checks',
-        'shifthelper.cli',
         'shifthelper.communication',
         'shifthelper.tools',
         ],
@@ -33,7 +32,6 @@ setup(
     entry_points={'console_scripts': [
         'shifthelper = shifthelper.__main__:main',
         'qlabot = shifthelper.qlabot:main',
-        'idbot = shifthelper.idbot:main',
         'fact_ircam = shifthelper.tools.ircam:main',
     ]},
     zip_safe=False,
