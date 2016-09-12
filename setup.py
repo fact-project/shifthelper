@@ -11,7 +11,6 @@ setup(
     packages=[
         'shifthelper',
         'shifthelper.checks',
-        'shifthelper.communication',
         'shifthelper.tools',
         ],
     install_requires=[
