@@ -13,7 +13,6 @@ def get_MeasurementType(db=None):
     df.set_index("fMeasurementTypeName", inplace=True)
     return df
 
-@lru_cache(10)
 def get_last_startup_or_shutdown(current_time_rounded_to_seconds=None, db=None):
     if current_time_rounded_to_seconds is None:
         current_time_rounded_to_seconds = datetime.utcnow().replace(microsecond=0)
