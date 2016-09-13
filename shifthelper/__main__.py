@@ -57,7 +57,6 @@ def main():
                     auth_token=config['twilio']['auth_token'],
                     twilio_number=config['twilio']['number'],
                     ring_time=10,
-                    recipients=phone_book,
                     level=levels.WARNING,
                 ),
                 TelegramNotifier(
