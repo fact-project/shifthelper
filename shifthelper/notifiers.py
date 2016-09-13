@@ -6,8 +6,6 @@ from custos import TwilioNotifier
 from .tools.whosonshift import whoisonshift
 
 
-
-
 class FactTwilioNotifier(TwilioNotifier):
     def __init__(self, time_before_fallback=datetime.timedelta(minutes=10), *args, **kwargs):
         self.time_before_fallback = time_before_fallback
