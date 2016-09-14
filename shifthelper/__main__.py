@@ -5,7 +5,8 @@ import json
 import logging
 import time
 from custos import Custos, levels
-from custos import TwilioNotifier, TelegramNotifier
+from custos import TelegramNotifier, LogNotifier, IntervalCheck
+from .notifiers import FactTwilioNotifier
 
 from . import checks
 from .tools.whosonshift import whoisonshift
@@ -35,10 +36,6 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 log.addHandler(logfile_handler)
 
-def phone_book(category):
-    return ['+41774528842']
-    return [whoisonshift().iloc[0].phone_mobile]
-
 def telegram_book(category):
     return ['123665317']
     return [whoisonshift().iloc[0].telegram_id]
@@ -55,12 +52,11 @@ def main():
                 checks.RelativeCameraTemperatureCheck(interval=60),
             ],
             notifiers=[
-                TwilioNotifier(
+                FactTwilioNotifier(
                     sid=config['twilio']['sid'],
                     auth_token=config['twilio']['auth_token'],
                     twilio_number=config['twilio']['number'],
                     ring_time=10,
-                    recipients=phone_book,
                     level=levels.WARNING,
                 ),
                 TelegramNotifier(
