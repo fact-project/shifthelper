@@ -1,53 +1,84 @@
 from custos import IntervalCheck
-import smart_fact_crawler
+import smart_fact_crawler as sfc
 from .tools.is_shift import is_shift_at_the_moment
+import requests
+from abc import ABCMeta, abstractmethod
 
-class MainJsStatusCheck(IntervalCheck):
+import pandas as pd
+import datetime
+from datetime import timedelta, datetime
+import numpy as np
+
+class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
+
     def check(self):
         if is_shift_at_the_moment():
-            value = smart_fact_crawler.status()['Dim_Control']
-            if 'Running' not in value:
-                self.warning("Main.js is not running")
-
-class HumidityCheck(IntervalCheck):
-    def check(self):
-        if is_shift_at_the_moment():
-            value = smart_fact_crawler.weather()['Humidity_in_Percent']
-            if value >= 98:
-                self.warning("Humidity > 98%")
+            text = self.inner_check()
+            if text is not None:
+                if self.all_recent_alerts_acknowledged():
+                    self.info(text)
+                else:
+                    self.warning(text)
 
 
-class WindSpeedCheck(IntervalCheck):
-    def check(self):
-        if is_shift_at_the_moment():
-            value = smart_fact_crawler.weather()['Wind_speed_in_km_per_h']
-            if value >= 50:
-                self.warning("Wind speed > 50 km/h")
+    def all_recent_alerts_acknowledged(self):
+        all_alerts = requests.get('http://localhost:5000/alerts').json()
+        if not all_alerts:
+            return False
+        
+        now = datetime.utcnow()
+        all_alerts = pd.DataFrame(all_alerts)
+        all_alerts['timestamp'] = pd.to_datetime(all_alerts.timestamp, utc=True)
+    
+        
+        my_alerts = all_alerts[all_alerts.check == self.__class__.__name__]
+        if my_alerts.empty:
+            return False
 
-class WindGustCheck(IntervalCheck):
-    def check(self):
-        if is_shift_at_the_moment():
-            value = smart_fact_crawler.weather()['Wind_gusts_in_km_per_h']
-            if value >= 50:
-                self.warning("Wind gusts > 50 km/h")
+        my_recent_alerts = my_alerts[(now - my_alerts.timestamp) < timedelta(minutes=10)]
+        if my_recent_alerts.empty:
+            return False
 
-class MedianCurrentCheck(IntervalCheck):
-    def check(self):
-        if is_shift_at_the_moment():
-            value = smart_fact_crawler.currents()['Med_current_per_GAPD_in_uA']
-            if value >= 115:
-                self.info("Median GAPD current > 115uA")
+        if not my_recent_alerts.acknowledged.all():
+            return False
+        return True
 
-class MaximumCurrentCheck(IntervalCheck):
-    def check(self):
-        if is_shift_at_the_moment():
-            value = smart_fact_crawler.currents()['Max_current_per_GAPD_in_uA']
-            if value >= 160:
-                self.info("Maximum GAPD current > 160uA")
+    @abstractmethod
+    def inner_check(self):
+        pass
 
-class RelativeCameraTemperatureCheck(IntervalCheck):
-    def check(self):
-        if is_shift_at_the_moment():
-            value = smart_fact_crawler.main_page()['Rel_camera_temp_in_C']
-            if value >= 15.0:
-                self.info("relative camera temperature > 15°C")
+class MainJsStatusCheck(FactIntervalCheck):
+    def inner_check(self):
+        if 'Running' not in sfc.status()['Dim_Control']:
+            return "Main.js is not running"
+
+class HumidityCheck(FactIntervalCheck):
+    def inner_check(self):
+        if sfc.weather()['Humidity_in_Percent'] >= 98:
+            return "Humidity > 98%"
+
+
+class WindSpeedCheck(FactIntervalCheck):
+    def inner_check(self):
+        if sfc.weather()['Wind_speed_in_km_per_h'] >= 50:
+            "Wind speed > 50 km/h"
+
+class WindGustCheck(FactIntervalCheck):
+    def inner_check(self):
+        if sfc.weather()['Wind_gusts_in_km_per_h'] >= 50:
+            return "Wind gusts > 50 km/h"
+
+class MedianCurrentCheck(FactIntervalCheck):
+    def inner_check(self):
+        if sfc.currents()['Med_current_per_GAPD_in_uA'] >= 115:
+            return "Median GAPD current > 115uA"
+
+class MaximumCurrentCheck(FactIntervalCheck):
+    def inner_check(self):
+        if sfc.currents()['Max_current_per_GAPD_in_uA'] >= 160:
+            return "Maximum GAPD current > 160uA"
+
+class RelativeCameraTemperatureCheck(FactIntervalCheck):
+    def inner_check(self):
+        if sfc.main_page()['Rel_camera_temp_in_C'] >= 15.0:
+            return "relative camera temperature > 15°C"
