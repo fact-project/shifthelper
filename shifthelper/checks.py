@@ -223,3 +223,9 @@ class BiasVoltageOnButNotCalibrated(FactIntervalCheck):
     is_voltage_on = bias_state == 'VoltageOn'
     if is_voltage_on and is_feedback_not_calibrated() and sfc.voltages()['Med_voltage_in_V'] > 3:
         return 'Bias voltage switched on, but bias crate not calibrated'
+
+class DIMNetworkNotAvailable(FactIntervalCheck):
+    # can be checked this way according to:
+    # https://trac.fact-project.org/browser/trunk/FACT%2B%2B/src/smartfact.cc#L3131
+    if sfc.status()['DIM'] == 'Offline':
+        return 'DIM network not available'
