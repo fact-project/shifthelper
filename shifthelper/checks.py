@@ -53,10 +53,23 @@ class MainJsStatusCheck(FactIntervalCheck):
         if 'Running' not in sfc.status()['Dim_Control']:
             return 'Main.js is not running'
 
+
 class HumidityCheck(FactIntervalCheck):
     def inner_check(self):
-        if sfc.weather()['Humidity_in_Percent'] >= 98:
-            return 'Humidity > 98%'
+        lid_status = sfc.status()['Lid_control']
+        # this translation is a dirty hack,
+        # and not guaranteed to work.
+        lid_status_translation = {
+            'Inconsistent': 'Closed',
+            'Closed': 'Closed',
+            'Open': 'Open',
+            'PowerProblem': 'Open'
+        }
+        lid_status = lid_status_translation.get(lid_status, 'Unknown')
+
+        humidity = sfc.weather()['Humidity_in_Percent']
+        if humidity >= 98 and lid_status=='Open':
+            return 'Humidity > 98% while Lid open'
 
 
 class WindSpeedCheck(FactIntervalCheck):
@@ -161,7 +174,8 @@ class BiasVoltageNotAtReference(FactIntervalCheck):
         if bias_state == 'NotReferenced':
             return 'Bias Voltage not at reference.'
 
-class ContainerBurning(FactIntervalCheck):
+
+class ContainerTooWarm(FactIntervalCheck):
     def innter_check(self):
         if sfc.container_temperature()['Current_temperature_in_C'] > 42:
             return 'Container Temperature above 42 deg C'
