@@ -72,15 +72,25 @@ class HumidityCheck(FactIntervalCheck):
             return 'Humidity > 98% while Lid open'
 
 
+def is_parked():
+    pointing = sfc.drive()['pointing']
+    az = pointing['Azimuth_in_Deg']
+    zd = pointing['Zenith_Distance_in_Deg']
+    is_locked = sfc.status()['Drive_control'] == 'Locked'
+    # should is_locked be taken into account here?
+    # pointing north is enough ...
+    # but driving through north ... is not :-|
+    return (-5 < az < 5) and (90 < zd < 180):
+
 class WindSpeedCheck(FactIntervalCheck):
     def inner_check(self):
-        if sfc.weather()['Wind_speed_in_km_per_h'] >= 50:
-            'Wind speed > 50 km/h'
+        if sfc.weather()['Wind_speed_in_km_per_h'] >= 50 and not is_parked:
+            'Wind speed > 50 km/h and not parked'
 
 class WindGustCheck(FactIntervalCheck):
     def inner_check(self):
-        if sfc.weather()['Wind_gusts_in_km_per_h'] >= 50:
-            return 'Wind gusts > 50 km/h'
+        if sfc.weather()['Wind_gusts_in_km_per_h'] >= 50 and not is_parked:
+            return 'Wind gusts > 50 km/h and not parked'
 
 class MedianCurrentCheck(FactIntervalCheck):
     def inner_check(self):
