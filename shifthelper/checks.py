@@ -205,3 +205,21 @@ class DriveInErrorDuringDataRun(FactIntervalCheck):
                 and is_data_taking()
                 and is_data_run()):
             return 'Drive in Error during Data run'
+
+def is_feedback_not_calibrated()
+    feedback_state = sfc.status()['Feedback']
+    return feedback_state in [
+        'Offline',
+        'NotReady',
+        'Ready',
+        'DimNetworkNotAvailable',
+        'Disconnected',
+        'Connecting',
+        'Connected',
+    ]
+
+class BiasVoltageOnButNotCalibrated(FactIntervalCheck):
+    bias_state = sfc.status()['Bias_control']
+    is_voltage_on = bias_state == 'VoltageOn'
+    if is_voltage_on and is_feedback_not_calibrated() and sfc.voltages()['Med_voltage_in_V'] > 3:
+        return 'Bias voltage switched on, but bias crate not calibrated'
