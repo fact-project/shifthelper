@@ -7,7 +7,7 @@ from abc import ABCMeta, abstractmethod
 import pandas as pd
 from datetime import timedelta, datetime
 import numpy as np
-import re
+import re as regex
 
 class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
 
@@ -103,7 +103,7 @@ def is_data_run():
     # yes it does: example: 
     # sfc.main_page()['System_Status'] --> 'Idle [single-pe]'
     try:
-        config_name = re.search('\[(.*)\]', sfc.main_page()['System_Status']).groups()[0]
+        config_name = regex.search('\[(.*)\]', sfc.main_page()['System_Status']).groups()[0]
         return config_name in ['data', 'data-rt']
     except IndexError:
         # regex did not match
