@@ -5,7 +5,6 @@ import requests
 from abc import ABCMeta, abstractmethod
 
 import pandas as pd
-import datetime
 from datetime import timedelta, datetime
 import numpy as np
 import re
@@ -249,3 +248,25 @@ class NoDimCtrlServerAvailable(FactIntervalCheck):
                 'FATAL',
                 ]:
             return 'no dimctrl server available'
+
+
+class TriggerRateLowForTenMinutes(FactIntervalCheck):
+    history = []
+
+    def inner_check(self):
+        current_trigger_rate = sfc.trigger_rate()['Trigger_Rate_in_Bq']
+        self._append_to_history(current_trigger_rate)
+
+        df = pd.DataFrame(self.history)
+        if not df.empty and (df.rate < 1).all():
+            return 'Trigger rate < 1 Bq for 10 minutes'
+
+    def _append_to_history(self, rate):
+        self.history.append({'timestamp':datetime.utcnow(), 'rate':current_trigger_rate})
+        self._truncate_history()
+
+    def _truncate_history(self):
+        df = pd.DataFrame(self.history)
+        now = datetime.utcnow()
+        df = df[(now - df.timestamp) < timedelta(minutes=10)]
+        self.history = dt.to_list()
