@@ -229,3 +229,13 @@ class DIMNetworkNotAvailable(FactIntervalCheck):
     # https://trac.fact-project.org/browser/trunk/FACT%2B%2B/src/smartfact.cc#L3131
     if sfc.status()['DIM'] == 'Offline':
         return 'DIM network not available'
+
+class NoDimCtrlServerAvailable(FactIntervalCheck):
+    # Didn't find a clear way to check this, so I do:
+    if sfc.status()['Dim_Control'] in [
+            'Offline',
+            'NotReady',
+            'ERROR',
+            'FATAL',
+            ]:
+        return 'no dimctrl server available'
