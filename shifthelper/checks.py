@@ -79,7 +79,7 @@ def is_parked():
     # should is_locked be taken into account here?
     # pointing north is enough ...
     # but driving through north ... is not :-|
-    return (-5 < az < 5) and (90 < zd < 180)
+    return (-5 < az < 5) and (90 < zd)
 
 def is_drive_error():
     drive_state = sfc.status()['Drive_control']
@@ -94,7 +94,7 @@ def is_drive_error():
 def is_data_taking():
     # if MCP::State::kTriggerOn ||MCP::State::kTakingData;
     # the state name strings, I took from dimctrl on newdaq, typing `st`
-    return sfc.status()['MCP'] in ['TaTakingDatakingData', 'TriggerOn']
+    return sfc.status()['MCP'] in ['TakingData', 'TriggerOn']
 
 def is_data_run():
     # fMcpConfigurationName=='data' || fMcpConfigurationName=='data-rt';
@@ -142,6 +142,9 @@ def is_bias_not_operating():
         'Connecting',
         'Initializing',
         'Connected',
+        'Locked',
+        'ERROR',
+        'FATAL',
     ]
 
 def is_feedback_not_calibrated():
@@ -169,12 +172,12 @@ class WindGustCheck(FactIntervalCheck):
 
 class MedianCurrentCheck(FactIntervalCheck):
     def inner_check(self):
-        if sfc.currents()['Med_current_per_GAPD_in_uA'] >= 115:
+        if sfc.sipm_currents()['Med_current_per_GAPD_in_uA'] >= 115:
             return 'Median GAPD current > 115uA'
 
 class MaximumCurrentCheck(FactIntervalCheck):
     def inner_check(self):
-        if sfc.currents()['Max_current_per_GAPD_in_uA'] >= 160:
+        if sfc.sipm_currents()['Max_current_per_GAPD_in_uA'] >= 160:
             return 'Maximum GAPD current > 160uA'
 
 class RelativeCameraTemperatureCheck(FactIntervalCheck):
@@ -227,7 +230,7 @@ class BiasVoltageOnButNotCalibrated(FactIntervalCheck):
         if (
                 is_voltage_on 
                 and is_feedback_not_calibrated() 
-                and sfc.voltages()['Med_voltage_in_V'] > 3
+                and sfc.sipm_voltages()['Med_voltage_in_V'] > 3
                 ):
             return 'Bias voltage switched on, but bias crate not calibrated'
 
@@ -251,22 +254,21 @@ class NoDimCtrlServerAvailable(FactIntervalCheck):
 
 
 class TriggerRateLowForTenMinutes(FactIntervalCheck):
-    history = []
+    history = pd.DataFrame()
 
     def inner_check(self):
-        current_trigger_rate = sfc.trigger_rate()['Trigger_Rate_in_Bq']
+        current_trigger_rate = sfc.trigger_rate()['Trigger_Rate_in_1_per_s']
         self._append_to_history(current_trigger_rate)
+        self._remove_old_entries()
 
         df = pd.DataFrame(self.history)
         if not df.empty and (df.rate < 1).all():
-            return 'Trigger rate < 1 Bq for 10 minutes'
+            return 'Trigger rate < 1/s for 10 minutes'
 
     def _append_to_history(self, rate):
-        self.history.append({'timestamp':datetime.utcnow(), 'rate':current_trigger_rate})
-        self._truncate_history()
+        self.history.append([{'timestamp':datetime.utcnow(), 'rate':current_trigger_rate}])
 
-    def _truncate_history(self):
-        df = pd.DataFrame(self.history)
+    def _remove_old_entries(self):
         now = datetime.utcnow()
-        df = df[(now - df.timestamp) < timedelta(minutes=10)]
-        self.history = dt.to_list()
+        self.history = self.history[(now - self.history.timestamp) < timedelta(minutes=10)]
+
