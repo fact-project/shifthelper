@@ -146,3 +146,9 @@ class BiasNotOperatingDuringDataRun(FactIntervalCheck):
             'Initializing',
             'Connected',
         ]
+
+class BiasChannelsInOverCurrent(FactIntervalCheck):
+    def inner_check(self):
+        bias_state = sfc.status()['Bias_control']
+        if bias_state == 'OverCurrent':
+            return 'Bias Channels in Over Current'
