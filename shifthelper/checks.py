@@ -160,3 +160,8 @@ class BiasVoltageNotAtReference(FactIntervalCheck):
         bias_state = sfc.status()['Bias_control']
         if bias_state == 'NotReferenced':
             return 'Bias Voltage not at reference.'
+
+class ContainerBurning(FactIntervalCheck):
+    def innter_check(self):
+        if sfc.container_temperature()['Current_temperature_in_C'] > 42:
+            return 'Container Temperature above 42 deg C'
