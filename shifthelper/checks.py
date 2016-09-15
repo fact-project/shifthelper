@@ -145,6 +145,19 @@ def is_bias_not_operating():
         'Connected',
     ]
 
+def is_feedback_not_calibrated():
+    feedback_state = sfc.status()['Feedback']
+    return feedback_state in [
+        'Offline',
+        'NotReady',
+        'Ready',
+        'DimNetworkNotAvailable',
+        'Disconnected',
+        'Connecting',
+        'Connected',
+    ]
+
+
 class WindSpeedCheck(FactIntervalCheck):
     def inner_check(self):
         if sfc.weather()['Wind_speed_in_km_per_h'] >= 50 and not is_parked:
@@ -201,41 +214,38 @@ class ContainerTooWarm(FactIntervalCheck):
 
 class DriveInErrorDuringDataRun(FactIntervalCheck):
     def inner_check(self):
-        if (is_drive_error()
+        if (
+                is_drive_error()
                 and is_data_taking()
-                and is_data_run()):
+                and is_data_run()
+                ):
             return 'Drive in Error during Data run'
 
-def is_feedback_not_calibrated()
-    feedback_state = sfc.status()['Feedback']
-    return feedback_state in [
-        'Offline',
-        'NotReady',
-        'Ready',
-        'DimNetworkNotAvailable',
-        'Disconnected',
-        'Connecting',
-        'Connected',
-    ]
 
 class BiasVoltageOnButNotCalibrated(FactIntervalCheck):
-    bias_state = sfc.status()['Bias_control']
-    is_voltage_on = bias_state == 'VoltageOn'
-    if is_voltage_on and is_feedback_not_calibrated() and sfc.voltages()['Med_voltage_in_V'] > 3:
-        return 'Bias voltage switched on, but bias crate not calibrated'
+    def inner_check(self):
+        is_voltage_on = sfc.status()['Bias_control'] == 'VoltageOn'
+        if (
+                is_voltage_on 
+                and is_feedback_not_calibrated() 
+                and sfc.voltages()['Med_voltage_in_V'] > 3
+                ):
+            return 'Bias voltage switched on, but bias crate not calibrated'
 
 class DIMNetworkNotAvailable(FactIntervalCheck):
-    # can be checked this way according to:
-    # https://trac.fact-project.org/browser/trunk/FACT%2B%2B/src/smartfact.cc#L3131
-    if sfc.status()['DIM'] == 'Offline':
-        return 'DIM network not available'
+    def inner_check(self):
+        # can be checked this way according to:
+        # https://trac.fact-project.org/browser/trunk/FACT%2B%2B/src/smartfact.cc#L3131
+        if sfc.status()['DIM'] == 'Offline':
+            return 'DIM network not available'
 
 class NoDimCtrlServerAvailable(FactIntervalCheck):
-    # Didn't find a clear way to check this, so I do:
-    if sfc.status()['Dim_Control'] in [
-            'Offline',
-            'NotReady',
-            'ERROR',
-            'FATAL',
-            ]:
-        return 'no dimctrl server available'
+    def inner_check(self):
+        # Didn't find a clear way to check this, so I do:
+        if sfc.status()['Dim_Control'] in [
+                'Offline',
+                'NotReady',
+                'ERROR',
+                'FATAL',
+                ]:
+            return 'no dimctrl server available'
