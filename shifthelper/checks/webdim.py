@@ -48,7 +48,7 @@ class WeatherCheck(Check):
 class CurrentCheck(Check):
 
     def check(self):
-        c = sfc.currents()
+        c = sfc.sipm_currents()
 
         if c.calibrated:
             median_current = c.median_per_sipm.value
