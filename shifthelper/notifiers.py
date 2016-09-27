@@ -4,7 +4,7 @@ import datetime
 
 from custos import TwilioNotifier
 from .tools.whosonshift import whoisonshift
-
+from .tools import config
 
 class FactTwilioNotifier(TwilioNotifier):
     def __init__(self, time_before_fallback=datetime.timedelta(minutes=10), *args, **kwargs):
@@ -51,11 +51,11 @@ class FactTwilioNotifier(TwilioNotifier):
 
 
     def phone_number_of_normal_shifter(self):
-        return '+41774528842'
+        return config['developer']['phone_number']
         return whoisonshift().iloc[0].phone_mobile
 
     def phone_number_of_fallback_shifter(self):
-        return '+41774528842'
+        return config['developer']['phone_number']
         return whoisonshift().iloc[0].phone_mobile
 
 

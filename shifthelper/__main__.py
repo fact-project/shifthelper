@@ -14,7 +14,7 @@ from .logging import config_logging
 config_logging(to_console=False)
 
 def telegram_book(category):
-    return ['123665317']
+    return [config['developer']['telegram_id']]
     return [whoisonshift().iloc[0].telegram_id]
 
 twilio = FactTwilioNotifier(
