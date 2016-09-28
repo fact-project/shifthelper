@@ -2,14 +2,13 @@
 from __future__ import print_function, absolute_import
 from . import Check
 
-import smart_fact_crawler
+import smart_fact_crawler as sfc
 
 
 class MainJsStatusCheck(Check):
 
     def check(self):
-        s = smart_fact_crawler.status()
-        state = s['Dim_Control']
+        state = sfc.status().dim_control
         if 'Running' not in state:
             mesg = "'Running' not in dimctrl_state: {!r}"
             self.queue.append(mesg.format(state))
@@ -19,66 +18,77 @@ class MainJsStatusCheck(Check):
 class WeatherCheck(Check):
 
     def check(self):
-        w = smart_fact_crawler.weather()
+        w = sfc.weather()
+        wind_speed = w.wind_speed.value
+        wind_gusts = w.wind_gusts.value
+        humidity = w.humidity.value
 
         fmt = '{:2.1f}'
         self.update_system_status(
-            'wind speed', fmt.format(w['Wind_speed_in_km_per_h']), 'km/h'
+            'wind speed', fmt.format(wind_speed), w.wind_speed.unit
         )
         self.update_system_status(
-            'wind gusts', fmt.format(w['Wind_gusts_in_km_per_h']), 'km/h'
+            'wind gusts', fmt.format(wind_gusts), w.wind_gusts.unit
         )
         self.update_system_status(
-            'humidity', fmt.format(w['Humidity_in_Percent']), '%'
+            'humidity', fmt.format(humidity), w.humidity.unit
         )
 
-        if w['Humidity_in_Percent'] >= 98:
-            mesg = "humidity_outside >= 98 %: {:2.1f} %"
-            self.queue.append(mesg.format(w['Humidity_in_Percent']))
-        if w['Wind_speed_in_km_per_h'] >= 50:
-            mesg = "wind_speed >= 50 km/h: {:2.1f} km/h"
-            self.queue.append(mesg.format(w['Wind_speed_in_km_per_h']))
-        if w['Wind_gusts_in_km_per_h'] >= 50:
-            mesg = "wind_gusts >= 50 km/h: {:2.1f} km/h"
-            self.queue.append(mesg.format(w['Wind_gusts_in_km_per_h']))
+        if humidity >= 98:
+            mesg = "humidity_outside >= 98 %: {:2.1f} "+w.humidity.unit
+            self.queue.append(mesg.format(humidity))
+        if wind_speed >= 50:
+            mesg = "wind_speed >= 50 km/h: {:2.1f} "+w.wind_speed.unit
+            self.queue.append(mesg.format(wind_speed))
+        if wind_gusts >= 50:
+            mesg = "wind_gusts >= 50 km/h: {:2.1f} "+w.wind_gusts.unit
+            self.queue.append(mesg.format(wind_gusts))
 
 
 class CurrentCheck(Check):
 
     def check(self):
-        c = smart_fact_crawler.currents()
+        c = sfc.sipm_currents()
+
+        if c.calibrated:
+            median_current = c.median_per_sipm.value
+            max_current = c.max_per_sipm.value
+
+            if median_current >= 115:
+                mesg = u"median current >= 115 uA {:2.1f} "
+                mesg+= c.median_per_sipm.unit
+                self.queue.append(mesg.format(median_current))
+            if max_current >= 160:
+                mesg = u"maximum current >= 160 uA {:2.1f} "
+                mesg+= c.max_per_sipm.unit
+                self.queue.append(mesg.format(max_current))
+        else:
+            median_current = float('nan')
+            max_current = float('nan')
 
         self.update_system_status(
             'bias current median',
-            '{:2.0f}'.format(c['Med_current_per_GAPD_in_uA']),
-            u'uA'
+            '{:2.0f}'.format(median_current), c.median_per_sipm.unit
         )
         self.update_system_status(
             'bias current max',
-            '{:2.0f}'.format(c['Max_current_per_GAPD_in_uA']),
-            u'uA'
+            '{:2.0f}'.format(max_current), c.max_per_sipm.unit
         )
-
-        if c['Med_current_per_GAPD_in_uA'] >= 115:
-            mesg = u"median current >= 115 uA {:2.1f} uA"
-            self.queue.append(mesg.format(c['Med_current_per_GAPD_in_uA']))
-        if c['Max_current_per_GAPD_in_uA'] >= 160:
-            mesg = u"maximum current >= 160 uA {:2.1f} uA"
-            self.queue.append(mesg.format(c['Max_current_per_GAPD_in_uA']))
-
 
 class RelativeCameraTemperatureCheck(Check):
 
     def check(self):
-        main_page = smart_fact_crawler.main_page()
+        main_page = sfc.main_page()
 
         fmt = '{:2.1f}'
         self.update_system_status(
             'rel. camera temp.',
-            fmt.format(main_page['Rel_camera_temp_in_C']),
-            'K'
+            fmt.format(main_page.relative_camera_temperature.value),
+            main_page.relative_camera_temperature.unit
         )
 
-        if main_page['Rel_camera_temp_in_C'] > 15.0:
-            mesg = "relative camera temp > 15 K: {:2.1f} K"
-            self.queue.append(mesg.format(main_page['Rel_camera_temp_in_C']))
+        if main_page.relative_camera_temperature.value > 15.0:
+            mesg = "relative camera temp > 15 K: {:2.1f} "
+            mesg+= main_page.relative_camera_temperature.unit
+            self.queue.append(
+                mesg.format(main_page.relative_camera_temperature.value))
