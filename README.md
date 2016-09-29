@@ -18,39 +18,6 @@ monitor the QLA results.
 At first start of the shifthelper you will be asked for the well known password
 to download these credentials.
 
-# Install 
+# Deploy
 
-We strongly recommend installing `python3` via [Anaconda](https://www.continuum.io/downloads). 
-Available for OSX and Linux.
-
-You can install the last release version of the `smart_fact_crawler` and `shifthelper` like this:
-
-```bash
-pip install https://github.com/fact-project/smart_fact_crawler/archive/v0.0.2.tar.gz
-pip install https://github.com/fact-project/shifthelper/archive/v0.6.1.tar.gz
-```
-
-And the bleeding edge version like this:
-
-```bash
-pip install git+https://github.com/fact-project/shifthelper
-```
-
-
-
-# Use
-
-
-Just start the `shifthelper` executable, it's in your path after you installed the packages.
-Invoke it e.g. like this
-
-```bash
-shifthelper +4123456789
-```
-
-
-# Uninstall
-
-```
-pip uninstall shifthelper
-```
+There is a lot missing here! 

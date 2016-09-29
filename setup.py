@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='shifthelper',
-    version='0.6.1',
+    version='0.6.2',
     description='a tool for helping people with a FACT night shift',
     url='https://github.com/fact-project/shifthelper',
     author='Dominik Neise, Maximilian Noethe, Sebastian Mueller',
@@ -25,7 +25,8 @@ setup(
         'twilio',
         'docopt',           # in anaconda
         'numexpr',
-        'smart_fact_crawler==0.0.2',
+        'smart_fact_crawler==0.2.1',
+        'retrying',
     ],
     entry_points={'console_scripts': [
         'shifthelper = shifthelper.__main__:main',

@@ -26,7 +26,7 @@ def get_last_startup_or_shutdown(current_time_rounded_to_seconds=None, db=None):
         S.fMeasurementTypeKey IN {keys}
     AND
         S.fStart < "{now}"
-    GROUP BY S.fStart DESC
+    ORDER BY S.fStart DESC
     LIMIT 1
     """.format(
         keys=(types.loc["Startup"].fMeasurementTypeKey,

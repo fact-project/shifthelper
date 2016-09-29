@@ -1,5 +1,5 @@
 from custos import IntervalCheck
-import smart_fact_crawler as sfc
+from . import retry_smart_fact_crawler as sfc
 from .tools.is_shift import is_shift_at_the_moment
 import requests
 from abc import ABCMeta, abstractmethod
@@ -49,13 +49,13 @@ class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
 
 class MainJsStatusCheck(FactIntervalCheck):
     def inner_check(self):
-        if 'Running' not in sfc.status()['Dim_Control']:
+        if 'Running' not in sfc.status().dim_control:
             return 'Main.js is not running'
 
 
 class HumidityCheck(FactIntervalCheck):
     def inner_check(self):
-        lid_status = sfc.status()['Lid_control']
+        lid_status = sfc.status().lid_control
         # this translation is a dirty hack,
         # and not guaranteed to work.
         lid_status_translation = {
@@ -66,23 +66,22 @@ class HumidityCheck(FactIntervalCheck):
         }
         lid_status = lid_status_translation.get(lid_status, 'Unknown')
 
-        humidity = sfc.weather()['Humidity_in_Percent']
+        humidity = sfc.weather().humidity.value
         if humidity >= 98 and lid_status=='Open':
             return 'Humidity > 98% while Lid open'
 
 
 def is_parked():
-    pointing = sfc.drive()['pointing']
-    az = pointing['Azimuth_in_Deg']
-    zd = pointing['Zenith_Distance_in_Deg']
-    is_locked = sfc.status()['Drive_control'] == 'Locked'
+    az = sfc.drive_pointing().azimuth.value
+    zd = sfc.drive_pointing().zenith_distance.value
+    is_locked = sfc.status().drive_control == 'Locked'
     # should is_locked be taken into account here?
     # pointing north is enough ...
     # but driving through north ... is not :-|
     return (-5 < az < 5) and (90 < zd)
 
 def is_drive_error():
-    drive_state = sfc.status()['Drive_control']
+    drive_state = sfc.status().drive_control
     return drive_state in [
         'ERROR',
         'PositioningFailed',
@@ -94,16 +93,16 @@ def is_drive_error():
 def is_data_taking():
     # if MCP::State::kTriggerOn ||MCP::State::kTakingData;
     # the state name strings, I took from dimctrl on newdaq, typing `st`
-    return sfc.status()['MCP'] in ['TakingData', 'TriggerOn']
+    return sfc.status().mcp in ['TakingData', 'TriggerOn']
 
 def is_data_run():
     # fMcpConfigurationName=='data' || fMcpConfigurationName=='data-rt';
     # this fMcpConfigurationName seems to turn um in square brackets []
-    # inside sfc.main_page()['System_Status'], but I'm not sure yet.
+    # inside sfc.main_page().system_status, but I'm not sure yet.
     # yes it does: example: 
-    # sfc.main_page()['System_Status'] --> 'Idle [single-pe]'
+    # sfc.main_page().system_status --> 'Idle [single-pe]'
     try:
-        config_name = regex.search('\[(.*)\]', sfc.main_page()['System_Status']).groups()[0]
+        config_name = regex.search('\[(.*)\]', sfc.main_page().system_status).groups()[0]
         return config_name in ['data', 'data-rt']
     except IndexError:
         # regex did not match
@@ -133,7 +132,7 @@ def is_bias_not_operating():
       256: ERROR (Common error state.)
     65535: FATAL (A fatal error occured, the eventloop is stopped.)
     '''
-    bias_state = sfc.status()['Bias_control']
+    bias_state = sfc.status().bias_control
     return bias_state in [
         'Offline',
         'NotReady',
@@ -148,7 +147,7 @@ def is_bias_not_operating():
     ]
 
 def is_feedback_not_calibrated():
-    feedback_state = sfc.status()['Feedback']
+    feedback_state = sfc.status().feedback
     return feedback_state in [
         'Offline',
         'NotReady',
@@ -162,27 +161,29 @@ def is_feedback_not_calibrated():
 
 class WindSpeedCheck(FactIntervalCheck):
     def inner_check(self):
-        if sfc.weather()['Wind_speed_in_km_per_h'] >= 50 and not is_parked:
+        if sfc.weather().wind_speed.value >= 50 and not is_parked:
             'Wind speed > 50 km/h and not parked'
 
 class WindGustCheck(FactIntervalCheck):
     def inner_check(self):
-        if sfc.weather()['Wind_gusts_in_km_per_h'] >= 50 and not is_parked:
+        if sfc.weather().wind_gusts.value >= 50 and not is_parked:
             return 'Wind gusts > 50 km/h and not parked'
 
 class MedianCurrentCheck(FactIntervalCheck):
     def inner_check(self):
-        if sfc.sipm_currents()['Med_current_per_GAPD_in_uA'] >= 115:
-            return 'Median GAPD current > 115uA'
+        if sfc.sipm_currents().calibrated:
+            if sfc.sipm_currents().median_per_sipm.value >= 115:
+                return 'Median GAPD current > 115uA'
 
 class MaximumCurrentCheck(FactIntervalCheck):
     def inner_check(self):
-        if sfc.sipm_currents()['Max_current_per_GAPD_in_uA'] >= 160:
-            return 'Maximum GAPD current > 160uA'
+        if sfc.sipm_currents().calibrated:
+            if sfc.sipm_currents().max_per_sipm.value >= 160:
+                return 'Maximum GAPD current > 160uA'
 
 class RelativeCameraTemperatureCheck(FactIntervalCheck):
     def inner_check(self):
-        if sfc.main_page()['Rel_camera_temp_in_C'] >= 15.0:
+        if sfc.main_page().relative_camera_temperature.value >= 15.0:
             return 'relative camera temperature > 15°C'
 
 
@@ -196,21 +197,21 @@ class BiasNotOperatingDuringDataRun(FactIntervalCheck):
 
 class BiasChannelsInOverCurrent(FactIntervalCheck):
     def inner_check(self):
-        bias_state = sfc.status()['Bias_control']
+        bias_state = sfc.status().bias_control
         if bias_state == 'OverCurrent':
             return 'Bias Channels in Over Current'
 
 
 class BiasVoltageNotAtReference(FactIntervalCheck):
     def inner_check(self):
-        bias_state = sfc.status()['Bias_control']
+        bias_state = sfc.status().bias_control
         if bias_state == 'NotReferenced':
             return 'Bias Voltage not at reference.'
 
 
 class ContainerTooWarm(FactIntervalCheck):
     def inner_check(self):
-        if sfc.container_temperature()['Current_temperature_in_C'] > 42:
+        if sfc.container_temperature().current.value > 42:
             return 'Container Temperature above 42 deg C'
 
 
@@ -226,11 +227,11 @@ class DriveInErrorDuringDataRun(FactIntervalCheck):
 
 class BiasVoltageOnButNotCalibrated(FactIntervalCheck):
     def inner_check(self):
-        is_voltage_on = sfc.status()['Bias_control'] == 'VoltageOn'
+        is_voltage_on = sfc.status().bias_control == 'VoltageOn'
         if (
                 is_voltage_on 
                 and is_feedback_not_calibrated() 
-                and sfc.sipm_voltages()['Med_voltage_in_V'] > 3
+                and sfc.sipm_voltages().median.value > 3
                 ):
             return 'Bias voltage switched on, but bias crate not calibrated'
 
@@ -238,13 +239,13 @@ class DIMNetworkNotAvailable(FactIntervalCheck):
     def inner_check(self):
         # can be checked this way according to:
         # https://trac.fact-project.org/browser/trunk/FACT%2B%2B/src/smartfact.cc#L3131
-        if sfc.status()['DIM'] == 'Offline':
+        if sfc.status().dim == 'Offline':
             return 'DIM network not available'
 
 class NoDimCtrlServerAvailable(FactIntervalCheck):
     def inner_check(self):
         # Didn't find a clear way to check this, so I do:
-        if sfc.status()['Dim_Control'] in [
+        if sfc.status().dim_control in [
                 'Offline',
                 'NotReady',
                 'ERROR',
@@ -257,7 +258,7 @@ class TriggerRateLowForTenMinutes(FactIntervalCheck):
     history = pd.DataFrame()
 
     def inner_check(self):
-        current_trigger_rate = sfc.trigger_rate()['Trigger_Rate_in_1_per_s']
+        current_trigger_rate = sfc.trigger_rate().trigger_rate.value
         self._append_to_history(current_trigger_rate)
         self._remove_old_entries()
 
