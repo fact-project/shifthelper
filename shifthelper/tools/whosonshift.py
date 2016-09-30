@@ -34,11 +34,11 @@ def retrieve_shifters_from_calendar(
 @lru_cache(100)
 def retrieve_calendar_entries(dt_date, db=None):
     if db is None:
-        db = tools.create_db_connection()
+        db = tools.create_db_connection(tools.config['cloned_db'])
 
     yesterday_night = (dt_date - timedelta(hours=12)).date()
 
-    query = "SELECT u from calendar.Data where y={y} and m={m} and d={d}".format(
+    query = "SELECT u from calendar_data where y={y} and m={m} and d={d}".format(
                 y=yesterday_night.year, 
                 m=yesterday_night.month - 1,
                 d=yesterday_night.day
@@ -48,13 +48,9 @@ def retrieve_calendar_entries(dt_date, db=None):
 @lru_cache(1)
 def retrieve_valid_usernames_from_logbook(db=None):
     if db is None:
-        db = tools.create_db_connection()
+        db = tools.create_db_connection(tools.config['cloned_db'])
 
-    memberlist = pd.read_sql_query((
-        "SELECT * from logbook.users "
-        "JOIN logbook.userfields "
-        "ON logbook.users.uid=logbook.userfields.ufid"), db)
-
+    memberlist = pd.read_sql_query("SELECT * from users", db)
     memberlist = memberlist.rename(columns={
             "fid1": "institute",
             "fid3": "gender",
