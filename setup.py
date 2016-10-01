@@ -28,7 +28,7 @@ setup(
         'twilio',
         'docopt',           # in anaconda
         'numexpr',
-        'smart_fact_crawler==0.0.2',
+        'smart_fact_crawler==0.2.1',
     ],
     entry_points={'console_scripts': [
         'shifthelper = shifthelper.__main__:main',
