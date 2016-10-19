@@ -1,9 +1,14 @@
+import os 
 from datetime import datetime, timedelta
 import pandas as pd
 from ..tools import config
 from ..tools import create_db_connection
 import time
 
+import logging
+dir_path = os.path.dirname(os.path.realpath(__file__))
+logging.config.fileConfig(os.path.join(dir_path, 'logging.conf'))
+log = logging.getLogger(__name__)
 
 def factdata_MeasurementType():
     return """SELECT * from factdata.MeasurementType"""
@@ -46,9 +51,14 @@ def main():
     db_out = create_db_connection(config["cloned_db"])
 
     while True:
-        print(time.asctime(), "clonging ...")
-        for query_func in [factdata_MeasurementType, calendar_data, factdata_Schedule, users]:
-            table = pd.read_sql_query(query_func(), db_in)
-            table.to_sql(query_func.__name__, db_out, if_exists="replace")
-        print(time.asctime(), "...done")
-        time.sleep(15 * 60) # 15 minutes
+        try:
+            log.info("clonging ...")
+            for query_func in [factdata_MeasurementType, calendar_data, factdata_Schedule, users]:
+                table = pd.read_sql_query(query_func(), db_in)
+                table.to_sql(query_func.__name__, db_out, if_exists="replace")
+            log.info("...done")
+            time.sleep(1 * 60) # 15 minutes
+        except (SystemExit, KeyboardInterrupt):
+            break
+        except:
+            log.exception("error")
