@@ -9,6 +9,8 @@ from datetime import timedelta, datetime
 import numpy as np
 import re as regex
 
+from retrying import retry
+
 class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
 
     def check(self):
@@ -20,7 +22,10 @@ class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
                 else:
                     self.warning(text)
 
-
+    @retry(stop_max_delay=30000, # 30 seconds max
+           wait_exponential_multiplier=100, # wait 2^i * 100 ms, on the i-th retry
+           wait_exponential_max=1000, # but wait 1 second per try maximum
+           ) 
     def all_recent_alerts_acknowledged(self):
         all_alerts = requests.get('http://localhost:5000/alerts').json()
         if not all_alerts:

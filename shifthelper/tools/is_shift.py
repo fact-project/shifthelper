@@ -4,6 +4,7 @@ from functools import lru_cache
 from datetime import datetime
 from datetime import timedelta
 
+from retrying import retry
 
 @lru_cache(1)
 def get_MeasurementType(db=None):
@@ -40,7 +41,10 @@ def get_last_startup_or_shutdown(current_time_rounded_to_seconds=None, db=None):
         on="fMeasurementTypeKey"
     )
 
-
+@retry(stop_max_delay=30000, # 30 seconds max  
+       wait_exponential_multiplier=100, # wait 2^i * 100 ms, on the i-th retry
+       wait_exponential_max=1000, # but wait 1 second per try maximum 
+       )
 def is_shift_at_the_moment(time=None):
     if time is None:
         now = datetime.utcnow().replace(microsecond=0)
