@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
-import sys, json
+import sys
 from custos import Custos, levels
-from custos import TelegramNotifier, LogNotifier, IntervalCheck
+from custos import TelegramNotifier, LogNotifier
 from custos import HTTPNotifier
 from .notifiers import FactTwilioNotifier
 
@@ -13,33 +13,30 @@ from .logging import config_logging
 
 config_logging(to_console=False)
 
+
 def telegram_book(category):
     return [config['developer']['telegram_id']]
     return [whoisonshift().iloc[0].telegram_id]
 
 twilio = FactTwilioNotifier(
-                    sid=config['twilio']['sid'],
-                    auth_token=config['twilio']['auth_token'],
-                    twilio_number=config['twilio']['number'],
-                    ring_time=10,
-                    level=levels.WARNING,
-                )
+    sid=config['twilio']['sid'],
+    auth_token=config['twilio']['auth_token'],
+    twilio_number=config['twilio']['number'],
+    ring_time=10,
+    level=levels.WARNING,
+)
 telegram = TelegramNotifier(
-                    token=config['telegram']['token'],
-                    recipients=telegram_book,
-                    level=levels.INFO,
-                )
+    token=config['telegram']['token'],
+    recipients=telegram_book,
+    level=levels.INFO,
+)
 http = HTTPNotifier(
-                    level=levels.WARNING,
-                    recipients=['http://localhost:5000/alerts'],
-                    auth=('fact', 'test'),
-                )
+    level=levels.WARNING,
+    recipients=['http://localhost:5000/alerts'],
+    auth=('fact', 'test'),
+)
 
-log = LogNotifier(
-                    level=levels.DEBUG,
-                    recipients=['all'],
-                )
-
+log = LogNotifier(level=levels.DEBUG, recipients=['all'])
 
 
 def main():

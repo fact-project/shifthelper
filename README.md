@@ -20,4 +20,17 @@ to download these credentials.
 
 # Deploy
 
-There is a lot missing here! 
+1. Clone the repo and checkout the latest release
+2. Use the provided conda_env.yaml to setup a conda env with all dependencies:
+```
+conda env create -n shifthelper -f conda_env.yaml
+source activate shifthelper
+```
+3. Get the config.json file from the shifthelper-config repo and put it into
+   ~/.shifthelper/config.json
+
+4. Install the packages:
+```
+pip install https://github.com/fact-project/smart_fact_crawler/archive/v0.2.1.tar.gz
+pip install .
+```
