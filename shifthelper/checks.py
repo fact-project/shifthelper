@@ -24,6 +24,7 @@ class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
                 try:
                     acknowledged = self.all_recent_alerts_acknowledged()
                 except ConnectionError:
+                    log.exception('Could not check acknowledged alerts')
                     acknowledged = False
 
                 if acknowledged is True:
