@@ -6,7 +6,6 @@ from abc import ABCMeta, abstractmethod
 
 import pandas as pd
 from datetime import timedelta, datetime
-import numpy as np
 import re as regex
 
 from retrying import retry
@@ -15,13 +14,20 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
 
     def check(self):
         if is_shift_at_the_moment():
             text = self.inner_check()
             if text is not None:
-                if self.all_recent_alerts_acknowledged():
+                try:
+                    acknowledged = self.all_recent_alerts_acknowledged()
+                except ConnectionError:
+                    log.exception('Could not check acknowledged alerts')
+                    acknowledged = False
+
+                if acknowledged is True:
                     self.info(text)
                 else:
                     self.warning(text)
@@ -30,20 +36,19 @@ class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
             debug_log_msg += " - no shift at the moment."
             log.debug(debug_log_msg)
 
-    @retry(stop_max_delay=30000, # 30 seconds max
-           wait_exponential_multiplier=100, # wait 2^i * 100 ms, on the i-th retry
-           wait_exponential_max=1000, # but wait 1 second per try maximum
-           ) 
+    @retry(stop_max_delay=30000,  # 30 seconds max
+           wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+           wait_exponential_max=1000,  # but wait 1 second per try maximum
+           )
     def all_recent_alerts_acknowledged(self):
         all_alerts = requests.get('http://localhost:5000/alerts').json()
         if not all_alerts:
             return False
-        
+
         now = datetime.utcnow()
         all_alerts = pd.DataFrame(all_alerts)
         all_alerts['timestamp'] = pd.to_datetime(all_alerts.timestamp, utc=True)
-    
-        
+
         my_alerts = all_alerts[all_alerts.check == self.__class__.__name__]
         if my_alerts.empty:
             return False
@@ -59,6 +64,7 @@ class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
     @abstractmethod
     def inner_check(self):
         pass
+
 
 class MainJsStatusCheck(FactIntervalCheck):
     def inner_check(self):
@@ -82,19 +88,22 @@ class HumidityCheck(FactIntervalCheck):
         lid_status = lid_status_translation.get(lid_status, 'Unknown')
 
         humidity = sfc.weather().humidity.value
-        log.debug("HumidityCheck: humidity:{0} lid_status:{1}".format(humidity, lid_status))
-        if humidity >= 98 and lid_status=='Open':
+        log.debug(
+            "HumidityCheck: humidity:{0} lid_status:{1}".format(humidity, lid_status)
+        )
+        if humidity >= 98 and lid_status == 'Open':
             return 'Humidity > 98% while Lid open'
 
 
 def is_parked():
     az = sfc.drive_pointing().azimuth.value
     zd = sfc.drive_pointing().zenith_distance.value
-    is_locked = sfc.status().drive_control == 'Locked'
+    # is_locked = sfc.status().drive_control == 'Locked'
     # should is_locked be taken into account here?
     # pointing north is enough ...
     # but driving through north ... is not :-|
     return (-5 < az < 5) and (90 < zd)
+
 
 def is_drive_error():
     drive_state = sfc.status().drive_control
@@ -106,16 +115,18 @@ def is_drive_error():
         'FATAL',
     ]
 
+
 def is_data_taking():
     # if MCP::State::kTriggerOn ||MCP::State::kTakingData;
     # the state name strings, I took from dimctrl on newdaq, typing `st`
     return sfc.status().mcp in ['TakingData', 'TriggerOn']
 
+
 def is_data_run():
     # fMcpConfigurationName=='data' || fMcpConfigurationName=='data-rt';
     # this fMcpConfigurationName seems to turn um in square brackets []
     # inside sfc.main_page().system_status, but I'm not sure yet.
-    # yes it does: example: 
+    # yes it does: example:
     # sfc.main_page().system_status --> 'Idle [single-pe]'
     try:
         config_name = regex.search('\[(.*)\]', sfc.main_page().system_status).groups()[0]
@@ -123,6 +134,7 @@ def is_data_run():
     except IndexError:
         # regex did not match
         return False
+
 
 def is_bias_not_operating():
     ''' in smartfact.cc this check is done as:
@@ -161,6 +173,7 @@ def is_bias_not_operating():
         'ERROR',
         'FATAL',
     ]
+
 
 def is_feedback_not_calibrated():
     feedback_state = sfc.status().feedback
@@ -226,8 +239,8 @@ class BiasNotOperatingDuringDataRun(FactIntervalCheck):
             '_is_bias_not_operating:{0}, '
             '_is_data_taking:{1}, '
             '_is_data_run:{2}'.format(
-            _is_bias_not_operating, 
-            _is_data_taking, 
+            _is_bias_not_operating,
+            _is_data_taking,
             _is_data_run))
         if (_is_bias_not_operating
                 and _is_data_taking
@@ -291,7 +304,7 @@ class BiasVoltageOnButNotCalibrated(FactIntervalCheck):
                 _is_feedback_not_calibrated,
                 median_voltage
                 ))
-        if (is_voltage_on 
+        if (is_voltage_on
                 and _is_feedback_not_calibrated
                 and median_voltage > 3 # volt
                 ):
