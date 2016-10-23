@@ -34,7 +34,7 @@ http = HTTPNotifier(
     level=levels.WARNING,
     recipients=[config['webservice']['post-url']],
     auth=(config['webservice']['user'],
-        config['webservice']['paasword']),
+        config['webservice']['password']),
 )
 
 log = LogNotifier(level=levels.DEBUG, recipients=['all'])
