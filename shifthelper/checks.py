@@ -1,6 +1,7 @@
 from custos import IntervalCheck
 from . import retry_smart_fact_crawler as sfc
 from .tools.is_shift import is_shift_at_the_moment
+from .tools import config
 import requests
 from requests.exceptions import RequestException
 from abc import ABCMeta, abstractmethod
@@ -42,7 +43,7 @@ class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
            wait_exponential_max=1000,  # but wait 1 second per try maximum
            )
     def all_recent_alerts_acknowledged(self):
-        all_alerts = requests.get('http://localhost:5000/alerts').json()
+        all_alerts = requests.get(config['webservice']['post-url']).json()
         if not all_alerts:
             return False
 
