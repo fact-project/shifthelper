@@ -2,6 +2,7 @@ from custos import IntervalCheck
 from . import retry_smart_fact_crawler as sfc
 from .tools.is_shift import is_shift_at_the_moment
 import requests
+from requests.exceptions import RequestException
 from abc import ABCMeta, abstractmethod
 
 import pandas as pd
@@ -23,7 +24,7 @@ class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
             if text is not None:
                 try:
                     acknowledged = self.all_recent_alerts_acknowledged()
-                except ConnectionError:
+                except RequestException:
                     log.exception('Could not check acknowledged alerts')
                     acknowledged = False
 
