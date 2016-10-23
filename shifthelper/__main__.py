@@ -32,8 +32,9 @@ telegram = TelegramNotifier(
 )
 http = HTTPNotifier(
     level=levels.WARNING,
-    recipients=['http://localhost:5000/alerts'],
-    auth=('fact', 'test'),
+    recipients=[config['webservice']['post-url']],
+    auth=(config['webservice']['user'],
+        config['webservice']['paasword']),
 )
 
 log = LogNotifier(level=levels.DEBUG, recipients=['all'])
