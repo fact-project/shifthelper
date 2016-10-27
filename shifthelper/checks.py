@@ -198,6 +198,7 @@ class WindSpeedCheck(FactIntervalCheck):
         if wind_speed >= 50 and not _is_parked:
             'Wind speed > 50 km/h and not parked'
 
+
 class WindGustCheck(FactIntervalCheck):
     def inner_check(self):
         wind_gusts = sfc.weather().wind_gusts.value
@@ -205,6 +206,7 @@ class WindGustCheck(FactIntervalCheck):
         log.debug("WindGustCheck: is_parked:{0}, wind_speed:{1}".format(_is_parked, wind_gusts))
         if wind_gusts >= 50 and not _is_parked:
             return 'Wind gusts > 50 km/h and not parked'
+
 
 class MedianCurrentCheck(FactIntervalCheck):
     def inner_check(self):
@@ -215,6 +217,7 @@ class MedianCurrentCheck(FactIntervalCheck):
             if median_current >= 115:
                 return 'Median GAPD current > 115uA'
 
+
 class MaximumCurrentCheck(FactIntervalCheck):
     def inner_check(self):
         is_currents_calibrated = sfc.sipm_currents().calibrated
@@ -223,6 +226,7 @@ class MaximumCurrentCheck(FactIntervalCheck):
         if is_currents_calibrated:
             if max_current >= 160:
                 return 'Maximum GAPD current > 160uA'
+
 
 class RelativeCameraTemperatureCheck(FactIntervalCheck):
     def inner_check(self):
@@ -237,16 +241,17 @@ class BiasNotOperatingDuringDataRun(FactIntervalCheck):
         _is_bias_not_operating = is_bias_not_operating()
         _is_data_taking = is_data_taking()
         _is_data_run = is_data_run()
-        log.debug('BiasNotOperatingDuringDataRun: '
+        log.debug(
+            'BiasNotOperatingDuringDataRun: '
             '_is_bias_not_operating:{0}, '
             '_is_data_taking:{1}, '
             '_is_data_run:{2}'.format(
-            _is_bias_not_operating,
-            _is_data_taking,
-            _is_data_run))
-        if (_is_bias_not_operating
-                and _is_data_taking
-                and _is_data_run):
+                _is_bias_not_operating,
+                _is_data_taking,
+                _is_data_run))
+        if (_is_bias_not_operating and
+                _is_data_taking and
+                _is_data_run):
             return 'Bias not operating during data run'
 
 
@@ -279,17 +284,15 @@ class DriveInErrorDuringDataRun(FactIntervalCheck):
         _is_drive_error = is_drive_error()
         _is_data_taking = is_data_taking()
         _is_data_run = is_data_run()
-        log.debug('DriveInErrorDuringDataRun: '
+        log.debug(
+            'DriveInErrorDuringDataRun: '
             '_is_drive_error:{0}, '
             '_is_data_taking:{1}, '
             '_is_data_run:{2}'.format(
                 _is_drive_error,
                 _is_data_taking,
                 _is_data_run))
-        if (_is_drive_error
-                and _is_data_taking
-                and _is_data_run
-                ):
+        if (_is_drive_error and _is_data_taking and _is_data_run):
             return 'Drive in Error during Data run'
 
 
@@ -298,19 +301,17 @@ class BiasVoltageOnButNotCalibrated(FactIntervalCheck):
         is_voltage_on = sfc.status().bias_control == 'VoltageOn'
         _is_feedback_not_calibrated = is_feedback_not_calibrated()
         median_voltage = sfc.sipm_voltages().median.value
-        log.debug('BiasVoltageOnButNotCalibrated: '
+        log.debug(
+            'BiasVoltageOnButNotCalibrated: '
             'is_voltage_on:{0}, '
             '_is_feedback_not_calibrated:{1}, '
             'median_voltage:{2}'.format(
                 is_voltage_on,
                 _is_feedback_not_calibrated,
-                median_voltage
-                ))
-        if (is_voltage_on
-                and _is_feedback_not_calibrated
-                and median_voltage > 3 # volt
-                ):
+                median_voltage))
+        if (is_voltage_on and _is_feedback_not_calibrated and median_voltage > 3):
             return 'Bias voltage switched on, but bias crate not calibrated'
+
 
 class DIMNetworkNotAvailable(FactIntervalCheck):
     def inner_check(self):
@@ -320,6 +321,7 @@ class DIMNetworkNotAvailable(FactIntervalCheck):
         log.debug('DIMNetworkNotAvailable: {0}'.format(dim_network_status))
         if dim_network_status == 'Offline':
             return 'DIM network not available'
+
 
 class NoDimCtrlServerAvailable(FactIntervalCheck):
     def inner_check(self):
@@ -349,9 +351,8 @@ class TriggerRateLowForTenMinutes(FactIntervalCheck):
             return 'Trigger rate < 1/s for 10 minutes'
 
     def _append_to_history(self, rate):
-        self.history = self.history.append([{'timestamp':datetime.utcnow(), 'rate':rate}])
+        self.history = self.history.append([{'timestamp': datetime.utcnow(), 'rate': rate}])
 
     def _remove_old_entries(self):
         now = datetime.utcnow()
         self.history = self.history[(now - self.history.timestamp) < timedelta(minutes=10)]
-
