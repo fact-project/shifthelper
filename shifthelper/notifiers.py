@@ -9,7 +9,10 @@ log = logging.getLogger(__name__)
 
 
 class FactTwilioNotifier(TwilioNotifier):
-    def __init__(self, time_before_fallback=datetime.timedelta(minutes=10), *args, **kwargs):
+    def __init__(self,
+                 time_before_fallback=datetime.timedelta(minutes=10),
+                 *args,
+                 **kwargs):
         self.time_before_fallback = time_before_fallback
         self.not_acknowledged_calls = []
         self.nobody_is_listening = False
