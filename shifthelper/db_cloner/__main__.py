@@ -24,10 +24,9 @@ def calendar_data():
             AND m={m}
             AND d={d}
         """.format(
-            y=yesterday_night.year,
-            m=yesterday_night.month - 1,
-            d=yesterday_night.day
-        )
+        y=yesterday_night.year,
+        m=yesterday_night.month - 1,
+        d=yesterday_night.day)
 
 
 def factdata_Schedule():
