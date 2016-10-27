@@ -1,6 +1,7 @@
 from custos import IntervalCheck
 from . import retry_smart_fact_crawler as sfc
-from .tools.is_shift import is_shift_at_the_moment
+from .tools.is_shift import is_shift_at_the_moment, get_next_shutdown
+from .tools.whosonshift import whoisonshift
 from .tools import config
 import requests
 from requests.exceptions import RequestException
@@ -356,3 +357,51 @@ class TriggerRateLowForTenMinutes(FactIntervalCheck):
     def _remove_old_entries(self):
         now = datetime.utcnow()
         self.history = self.history[(now - self.history.timestamp) < timedelta(minutes=10)]
+
+
+class IsUserAwakeBeforeShutdown(FactIntervalCheck):
+    '''
+
+    This Check should find out if the user is actually awake some time before
+    the scheduled shutdown. This time is defined in the condif file as:
+
+    "checks": {
+        "minutes_awake_before_shutdown": 20
+    }
+
+    In order to find out, if the shifter is awake, we need to find out:
+      * Is it 20minutes (or less) before shutdown?
+      * Who is the current shifter (username)?
+      * Is she awake, i.e. did he press the "I am awake button" recently?
+    '''
+
+    def inner_check(self):
+        try:
+            shutdown_time = get_next_shutdown().fStart
+        except IndexError:
+            return
+
+        earliest_awake_time = shutdown_time - timedelta(minutes=30)
+        current_shifter = whoisonshift()
+
+        user_since = requests.get('https://ihp-pc41.ethz.ch/iAmAwake').json()
+
+        awake = {}
+        for username, since in user_since.items:
+            since = pd.to_datetime(since)
+            if since > earliest_awake_time:
+                awake[username] = since
+
+        if not len(awake):
+            return "Nobody Awake"
+
+        if not current_shifter in awake:
+            return "Somebody awake; but not the right person :-("
+
+
+class ShifterOnShift(FactIntervalCheck):
+    def inner_check(self):
+        try:
+            whoisonshift()
+        except IndexError:
+            return "There is a shift, but no shifter"
