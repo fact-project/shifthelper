@@ -27,7 +27,7 @@ class FactTwilioNotifier(TwilioNotifier):
         remove all calls, which have been "completed",
         i.e. a person has taken the call
 
-        remove also all calls, whose message.check is 
+        remove also all calls, whose message.check is
         equal to a call, which has been taken.
         """
         acknowledged_checks = set()
@@ -52,11 +52,19 @@ class FactTwilioNotifier(TwilioNotifier):
 
     def phone_number_of_normal_shifter(self):
         return config['developer']['phone_number']
-        return whoisonshift().iloc[0].phone_mobile
+        try:
+            return whoisonshift().phone_mobile
+        except IndexError:
+            return config['developer']['phone_number']
+
+
 
     def phone_number_of_fallback_shifter(self):
-        return config['developer']['phone_number']
-        return whoisonshift().iloc[0].phone_mobile
+        return config['fallback_shifter']['phone_number']
+        try:
+            return whoisonshift().phone_mobile
+        except IndexError:
+            return config['developer']['phone_number']
 
 
     def handle_message(self, msg):
