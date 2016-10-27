@@ -1,10 +1,12 @@
-from queue import Queue, Empty
-from collections import Mapping
 import datetime
 
 from custos import TwilioNotifier
 from .tools.whosonshift import whoisonshift
 from .tools import config
+
+import logging
+log = logging.getLogger(__name__)
+
 
 class FactTwilioNotifier(TwilioNotifier):
     def __init__(self, time_before_fallback=datetime.timedelta(minutes=10), *args, **kwargs):
@@ -27,7 +29,7 @@ class FactTwilioNotifier(TwilioNotifier):
         remove all calls, which have been "completed",
         i.e. a person has taken the call
 
-        remove also all calls, whose message.check is 
+        remove also all calls, whose message.check is
         equal to a call, which has been taken.
         """
         acknowledged_checks = set()
@@ -49,7 +51,6 @@ class FactTwilioNotifier(TwilioNotifier):
                 max_age = age
         return max_age
 
-
     def phone_number_of_normal_shifter(self):
         return config['developer']['phone_number']
         return whoisonshift().iloc[0].phone_mobile
@@ -57,7 +58,6 @@ class FactTwilioNotifier(TwilioNotifier):
     def phone_number_of_fallback_shifter(self):
         return config['developer']['phone_number']
         return whoisonshift().iloc[0].phone_mobile
-
 
     def handle_message(self, msg):
         if msg.level >= self.level:
@@ -69,4 +69,5 @@ class FactTwilioNotifier(TwilioNotifier):
             try:
                 self.notify(phone_number, msg)
             except:
-                log.exception('Could not notifiy recipient {}'.format(phone_number))
+                log.exception(
+                    'Could not notifiy recipient {}'.format(phone_number))
