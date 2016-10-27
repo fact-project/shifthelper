@@ -55,3 +55,30 @@ def is_shift_at_the_moment(time=None):
     last_entry = get_last_startup_or_shutdown(current_time_rounded_to_seconds=now, db=None)
     name = last_entry.iloc[0].fMeasurementTypeName
     return name == "Startup"
+
+
+def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
+    if current_time_rounded_to_seconds is None:
+        current_time_rounded_to_seconds = datetime.utcnow().replace(microsecond=0)
+    if db is None:
+        db = tools.create_db_connection(tools.config['cloned_db'])
+
+    types = get_MeasurementType(db)
+    query = """
+    SELECT * FROM factdata_Schedule AS S
+    WHERE
+        S.fMeasurementTypeKey = {key}
+    AND
+        S.fStart > "{now}"
+    ORDER BY S.fStart ASC
+    LIMIT 1
+    """.format(
+        key=(types.loc["Shutdown"].fMeasurementTypeKey),
+        now=current_time_rounded_to_seconds
+        )
+
+    return pd.merge(
+        pd.read_sql_query(query, db),
+        types.reset_index(),
+        on="fMeasurementTypeKey"
+    ).iloc[0]
