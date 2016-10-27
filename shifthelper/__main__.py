@@ -18,6 +18,7 @@ def telegram_book(category):
     return [config['developer']['telegram_id']]
     return [whoisonshift().iloc[0].telegram_id]
 
+
 twilio = FactTwilioNotifier(
     sid=config['twilio']['sid'],
     auth_token=config['twilio']['auth_token'],
@@ -33,7 +34,8 @@ telegram = TelegramNotifier(
 http = HTTPNotifier(
     level=levels.WARNING,
     recipients=[config['webservice']['post-url']],
-    auth=(config['webservice']['user'],
+    auth=(
+        config['webservice']['user'],
         config['webservice']['password']),
 )
 
