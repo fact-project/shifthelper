@@ -343,13 +343,16 @@ class TriggerRateLowForTenMinutes(FactIntervalCheck):
 
     def inner_check(self):
         current_trigger_rate = sfc.trigger_rate().trigger_rate.value
+        _is_data_taking = is_data_taking()
         self._append_to_history(current_trigger_rate)
         self._remove_old_entries()
 
         df = pd.DataFrame(self.history)
-        log.debug('TriggerRateLowForTenMinutes: trigger_rate_history:{0}'.format(df))
-        if not df.empty and (df.rate < 1).all():
-            return 'Trigger rate < 1/s for 10 minutes'
+        log.debug(
+            'TriggerRateLowForTenMinutes: (rate < 1).all:{0} data_taking:{1}'.format(
+                (df.rate < 1).all(), _is_data_taking))
+        if _is_data_taking and not df.empty and (df.rate < 1).all():
+            return 'Trigger rate < 1/s for 10 minutes, while data taking'
 
     def _append_to_history(self, rate):
         self.history = self.history.append([{'timestamp': datetime.utcnow(), 'rate': rate}])
