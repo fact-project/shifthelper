@@ -1,9 +1,9 @@
+import warnings
 import pandas as pd
 from .. import tools
 from functools import lru_cache
 from datetime import datetime
 from datetime import timedelta
-import warnings
 
 def whoisonshift(clear_cache=False):
     if clear_cache:
@@ -12,10 +12,10 @@ def whoisonshift(clear_cache=False):
 
     full_shifter_info = retrieve_shifters_from_calendar()
     only_interesting_stuff = full_shifter_info[["phone_mobile", "telegram_id", "skype", "username", "email"]]
-    return only_interesting_stuff
+    return only_interesting_stuff.iloc[0]
 
 def retrieve_shifters_from_calendar(
-        time=None, 
+        time=None,
         db=None,
         ):
     if time is None:
@@ -39,7 +39,7 @@ def retrieve_calendar_entries(dt_date, db=None):
     yesterday_night = (dt_date - timedelta(hours=12)).date()
 
     query = "SELECT u from calendar_data where y={y} and m={m} and d={d}".format(
-                y=yesterday_night.year, 
+                y=yesterday_night.year,
                 m=yesterday_night.month - 1,
                 d=yesterday_night.day
             )
