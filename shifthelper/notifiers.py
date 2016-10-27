@@ -59,7 +59,7 @@ class FactTwilioNotifier(TwilioNotifier):
         return whoisonshift().iloc[0].phone_mobile
 
     def phone_number_of_fallback_shifter(self):
-        return config['developer']['phone_number']
+        return config['fallback_shifter']['phone_number']
         return whoisonshift().iloc[0].phone_mobile
 
     def handle_message(self, msg):
