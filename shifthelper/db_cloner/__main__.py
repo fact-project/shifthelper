@@ -63,7 +63,7 @@ def main():
                 table = pd.read_sql_query(query_func(), db_in)
                 table.to_sql(query_func.__name__, db_out, if_exists="replace")
             log.info("...done")
-            time.sleep(1 * 60)  # 15 minutes
+            time.sleep(15 * 60)  # 15 minutes
         except (SystemExit, KeyboardInterrupt):
             break
         except:
