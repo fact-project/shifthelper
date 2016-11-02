@@ -21,20 +21,54 @@ log = logging.getLogger(__name__)
 CATEGORY_SHIFTER = 'shifter'
 CATEGORY_DEVELOPER = 'developer'
 
+@retry(stop_max_delay=30000,  # 30 seconds max
+       wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+       wait_exponential_max=1000,  # but wait 1 second per try maximum
+       )
+def all_recent_alerts_acknowledged(checkname):
+    '''
+    have a look at shifthelper webinterface page and see if the
+    user has already acknowledged all the alerts from the given
+    checkname.
+
+    In case we cannot even reach the webinterface, we have to assume the
+    user also cannot reach the website, so nothing will be acknowledged.
+    So in that case we simply return False as well
+    '''
+    try:
+        all_alerts = requests.get(config['webservice']['post-url']).json()
+    except RequestException:
+        log.warning('Could not check acknowledged alerts')
+        return False
+
+    if not all_alerts:
+        return False
+
+    now = datetime.utcnow()
+    all_alerts = pd.DataFrame(all_alerts)
+    all_alerts['timestamp'] = pd.to_datetime(all_alerts.timestamp, utc=True)
+
+    my_alerts = all_alerts[all_alerts.check == checkname]
+    if my_alerts.empty:
+        return False
+
+    my_recent_alerts = my_alerts[(now - my_alerts.timestamp) < timedelta(minutes=10)]
+    if my_recent_alerts.empty:
+        return False
+
+    if not my_recent_alerts.acknowledged.all():
+        return False
+    return True
+
+
 class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
 
     def check(self):
         if is_shift_at_the_moment():
             text_and_category = self.inner_check()
             if text_and_category is not None:
-                try:
-                    acknowledged = self.all_recent_alerts_acknowledged()
-                except RequestException:
-                    log.exception('Could not check acknowledged alerts')
-                    acknowledged = False
-
                 text, category = text_and_category
-                if acknowledged is True:
+                if all_recent_alerts_acknowledged(self.__class__.__name__):
                     self.info(text, category=category)
                 else:
                     self.warning(text, category=category)
@@ -43,30 +77,6 @@ class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
             debug_log_msg += " - no shift at the moment."
             log.debug(debug_log_msg)
 
-    @retry(stop_max_delay=30000,  # 30 seconds max
-           wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
-           wait_exponential_max=1000,  # but wait 1 second per try maximum
-           )
-    def all_recent_alerts_acknowledged(self):
-        all_alerts = requests.get(config['webservice']['post-url']).json()
-        if not all_alerts:
-            return False
-
-        now = datetime.utcnow()
-        all_alerts = pd.DataFrame(all_alerts)
-        all_alerts['timestamp'] = pd.to_datetime(all_alerts.timestamp, utc=True)
-
-        my_alerts = all_alerts[all_alerts.check == self.__class__.__name__]
-        if my_alerts.empty:
-            return False
-
-        my_recent_alerts = my_alerts[(now - my_alerts.timestamp) < timedelta(minutes=10)]
-        if my_recent_alerts.empty:
-            return False
-
-        if not my_recent_alerts.acknowledged.all():
-            return False
-        return True
 
     @abstractmethod
     def inner_check(self):
