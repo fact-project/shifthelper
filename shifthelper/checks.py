@@ -382,7 +382,7 @@ class IsUserAwakeBeforeShutdown(FactIntervalCheck):
         current_shifter = whoisonshift()
         user_since = requests.get('https://ihp-pc41.ethz.ch/iAmAwake').json()
         awake = {}
-        for username, since in user_since.items:
+        for username, since in user_since.items():
             since = pd.to_datetime(since)
             if since > earliest_awake_time:
                 awake[username] = since
