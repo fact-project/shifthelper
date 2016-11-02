@@ -472,13 +472,7 @@ class ParkingChecklistFilled(IntervalCheck):
         if not is_shift_at_the_moment():
             text = self.inner_check()
             if text is not None:
-                try:
-                    acknowledged = self.all_recent_alerts_acknowledged()
-                except RequestException:
-                    log.exception('Could not check acknowledged alerts')
-                    acknowledged = False
-
-                if acknowledged is True:
+                if all_recent_alerts_acknowledged(self.__class__.__name__):
                     self.info(text)
                 else:
                     self.warning(text)
@@ -486,29 +480,4 @@ class ParkingChecklistFilled(IntervalCheck):
             debug_log_msg = self.__class__.__name__ + '.check():'
             debug_log_msg += " - no shift at the moment."
             log.debug(debug_log_msg)
-
-    @retry(stop_max_delay=30000,  # 30 seconds max
-           wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
-           wait_exponential_max=1000,  # but wait 1 second per try maximum
-           )
-    def all_recent_alerts_acknowledged(self):
-        all_alerts = requests.get(config['webservice']['post-url']).json()
-        if not all_alerts:
-            return False
-
-        now = datetime.utcnow()
-        all_alerts = pd.DataFrame(all_alerts)
-        all_alerts['timestamp'] = pd.to_datetime(all_alerts.timestamp, utc=True)
-
-        my_alerts = all_alerts[all_alerts.check == self.__class__.__name__]
-        if my_alerts.empty:
-            return False
-
-        my_recent_alerts = my_alerts[(now - my_alerts.timestamp) < timedelta(minutes=10)]
-        if my_recent_alerts.empty:
-            return False
-
-        if not my_recent_alerts.acknowledged.all():
-            return False
-        return True
 
