@@ -18,6 +18,9 @@ import logging
 log = logging.getLogger(__name__)
 
 
+CATEGORY_SHIFTER = 'shifter'
+CATEGORY_DEVELOPER = 'developer'
+
 class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
 
     def check(self):
@@ -75,7 +78,7 @@ class MainJsStatusCheck(FactIntervalCheck):
         dim_control_status = sfc.status().dim_control
         log.debug("MainJsStatusCheck: dim_control_status:o{}".format(dim_control_status))
         if 'Running' not in dim_control_status:
-            return 'Main.js is not running', 'expert'
+            return 'Main.js is not running', CATEGORY_SHIFTER
 
 
 class HumidityCheck(FactIntervalCheck):
@@ -96,7 +99,7 @@ class HumidityCheck(FactIntervalCheck):
             "HumidityCheck: humidity:{0} lid_status:{1}".format(humidity, lid_status)
         )
         if humidity >= 98 and lid_status == 'Open':
-            return 'Humidity > 98% while Lid open', 'expert'
+            return 'Humidity > 98% while Lid open', CATEGORY_SHIFTER
 
 
 def is_parked():
@@ -198,7 +201,7 @@ class WindSpeedCheck(FactIntervalCheck):
         _is_parked = is_parked()
         log.debug("WindSpeedCheck: is_parked:{0}, wind_speed:{1}".format(_is_parked, wind_speed))
         if wind_speed >= 50 and not _is_parked:
-            'Wind speed > 50 km/h and not parked', 'expert'
+            return 'Wind speed > 50 km/h and not parked', CATEGORY_SHIFTER
 
 
 class WindGustCheck(FactIntervalCheck):
@@ -207,7 +210,7 @@ class WindGustCheck(FactIntervalCheck):
         _is_parked = is_parked()
         log.debug("WindGustCheck: is_parked:{0}, wind_speed:{1}".format(_is_parked, wind_gusts))
         if wind_gusts >= 50 and not _is_parked:
-            return 'Wind gusts > 50 km/h and not parked', 'expert'
+            return 'Wind gusts > 50 km/h and not parked', CATEGORY_SHIFTER
 
 
 class MedianCurrentCheck(FactIntervalCheck):
@@ -217,7 +220,7 @@ class MedianCurrentCheck(FactIntervalCheck):
         log.debug("MedianCurrentCheck: is_currents_calibrated:{0}, median_current:{1}".format(is_currents_calibrated, median_current))
         if is_currents_calibrated:
             if median_current >= 115:
-                return 'Median GAPD current > 115uA', 'expert'
+                return 'Median GAPD current > 115uA', CATEGORY_SHIFTER
 
 
 class MaximumCurrentCheck(FactIntervalCheck):
@@ -227,7 +230,7 @@ class MaximumCurrentCheck(FactIntervalCheck):
         log.debug("MaximumCurrentCheck: is_currents_calibrated:{0}, max_current:{1}".format(is_currents_calibrated, max_current))
         if is_currents_calibrated:
             if max_current >= 160:
-                return 'Maximum GAPD current > 160uA', 'expert'
+                return 'Maximum GAPD current > 160uA', CATEGORY_SHIFTER
 
 
 class RelativeCameraTemperatureCheck(FactIntervalCheck):
@@ -235,7 +238,7 @@ class RelativeCameraTemperatureCheck(FactIntervalCheck):
         relative_temperature = sfc.main_page().relative_camera_temperature.value
         log.debug('RelativeCameraTemperatureCheck: relative_temperature:{0}'.format(relative_temperature))
         if relative_temperature >= 15.0:
-            return 'relative camera temperature > 15°C', 'expert'
+            return 'relative camera temperature > 15°C', CATEGORY_SHIFTER
 
 
 class BiasNotOperatingDuringDataRun(FactIntervalCheck):
@@ -254,7 +257,7 @@ class BiasNotOperatingDuringDataRun(FactIntervalCheck):
         if (_is_bias_not_operating and
                 _is_data_taking and
                 _is_data_run):
-            return 'Bias not operating during data run', 'expert'
+            return 'Bias not operating during data run', CATEGORY_SHIFTER
 
 
 class BiasChannelsInOverCurrent(FactIntervalCheck):
@@ -262,7 +265,7 @@ class BiasChannelsInOverCurrent(FactIntervalCheck):
         bias_state = sfc.status().bias_control
         log.debug('BiasChannelsInOverCurrent: bias_state:{}'.format(bias_state))
         if bias_state == 'OverCurrent':
-            return 'Bias Channels in Over Current', 'expert'
+            return 'Bias Channels in Over Current', CATEGORY_SHIFTER
 
 
 class BiasVoltageNotAtReference(FactIntervalCheck):
@@ -270,7 +273,7 @@ class BiasVoltageNotAtReference(FactIntervalCheck):
         bias_state = sfc.status().bias_control
         log.debug('BiasVoltageNotAtReference: bias_state:{}'.format(bias_state))
         if bias_state == 'NotReferenced':
-            return 'Bias Voltage not at reference.', 'expert'
+            return 'Bias Voltage not at reference.', CATEGORY_SHIFTER
 
 
 class ContainerTooWarm(FactIntervalCheck):
@@ -278,7 +281,7 @@ class ContainerTooWarm(FactIntervalCheck):
         container_temperature = float(sfc.container_temperature().current.value)
         log.debug('ContainerTooWarm: container_temperature:{}'.format(container_temperature))
         if container_temperature > 42:
-            return 'Container Temperature above 42 deg C', 'expert'
+            return 'Container Temperature above 42 deg C', CATEGORY_SHIFTER
 
 
 class DriveInErrorDuringDataRun(FactIntervalCheck):
@@ -295,7 +298,7 @@ class DriveInErrorDuringDataRun(FactIntervalCheck):
                 _is_data_taking,
                 _is_data_run))
         if (_is_drive_error and _is_data_taking and _is_data_run):
-            return 'Drive in Error during Data run', 'expert'
+            return 'Drive in Error during Data run', CATEGORY_SHIFTER
 
 
 class BiasVoltageOnButNotCalibrated(FactIntervalCheck):
@@ -312,7 +315,7 @@ class BiasVoltageOnButNotCalibrated(FactIntervalCheck):
                 _is_feedback_not_calibrated,
                 median_voltage))
         if (is_voltage_on and _is_feedback_not_calibrated and median_voltage > 3):
-            return 'Bias voltage switched on, but bias crate not calibrated', 'expert'
+            return 'Bias voltage switched on, but bias crate not calibrated', CATEGORY_SHIFTER
 
 
 class DIMNetworkNotAvailable(FactIntervalCheck):
@@ -322,7 +325,7 @@ class DIMNetworkNotAvailable(FactIntervalCheck):
         dim_network_status = sfc.status().dim
         log.debug('DIMNetworkNotAvailable: {0}'.format(dim_network_status))
         if dim_network_status == 'Offline':
-            return 'DIM network not available', 'expert'
+            return 'DIM network not available', CATEGORY_SHIFTER
 
 
 class NoDimCtrlServerAvailable(FactIntervalCheck):
@@ -336,7 +339,7 @@ class NoDimCtrlServerAvailable(FactIntervalCheck):
                 'ERROR',
                 'FATAL',
                 ]:
-            return 'no dimctrl server available', 'expert'
+            return 'no dimctrl server available', CATEGORY_SHIFTER
 
 
 class TriggerRateLowForTenMinutes(FactIntervalCheck):
@@ -353,7 +356,7 @@ class TriggerRateLowForTenMinutes(FactIntervalCheck):
             'TriggerRateLowForTenMinutes: (rate < 1).all:{0} data_taking:{1}'.format(
                 (df.rate < 1).all(), _is_data_taking))
         if _is_data_taking and not df.empty and (df.rate < 1).all():
-            return 'Trigger rate < 1/s for 10 minutes, while data taking', 'expert'
+            return 'Trigger rate < 1/s for 10 minutes, while data taking', CATEGORY_SHIFTER
 
     def _append_to_history(self, rate):
         self.history = self.history.append([{'timestamp': datetime.utcnow(), 'rate': rate}])
@@ -400,13 +403,13 @@ class IsUserAwakeBeforeShutdown(FactIntervalCheck):
         try:
             current_shifter, awake = self._current_user_and_awake(shutdown_time)
         except RetryError:
-            return "Unable to find out current shifter or find out who is awake", 'developer'
+            return "Unable to find out current shifter or find out who is awake", CATEGORY_SHIFTER
 
         if not len(awake):
-            return "Nobody Awake", 'parker'
+            return "Nobody Awake", CATEGORY_SHIFTER
 
         if not current_shifter in awake:
-            return "Somebody awake; but not the right person :-(", 'parker'
+            return "Somebody awake; but not the right person :-(", CATEGORY_SHIFTER
 
 
 class ShifterOnShift(FactIntervalCheck):
@@ -414,7 +417,7 @@ class ShifterOnShift(FactIntervalCheck):
         try:
             whoisonshift()
         except IndexError:
-            return "There is a shift, but no shifter", 'developer'
+            return "There is a shift, but no shifter", CATEGORY_DEVELOPER
 
 
 class ParkingChecklistFilled(IntervalCheck):
@@ -440,7 +443,7 @@ class ParkingChecklistFilled(IntervalCheck):
         try:
             shutdown = get_last_shutdown().fStart
         except:
-            return "cannot find out, when last shutdown was.", 'developer'
+            return "cannot find out, when last shutdown was.", CATEGORY_SHIFTER
 
 
         if shutdown + timedelta(minutes=10) < datetime.utcnow():
@@ -449,10 +452,10 @@ class ParkingChecklistFilled(IntervalCheck):
         try:
             last_checklist_entry = get_last_parking_checklist_entry().created
         except:
-            return "cannot find out, if checklist was filled.", 'developer'
+            return "cannot find out, if checklist was filled.", CATEGORY_SHIFTER
 
         if last_checklist_entry < shutdown:
-            return "Checklist not filled for the last shutdown.", 'parker'
+            return "Checklist not filled for the last shutdown.", CATEGORY_SHIFTER
 
 
     def check(self):
