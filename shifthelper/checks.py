@@ -2,7 +2,7 @@ from custos import IntervalCheck
 from . import retry_smart_fact_crawler as sfc
 from .tools.is_shift import is_shift_at_the_moment, get_next_shutdown, get_last_shutdown
 from .tools.whosonshift import whoisonshift
-from .tools import config, parking_checklist
+from .tools import config, get_last_parking_checklist_entry
 import requests
 from requests.exceptions import RequestException
 from abc import ABCMeta, abstractmethod
@@ -11,7 +11,7 @@ import pandas as pd
 from datetime import timedelta, datetime
 import re as regex
 
-from retrying import retry
+from retrying import retry, RetryError
 
 import logging
 
@@ -372,23 +372,34 @@ class IsUserAwakeBeforeShutdown(FactIntervalCheck):
       * Who is the current shifter (username)?
       * Is she awake, i.e. did he press the "I am awake button" recently?
     '''
-
-    def inner_check(self):
-        try:
-            shutdown_time = get_next_shutdown().fStart
-        except IndexError:
-            return
-
+    @retry(stop_max_delay=30000,  # 30 seconds max
+           wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+           wait_exponential_max=1000,  # but wait 1 second per try maximum
+           wrap_exception=True,  # raise RetryError and not the inner exception
+           )
+    def _current_user_and_awake(self, shutdown_time):
         earliest_awake_time = shutdown_time - timedelta(minutes=30)
         current_shifter = whoisonshift()
-
         user_since = requests.get('https://ihp-pc41.ethz.ch/iAmAwake').json()
-
         awake = {}
         for username, since in user_since.items:
             since = pd.to_datetime(since)
             if since > earliest_awake_time:
                 awake[username] = since
+        return current_shifter, awake
+
+    def inner_check(self):
+        try:
+            shutdown_time = get_next_shutdown().fStart
+        except IndexError:
+            # IndexError means, there is no next shutdown,
+            # In that case nobody needs to be awake.
+            return
+
+        try:
+            current_shifter, awake = self._current_user_and_awake(shutdown_time)
+        except RetryError:
+            return "Unable to find out current shifter or find out who is awake"
 
         if not len(awake):
             return "Nobody Awake"
