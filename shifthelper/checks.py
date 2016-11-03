@@ -1,4 +1,5 @@
-from custos import IntervalCheck
+from operator import attrgetter
+from custos import IntervalCheck, levels, Message
 from . import retry_smart_fact_crawler as sfc
 from .tools.is_shift import is_shift_at_the_moment, get_next_shutdown, get_last_shutdown
 from .tools.whosonshift import whoisonshift
@@ -60,6 +61,16 @@ def all_recent_alerts_acknowledged(checkname):
         return False
     return True
 
+def message_level(checkname):
+    '''
+    return the message severity level for a certain check,
+    based on whether all the alerts have been acknowledged or not
+    '''
+    if all_recent_alerts_acknowledged(checkname):
+        return levels.INFO
+    else:
+        return levels.WARNING
+
 
 class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
 
@@ -83,33 +94,56 @@ class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
         pass
 
 
-class MainJsStatusCheck(FactIntervalCheck):
-    def inner_check(self):
-        dim_control_status = sfc.status().dim_control
-        log.debug("MainJsStatusCheck: dim_control_status:o{}".format(dim_control_status))
-        if 'Running' not in dim_control_status:
-            return 'Main.js is not running', CATEGORY_SHIFTER
+def is_mainjs_not_running():
+    '''Main.js is not running'''
+    dim_control_status = sfc.status().dim_control
+    log.debug("MainJsStatusCheck: dim_control_status: {}".format(dim_control_status))
+    return 'Running' not in dim_control_status
 
 
-class HumidityCheck(FactIntervalCheck):
-    def inner_check(self):
-        lid_status = sfc.status().lid_control
-        # this translation is a dirty hack,
-        # and not guaranteed to work.
-        lid_status_translation = {
-            'Inconsistent': 'Closed',
-            'Closed': 'Closed',
-            'Open': 'Open',
-            'PowerProblem': 'Open'
-        }
-        lid_status = lid_status_translation.get(lid_status, 'Unknown')
+class MessageMixin:
+    def message(self, checklist, **kwargs):
+        return Message(
+            text=' and \n'.join(map(attrgetter('__doc__'), checklist)),
+            level=message_level(self.__class__.__name__),
+            **kwargs
+            )
 
-        humidity = sfc.weather().humidity.value
-        log.debug(
-            "HumidityCheck: humidity:{0} lid_status:{1}".format(humidity, lid_status)
-        )
-        if humidity >= 98 and lid_status == 'Open':
-            return 'Humidity > 98% while Lid open', CATEGORY_SHIFTER
+class MainJsStatusCheck(IntervalCheck, MessageMixin):
+    def check(self):
+        checklist = [is_shift_at_the_moment, is_mainjs_not_running]
+        if all(f() for f in checklist):
+            return self.message(checklist, category=CATEGORY_SHIFTER)
+
+def is_lid_open():
+    '''The Lid is Open'''
+    lid_status = sfc.status().lid_control
+    # this translation is a dirty hack,
+    # and not guaranteed to work.
+    lid_status_translation = {
+        'Inconsistent': 'Closed',
+        'Closed': 'Closed',
+        'Open': 'Open',
+        'PowerProblem': 'Open'
+    }
+    lid_status = lid_status_translation.get(lid_status, 'Unknown')
+    return lid_status == 'Open'
+
+
+def is_humidity_high():
+    '''Humidity > 98%'''
+    return sfc.weather().humidity.value >= 98
+
+
+class HumidityCheck(IntervalCheck, MessageMixin):
+    def check(self):
+        checklist = [
+            is_shift_at_the_moment,
+            is_humidity_high,
+            is_lid_open,
+        ]
+        if all(f() for f in checklist):
+            return self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 def is_parked():
