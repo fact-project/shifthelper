@@ -224,14 +224,14 @@ def is_20minutes_or_less_before_shutdown():
     return datetime.utcnow() > get_next_shutdown() - timedelta(minutes=20)
 
 
-def is_anybody_on_shift():
+def is_nobody_on_shift():
     '''Nobody on Shift'''
     try:
         whoisonshift()
     except IndexError:
-        return False
-    else:
         return True
+    else:
+        return False
 
 def is_last_shutdown_already_10min_past():
     '''Last Shutdown is already 10min past'''
