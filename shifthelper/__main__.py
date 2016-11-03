@@ -16,7 +16,8 @@ config_logging(to_console=False)
 
 def telegram_book(category):
     return [config['developer']['telegram_id']]
-    return [whoisonshift().iloc[0].telegram_id]
+    return [whoisonshift().telegram_id]
+
 
 twilio = FactTwilioNotifier(
     sid=config['twilio']['sid'],
@@ -33,7 +34,8 @@ telegram = TelegramNotifier(
 http = HTTPNotifier(
     level=levels.WARNING,
     recipients=[config['webservice']['post-url']],
-    auth=(config['webservice']['user'],
+    auth=(
+        config['webservice']['user'],
         config['webservice']['password']),
 )
 
@@ -43,6 +45,7 @@ log = LogNotifier(level=levels.DEBUG, recipients=['all'])
 def main():
     with Custos(
             checks=[
+                checks.ShifterOnShift(interval=60),
                 checks.MainJsStatusCheck(interval=60),
                 checks.HumidityCheck(interval=60),
                 checks.WindSpeedCheck(interval=60),
@@ -59,6 +62,7 @@ def main():
                 checks.DIMNetworkNotAvailable(interval=60),
                 checks.NoDimCtrlServerAvailable(interval=60),
                 checks.TriggerRateLowForTenMinutes(interval=60),
+                checks.IsUserAwakeBeforeShutdown(interval=60),
             ],
             notifiers=[
                 twilio,

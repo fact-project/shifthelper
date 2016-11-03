@@ -56,11 +56,19 @@ class FactTwilioNotifier(TwilioNotifier):
 
     def phone_number_of_normal_shifter(self):
         return config['developer']['phone_number']
-        return whoisonshift().iloc[0].phone_mobile
+        try:
+            return whoisonshift().phone_mobile
+        except IndexError:
+            return config['developer']['phone_number']
+
+
 
     def phone_number_of_fallback_shifter(self):
         return config['fallback_shifter']['phone_number']
-        return whoisonshift().iloc[0].phone_mobile
+        try:
+            return whoisonshift().phone_mobile
+        except IndexError:
+            return config['developer']['phone_number']
 
     def handle_message(self, msg):
         if msg.level >= self.level:

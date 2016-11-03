@@ -1,7 +1,8 @@
 from custos import IntervalCheck
 from . import retry_smart_fact_crawler as sfc
-from .tools.is_shift import is_shift_at_the_moment
-from .tools import config
+from .tools.is_shift import is_shift_at_the_moment, get_next_shutdown, get_last_shutdown
+from .tools.whosonshift import whoisonshift
+from .tools import config, get_last_parking_checklist_entry
 import requests
 from requests.exceptions import RequestException
 from abc import ABCMeta, abstractmethod
@@ -10,29 +11,33 @@ import pandas as pd
 from datetime import timedelta, datetime
 import re as regex
 
-from retrying import retry
+from retrying import retry, RetryError
 
 import logging
 
 log = logging.getLogger(__name__)
 
 
+CATEGORY_SHIFTER = 'shifter'
+CATEGORY_DEVELOPER = 'developer'
+
 class FactIntervalCheck(IntervalCheck, metaclass=ABCMeta):
 
     def check(self):
         if is_shift_at_the_moment():
-            text = self.inner_check()
-            if text is not None:
+            text_and_category = self.inner_check()
+            if text_and_category is not None:
                 try:
                     acknowledged = self.all_recent_alerts_acknowledged()
                 except RequestException:
                     log.exception('Could not check acknowledged alerts')
                     acknowledged = False
 
+                text, category = text_and_category
                 if acknowledged is True:
-                    self.info(text)
+                    self.info(text, category=category)
                 else:
-                    self.warning(text)
+                    self.warning(text, category=category)
         else:
             debug_log_msg = self.__class__.__name__ + '.check():'
             debug_log_msg += " - no shift at the moment."
@@ -73,7 +78,7 @@ class MainJsStatusCheck(FactIntervalCheck):
         dim_control_status = sfc.status().dim_control
         log.debug("MainJsStatusCheck: dim_control_status:o{}".format(dim_control_status))
         if 'Running' not in dim_control_status:
-            return 'Main.js is not running'
+            return 'Main.js is not running', CATEGORY_SHIFTER
 
 
 class HumidityCheck(FactIntervalCheck):
@@ -94,7 +99,7 @@ class HumidityCheck(FactIntervalCheck):
             "HumidityCheck: humidity:{0} lid_status:{1}".format(humidity, lid_status)
         )
         if humidity >= 98 and lid_status == 'Open':
-            return 'Humidity > 98% while Lid open'
+            return 'Humidity > 98% while Lid open', CATEGORY_SHIFTER
 
 
 def is_parked():
@@ -196,7 +201,8 @@ class WindSpeedCheck(FactIntervalCheck):
         _is_parked = is_parked()
         log.debug("WindSpeedCheck: is_parked:{0}, wind_speed:{1}".format(_is_parked, wind_speed))
         if wind_speed >= 50 and not _is_parked:
-            'Wind speed > 50 km/h and not parked'
+            return 'Wind speed > 50 km/h and not parked', CATEGORY_SHIFTER
+
 
 class WindGustCheck(FactIntervalCheck):
     def inner_check(self):
@@ -204,7 +210,8 @@ class WindGustCheck(FactIntervalCheck):
         _is_parked = is_parked()
         log.debug("WindGustCheck: is_parked:{0}, wind_speed:{1}".format(_is_parked, wind_gusts))
         if wind_gusts >= 50 and not _is_parked:
-            return 'Wind gusts > 50 km/h and not parked'
+            return 'Wind gusts > 50 km/h and not parked', CATEGORY_SHIFTER
+
 
 class MedianCurrentCheck(FactIntervalCheck):
     def inner_check(self):
@@ -213,7 +220,8 @@ class MedianCurrentCheck(FactIntervalCheck):
         log.debug("MedianCurrentCheck: is_currents_calibrated:{0}, median_current:{1}".format(is_currents_calibrated, median_current))
         if is_currents_calibrated:
             if median_current >= 115:
-                return 'Median GAPD current > 115uA'
+                return 'Median GAPD current > 115uA', CATEGORY_SHIFTER
+
 
 class MaximumCurrentCheck(FactIntervalCheck):
     def inner_check(self):
@@ -222,14 +230,15 @@ class MaximumCurrentCheck(FactIntervalCheck):
         log.debug("MaximumCurrentCheck: is_currents_calibrated:{0}, max_current:{1}".format(is_currents_calibrated, max_current))
         if is_currents_calibrated:
             if max_current >= 160:
-                return 'Maximum GAPD current > 160uA'
+                return 'Maximum GAPD current > 160uA', CATEGORY_SHIFTER
+
 
 class RelativeCameraTemperatureCheck(FactIntervalCheck):
     def inner_check(self):
         relative_temperature = sfc.main_page().relative_camera_temperature.value
         log.debug('RelativeCameraTemperatureCheck: relative_temperature:{0}'.format(relative_temperature))
         if relative_temperature >= 15.0:
-            return 'relative camera temperature > 15°C'
+            return 'relative camera temperature > 15°C', CATEGORY_SHIFTER
 
 
 class BiasNotOperatingDuringDataRun(FactIntervalCheck):
@@ -237,17 +246,18 @@ class BiasNotOperatingDuringDataRun(FactIntervalCheck):
         _is_bias_not_operating = is_bias_not_operating()
         _is_data_taking = is_data_taking()
         _is_data_run = is_data_run()
-        log.debug('BiasNotOperatingDuringDataRun: '
+        log.debug(
+            'BiasNotOperatingDuringDataRun: '
             '_is_bias_not_operating:{0}, '
             '_is_data_taking:{1}, '
             '_is_data_run:{2}'.format(
-            _is_bias_not_operating,
-            _is_data_taking,
-            _is_data_run))
-        if (_is_bias_not_operating
-                and _is_data_taking
-                and _is_data_run):
-            return 'Bias not operating during data run'
+                _is_bias_not_operating,
+                _is_data_taking,
+                _is_data_run))
+        if (_is_bias_not_operating and
+                _is_data_taking and
+                _is_data_run):
+            return 'Bias not operating during data run', CATEGORY_SHIFTER
 
 
 class BiasChannelsInOverCurrent(FactIntervalCheck):
@@ -255,7 +265,7 @@ class BiasChannelsInOverCurrent(FactIntervalCheck):
         bias_state = sfc.status().bias_control
         log.debug('BiasChannelsInOverCurrent: bias_state:{}'.format(bias_state))
         if bias_state == 'OverCurrent':
-            return 'Bias Channels in Over Current'
+            return 'Bias Channels in Over Current', CATEGORY_SHIFTER
 
 
 class BiasVoltageNotAtReference(FactIntervalCheck):
@@ -263,7 +273,7 @@ class BiasVoltageNotAtReference(FactIntervalCheck):
         bias_state = sfc.status().bias_control
         log.debug('BiasVoltageNotAtReference: bias_state:{}'.format(bias_state))
         if bias_state == 'NotReferenced':
-            return 'Bias Voltage not at reference.'
+            return 'Bias Voltage not at reference.', CATEGORY_SHIFTER
 
 
 class ContainerTooWarm(FactIntervalCheck):
@@ -271,7 +281,7 @@ class ContainerTooWarm(FactIntervalCheck):
         container_temperature = float(sfc.container_temperature().current.value)
         log.debug('ContainerTooWarm: container_temperature:{}'.format(container_temperature))
         if container_temperature > 42:
-            return 'Container Temperature above 42 deg C'
+            return 'Container Temperature above 42 deg C', CATEGORY_SHIFTER
 
 
 class DriveInErrorDuringDataRun(FactIntervalCheck):
@@ -279,18 +289,16 @@ class DriveInErrorDuringDataRun(FactIntervalCheck):
         _is_drive_error = is_drive_error()
         _is_data_taking = is_data_taking()
         _is_data_run = is_data_run()
-        log.debug('DriveInErrorDuringDataRun: '
+        log.debug(
+            'DriveInErrorDuringDataRun: '
             '_is_drive_error:{0}, '
             '_is_data_taking:{1}, '
             '_is_data_run:{2}'.format(
                 _is_drive_error,
                 _is_data_taking,
                 _is_data_run))
-        if (_is_drive_error
-                and _is_data_taking
-                and _is_data_run
-                ):
-            return 'Drive in Error during Data run'
+        if (_is_drive_error and _is_data_taking and _is_data_run):
+            return 'Drive in Error during Data run', CATEGORY_SHIFTER
 
 
 class BiasVoltageOnButNotCalibrated(FactIntervalCheck):
@@ -298,19 +306,17 @@ class BiasVoltageOnButNotCalibrated(FactIntervalCheck):
         is_voltage_on = sfc.status().bias_control == 'VoltageOn'
         _is_feedback_not_calibrated = is_feedback_not_calibrated()
         median_voltage = sfc.sipm_voltages().median.value
-        log.debug('BiasVoltageOnButNotCalibrated: '
+        log.debug(
+            'BiasVoltageOnButNotCalibrated: '
             'is_voltage_on:{0}, '
             '_is_feedback_not_calibrated:{1}, '
             'median_voltage:{2}'.format(
                 is_voltage_on,
                 _is_feedback_not_calibrated,
-                median_voltage
-                ))
-        if (is_voltage_on
-                and _is_feedback_not_calibrated
-                and median_voltage > 3 # volt
-                ):
-            return 'Bias voltage switched on, but bias crate not calibrated'
+                median_voltage))
+        if (is_voltage_on and _is_feedback_not_calibrated and median_voltage > 3):
+            return 'Bias voltage switched on, but bias crate not calibrated', CATEGORY_SHIFTER
+
 
 class DIMNetworkNotAvailable(FactIntervalCheck):
     def inner_check(self):
@@ -319,7 +325,8 @@ class DIMNetworkNotAvailable(FactIntervalCheck):
         dim_network_status = sfc.status().dim
         log.debug('DIMNetworkNotAvailable: {0}'.format(dim_network_status))
         if dim_network_status == 'Offline':
-            return 'DIM network not available'
+            return 'DIM network not available', CATEGORY_SHIFTER
+
 
 class NoDimCtrlServerAvailable(FactIntervalCheck):
     def inner_check(self):
@@ -332,7 +339,7 @@ class NoDimCtrlServerAvailable(FactIntervalCheck):
                 'ERROR',
                 'FATAL',
                 ]:
-            return 'no dimctrl server available'
+            return 'no dimctrl server available', CATEGORY_SHIFTER
 
 
 class TriggerRateLowForTenMinutes(FactIntervalCheck):
@@ -340,18 +347,158 @@ class TriggerRateLowForTenMinutes(FactIntervalCheck):
 
     def inner_check(self):
         current_trigger_rate = sfc.trigger_rate().trigger_rate.value
+        _is_data_taking = is_data_taking()
         self._append_to_history(current_trigger_rate)
         self._remove_old_entries()
 
         df = pd.DataFrame(self.history)
-        log.debug('TriggerRateLowForTenMinutes: trigger_rate_history:{0}'.format(df))
-        if not df.empty and (df.rate < 1).all():
-            return 'Trigger rate < 1/s for 10 minutes'
+        log.debug(
+            'TriggerRateLowForTenMinutes: (rate < 1).all:{0} data_taking:{1}'.format(
+                (df.rate < 1).all(), _is_data_taking))
+        if _is_data_taking and not df.empty and (df.rate < 1).all():
+            return 'Trigger rate < 1/s for 10 minutes, while data taking', CATEGORY_SHIFTER
 
     def _append_to_history(self, rate):
-        self.history = self.history.append([{'timestamp':datetime.utcnow(), 'rate':rate}])
+        self.history = self.history.append([{'timestamp': datetime.utcnow(), 'rate': rate}])
 
     def _remove_old_entries(self):
         now = datetime.utcnow()
         self.history = self.history[(now - self.history.timestamp) < timedelta(minutes=10)]
+
+
+class IsUserAwakeBeforeShutdown(FactIntervalCheck):
+    '''
+    This Check should find out if the user is actually awake some time before
+    the scheduled shutdown.
+
+    In order to find out, if the shifter is awake, we need to find out:
+      * Is it 20minutes (or less) before shutdown?
+      * Who is the current shifter (username)?
+      * Is she awake, i.e. did he press the "I am awake button" recently?
+    '''
+    @retry(stop_max_delay=30000,  # 30 seconds max
+           wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+           wait_exponential_max=1000,  # but wait 1 second per try maximum
+           wrap_exception=True,  # raise RetryError and not the inner exception
+           )
+    def _current_user_and_awake(self, shutdown_time):
+        earliest_awake_time = shutdown_time - timedelta(minutes=30)
+        current_shifter = whoisonshift()
+        user_since = requests.get('https://ihp-pc41.ethz.ch/iAmAwake').json()
+        awake = {}
+        for username, since in user_since.items():
+            since = pd.to_datetime(since)
+            if since > earliest_awake_time:
+                awake[username] = since
+        return current_shifter, awake
+
+    def inner_check(self):
+        try:
+            shutdown_time = get_next_shutdown().fStart
+        except IndexError:
+            # IndexError means, there is no next shutdown,
+            # In that case nobody needs to be awake.
+            return
+
+        try:
+            current_shifter, awake = self._current_user_and_awake(shutdown_time)
+        except RetryError:
+            return "Unable to find out current shifter or find out who is awake", CATEGORY_SHIFTER
+
+        if not len(awake):
+            return "Nobody Awake", CATEGORY_SHIFTER
+
+        if not current_shifter in awake:
+            return "Somebody awake; but not the right person :-(", CATEGORY_SHIFTER
+
+
+class ShifterOnShift(FactIntervalCheck):
+    def inner_check(self):
+        try:
+            whoisonshift()
+        except IndexError:
+            return "There is a shift, but no shifter", CATEGORY_DEVELOPER
+
+
+class ParkingChecklistFilled(IntervalCheck):
+    '''
+    This Check should find out if the parking/shutdown checklist
+    was filled, i.e. "if the shutdown checked by a person"
+    within a certain time after the scheduled shutdown.
+
+    This check, does not only run when there is a shift, but
+    *after* the shift. So when there is no shift at the moment,
+    it is by definition *after* the shift.
+
+    It tries to find out:
+     * when the last checklist was filled and
+     * when the last shutdown was scheduled.
+
+    If there was no checklist-fill after the last scheduled shutdown it calls.
+
+    Well, if the current time is only up to 10 minutes after the last shutdown,
+    we give the human operator a little time to do the actual work.
+    '''
+    def inner_check(self):
+        try:
+            shutdown = get_last_shutdown().fStart
+        except:
+            return "cannot find out, when last shutdown was.", CATEGORY_SHIFTER
+
+
+        if shutdown + timedelta(minutes=10) < datetime.utcnow():
+            return
+
+        try:
+            last_checklist_entry = get_last_parking_checklist_entry().created
+        except:
+            return "cannot find out, if checklist was filled.", CATEGORY_SHIFTER
+
+        if last_checklist_entry < shutdown:
+            return "Checklist not filled for the last shutdown.", CATEGORY_SHIFTER
+
+
+    def check(self):
+        if not is_shift_at_the_moment():
+            text = self.inner_check()
+            if text is not None:
+                try:
+                    acknowledged = self.all_recent_alerts_acknowledged()
+                except RequestException:
+                    log.exception('Could not check acknowledged alerts')
+                    acknowledged = False
+
+                if acknowledged is True:
+                    self.info(text)
+                else:
+                    self.warning(text)
+        else:
+            debug_log_msg = self.__class__.__name__ + '.check():'
+            debug_log_msg += " - no shift at the moment."
+            log.debug(debug_log_msg)
+
+    @retry(stop_max_delay=30000,  # 30 seconds max
+           wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+           wait_exponential_max=1000,  # but wait 1 second per try maximum
+           )
+    def all_recent_alerts_acknowledged(self):
+        all_alerts = requests.get(config['webservice']['post-url']).json()
+        if not all_alerts:
+            return False
+
+        now = datetime.utcnow()
+        all_alerts = pd.DataFrame(all_alerts)
+        all_alerts['timestamp'] = pd.to_datetime(all_alerts.timestamp, utc=True)
+
+        my_alerts = all_alerts[all_alerts.check == self.__class__.__name__]
+        if my_alerts.empty:
+            return False
+
+        my_recent_alerts = my_alerts[(now - my_alerts.timestamp) < timedelta(minutes=10)]
+        if my_recent_alerts.empty:
+            return False
+
+        if not my_recent_alerts.acknowledged.all():
+            return False
+        return True
 
