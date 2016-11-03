@@ -14,6 +14,7 @@ class MessageMixin:
         self.queue.put(Message(
             text=' and \n'.join(map(attrgetter('__doc__'), checklist)),
             level=message_level(self.__class__.__name__),
+            check=self.__class__.__name__,
             **kwargs
             ))
 
