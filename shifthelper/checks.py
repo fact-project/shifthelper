@@ -21,18 +21,6 @@ class MainJsStatusCheck(IntervalCheck, MessageMixin):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
-
-class HumidityCheck(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_humidity_high,
-            conditions.is_lid_open,
-        ]
-        if all(f() for f in checklist):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-
 class WindSpeedCheck(IntervalCheck, MessageMixin):
     def check(self):
         checklist = [
