@@ -48,6 +48,7 @@ def get_last_startup_or_shutdown(current_time_rounded_to_seconds=None, db=None):
        wait_exponential_max=1000,  # but wait 1 second per try maximum
        )
 def is_shift_at_the_moment(time=None):
+    '''There is a shift at the moment'''
     if time is None:
         now = datetime.utcnow().replace(microsecond=0)
     else:
