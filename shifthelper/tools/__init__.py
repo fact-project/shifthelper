@@ -45,3 +45,18 @@ def get_last_parking_checklist_entry():
         # In all checks, which check if it was *already* filled
         # this future timestamp will result as False
         return datetime.datetime.max
+
+
+def fetch_users_awake():
+    @retry(stop_max_delay=30000,  # 30 seconds max
+          wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+          wait_exponential_max=1000,  # but wait 1 second per try maximum
+          wrap_exception=True
+         )
+    def retry_fetch_fail_after_30sec():
+        return requests.get('https://ihp-pc41.ethz.ch/iAmAwake').json()
+
+    try:
+        return retry_fetch_fail_after_30sec()
+    except RetryError:
+        return {}
