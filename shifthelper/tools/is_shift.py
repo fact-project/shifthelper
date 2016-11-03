@@ -78,35 +78,46 @@ def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
         now=current_time_rounded_to_seconds
         )
 
-    return pd.merge(
-        pd.read_sql_query(query, db),
-        types.reset_index(),
-        on="fMeasurementTypeKey"
-    ).iloc[0]
+    try:
+        return pd.merge(
+            pd.read_sql_query(query, db),
+            types.reset_index(),
+            on="fMeasurementTypeKey"
+        ).iloc[0].fStart
+    except IndexError:
+        # in case we cannot find the next shutdown,
+        # we simply say the next shutdown is waaaay far in the future.
+        return datetime.datetime.max
+
 
 
 def get_last_shutdown(current_time_rounded_to_seconds=None, db=None):
-    if current_time_rounded_to_seconds is None:
-        current_time_rounded_to_seconds = datetime.utcnow().replace(microsecond=0)
-    if db is None:
-        db = tools.create_db_connection(tools.config['cloned_db'])
+    try:
+        if current_time_rounded_to_seconds is None:
+            current_time_rounded_to_seconds = datetime.utcnow().replace(microsecond=0)
+        if db is None:
+            db = tools.create_db_connection(tools.config['cloned_db'])
 
-    types = get_MeasurementType(db)
-    query = """
-    SELECT * FROM factdata_Schedule AS S
-    WHERE
-        S.fMeasurementTypeKey = {key}
-    AND
-        S.fStart < "{now}"
-    ORDER BY S.fStart DESC
-    LIMIT 1
-    """.format(
-        key=(types.loc["Shutdown"].fMeasurementTypeKey),
-        now=current_time_rounded_to_seconds
-        )
+        types = get_MeasurementType(db)
+        query = """
+        SELECT * FROM factdata_Schedule AS S
+        WHERE
+            S.fMeasurementTypeKey = {key}
+        AND
+            S.fStart < "{now}"
+        ORDER BY S.fStart DESC
+        LIMIT 1
+        """.format(
+            key=(types.loc["Shutdown"].fMeasurementTypeKey),
+            now=current_time_rounded_to_seconds
+            )
 
-    return pd.merge(
-        pd.read_sql_query(query, db),
-        types.reset_index(),
-        on="fMeasurementTypeKey"
-    ).iloc[0]
+        return pd.merge(
+            pd.read_sql_query(query, db),
+            types.reset_index(),
+            on="fMeasurementTypeKey"
+        ).iloc[0].fStart
+    except IndexError:
+        # in case we cannot find the last shutdown,
+        # we simply say the last shutdown was waaay in the past
+        return datetime.datetime.min
