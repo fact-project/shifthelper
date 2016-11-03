@@ -1,4 +1,5 @@
 import os
+import datetime
 import threading
 import sqlalchemy
 import json
@@ -32,8 +33,15 @@ def create_db_connection(db_config=None):
     return db_engines[frozenset(db_config.items())]
 
 def get_last_parking_checklist_entry():
-    table = pd.read_sql_query(
-        'select * from park_checklist_filled',
-        create_db_connection(config['sandbox_db'])
-        )
-    return table.sort_values('created').iloc[-1]
+    try:
+        table = pd.read_sql_query(
+            'select * from park_checklist_filled',
+            create_db_connection(config['sandbox_db'])
+            )
+        return table.sort_values('created').iloc[-1].created
+    except IndexError:
+        # In case we can not find out when the checklist was filled
+        # we pretend it was only filled waaaay in the future.
+        # In all checks, which check if it was *already* filled
+        # this future timestamp will result as False
+        return datetime.datetime.max
