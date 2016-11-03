@@ -5,8 +5,8 @@ from datetime import timedelta, datetime
 import logging
 log = logging.getLogger(__name__)
 
-from message_mixin import MessageMixin
-import conditions
+from .message_mixin import MessageMixin
+from . import conditions
 
 CATEGORY_SHIFTER = 'shifter'
 CATEGORY_DEVELOPER = 'developer'
