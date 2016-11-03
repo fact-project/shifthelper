@@ -226,7 +226,7 @@ class ShifterOnShift(IntervalCheck, MessageMixin):
     def check(self):
         checklist = [
             conditions.is_shift_at_the_moment,
-            conditions.is_anybody_on_shift,
+            conditions.is_nobody_on_shift,
         ]
         if all(f() for f in checklist):
             self.message(checklist, category=CATEGORY_DEVELOPER)
