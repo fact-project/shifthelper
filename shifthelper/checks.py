@@ -24,11 +24,11 @@ CATEGORY_DEVELOPER = 'developer'
 
 class MessageMixin:
     def message(self, checklist, **kwargs):
-        return Message(
+        self.queue.put(Message(
             text=' and \n'.join(map(attrgetter('__doc__'), checklist)),
             level=message_level(self.__class__.__name__),
             **kwargs
-            )
+            ))
 
 @retry(stop_max_delay=30000,  # 30 seconds max
        wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
@@ -90,7 +90,7 @@ class MainJsStatusCheck(IntervalCheck, MessageMixin):
     def check(self):
         checklist = [is_shift_at_the_moment, is_mainjs_not_running]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 def is_lid_open():
     '''The Lid is Open'''
@@ -120,7 +120,7 @@ class HumidityCheck(IntervalCheck, MessageMixin):
             is_lid_open,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 def is_not_parked():
@@ -294,7 +294,7 @@ class WindSpeedCheck(IntervalCheck, MessageMixin):
             is_not_parked,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 class WindGustCheck(IntervalCheck, MessageMixin):
@@ -305,7 +305,7 @@ class WindGustCheck(IntervalCheck, MessageMixin):
             is_not_parked,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 class MedianCurrentCheck(IntervalCheck, MessageMixin):
@@ -315,7 +315,7 @@ class MedianCurrentCheck(IntervalCheck, MessageMixin):
             is_median_current_high,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 class MaximumCurrentCheck(IntervalCheck, MessageMixin):
@@ -325,7 +325,7 @@ class MaximumCurrentCheck(IntervalCheck, MessageMixin):
             is_maximum_current_high,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 class RelativeCameraTemperatureCheck(IntervalCheck, MessageMixin):
@@ -335,7 +335,7 @@ class RelativeCameraTemperatureCheck(IntervalCheck, MessageMixin):
             is_rel_camera_temperature_high,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 class BiasNotOperatingDuringDataRun(IntervalCheck, MessageMixin):
@@ -347,7 +347,7 @@ class BiasNotOperatingDuringDataRun(IntervalCheck, MessageMixin):
             is_data_taking,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 class BiasChannelsInOverCurrent(IntervalCheck, MessageMixin):
     def check(self):
@@ -356,7 +356,7 @@ class BiasChannelsInOverCurrent(IntervalCheck, MessageMixin):
             is_overcurrent,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 class BiasVoltageNotAtReference(IntervalCheck, MessageMixin):
@@ -366,7 +366,7 @@ class BiasVoltageNotAtReference(IntervalCheck, MessageMixin):
             is_bias_voltage_not_at_reference,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 class ContainerTooWarm(IntervalCheck, MessageMixin):
@@ -376,7 +376,7 @@ class ContainerTooWarm(IntervalCheck, MessageMixin):
             is_container_too_warm,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 
@@ -389,7 +389,7 @@ class DriveInErrorDuringDataRun(IntervalCheck, MessageMixin):
             is_data_taking,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 class BiasVoltageOnButNotCalibrated(IntervalCheck, MessageMixin):
@@ -400,7 +400,7 @@ class BiasVoltageOnButNotCalibrated(IntervalCheck, MessageMixin):
             is_feedback_not_calibrated,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 class DIMNetworkNotAvailable(IntervalCheck, MessageMixin):
@@ -410,7 +410,7 @@ class DIMNetworkNotAvailable(IntervalCheck, MessageMixin):
             is_dim_network_down,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 class NoDimCtrlServerAvailable(IntervalCheck, MessageMixin):
@@ -420,7 +420,7 @@ class NoDimCtrlServerAvailable(IntervalCheck, MessageMixin):
             is_no_dimctrl_server_available,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 
@@ -435,7 +435,7 @@ class TriggerRateLowForTenMinutes(IntervalCheck, MessageMixin):
             self.is_trigger_rate_low_for_ten_minutes,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
     def is_trigger_rate_low_for_ten_minutes(self):
         '''Trigger rate < 1/s for 10 minutes'''
@@ -470,7 +470,7 @@ class IsUserAwakeBeforeShutdown(IntervalCheck, MessageMixin):
             is_user_awake,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_SHIFTER)
+            self.message(checklist, category=CATEGORY_SHIFTER)
 
 
 def is_user_awake():
@@ -520,7 +520,7 @@ class ShifterOnShift(IntervalCheck, MessageMixin):
             is_anybody_on_shift,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_DEVELOPER)
+            self.message(checklist, category=CATEGORY_DEVELOPER)
 
 
 class ParkingChecklistFilled(IntervalCheck, MessageMixin):
@@ -549,7 +549,7 @@ class ParkingChecklistFilled(IntervalCheck, MessageMixin):
             is_checklist_filled,
         ]
         if all(f() for f in checklist):
-            return self.message(checklist, category=CATEGORY_DEVELOPER)
+            self.message(checklist, category=CATEGORY_DEVELOPER)
 
 def is_last_shutdown_already_10min_past():
     return get_last_shutdown() + timedelta(minutes=10) > datetime.utcnow():
