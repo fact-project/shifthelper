@@ -15,12 +15,17 @@ from .tools.whosonshift import whoisonshift
 from .tools import get_last_parking_checklist_entry
 from .tools import fetch_users_awake
 from . import retry_smart_fact_crawler as sfc
+from .debug_log_wrapper import log_call_and_result
 
+
+@log_call_and_result
 def is_mainjs_not_running():
     '''Main.js is not running'''
     dim_control_status = sfc.status().dim_control
     return 'Running' not in dim_control_status
 
+
+@log_call_and_result
 def is_lid_open():
     '''The Lid is Open'''
     lid_status = sfc.status().lid_control
@@ -36,10 +41,13 @@ def is_lid_open():
     return lid_status == 'Open'
 
 
+@log_call_and_result
 def is_humidity_high():
     '''Humidity > 98%'''
     return sfc.weather().humidity.value >= 98
 
+
+@log_call_and_result
 def is_not_parked():
     ''' Telescope not parked '''
     az = sfc.drive_pointing().azimuth.value
@@ -51,6 +59,7 @@ def is_not_parked():
     return not ((-5 < az < 5) and (90 < zd))
 
 
+@log_call_and_result
 def is_drive_error():
     ''' DriveCtrl in some error state '''
     drive_state = sfc.status().drive_control
@@ -63,6 +72,7 @@ def is_drive_error():
     ]
 
 
+@log_call_and_result
 def is_data_taking():
     '''is taking data'''
     # if MCP::State::kTriggerOn ||MCP::State::kTakingData;
@@ -70,6 +80,7 @@ def is_data_taking():
     return sfc.status().mcp in ['TakingData', 'TriggerOn']
 
 
+@log_call_and_result
 def is_data_run():
     '''is doing physics data run'''
     # fMcpConfigurationName=='data' || fMcpConfigurationName=='data-rt';
@@ -88,6 +99,7 @@ def is_data_run():
         return False
 
 
+@log_call_and_result
 def is_bias_not_operating():
     '''bias not operating'''
 
@@ -129,6 +141,7 @@ def is_bias_not_operating():
     ]
 
 
+@log_call_and_result
 def is_feedback_not_calibrated():
     ''' feedback is not calibrated '''
     feedback_state = sfc.status().feedback
@@ -142,49 +155,69 @@ def is_feedback_not_calibrated():
         'Connected',
     ]
 
+
+@log_call_and_result
 def is_high_windspeed():
     '''windspeed > 50km/h'''
     return sfc.weather().wind_speed.value >= 50
 
+
+@log_call_and_result
 def is_high_windgusts():
     '''Wind gusts > 50 km/h'''
     return sfc.weather().wind_gusts.value >= 50
 
+
+@log_call_and_result
 def is_median_current_high():
     '''Median GAPD current > 115uA'''
     is_currents_calibrated = sfc.sipm_currents().calibrated
     median_current = sfc.sipm_currents().median_per_sipm.value
     return is_currents_calibrated and median_current >= 115
 
+
+@log_call_and_result
 def is_maximum_current_high():
     '''Maximum GAPD current > 160uA'''
     is_currents_calibrated = sfc.sipm_currents().calibrated
     max_current = sfc.sipm_currents().max_per_sipm.value
     return is_currents_calibrated and max_current >= 160
 
+
+@log_call_and_result
 def is_rel_camera_temperature_high():
     '''relative camera temperature > 15°C'''
     relative_temperature = sfc.main_page().relative_camera_temperature.value
     return relative_temperature >= 15.0
 
+
+@log_call_and_result
 def is_overcurrent():
     '''Bias Channels in Over Current'''
     return sfc.status().bias_control == 'OverCurrent'
 
+
+@log_call_and_result
 def is_bias_voltage_not_at_reference():
     '''Bias Voltage not at reference'''
     return sfc.status().bias_control == 'NotReferenced'
 
+
+@log_call_and_result
 def is_container_too_warm():
     '''Container Temperature above 42 °C'''
     container_temperature = float(sfc.container_temperature().current.value)
     return container_temperature > 42
 
+
+@log_call_and_result
 def is_voltage_on():
     '''Bias Voltage is On'''
     median_voltage = sfc.sipm_voltages().median.value
     return sfc.status().bias_control == 'VoltageOn' and median_voltage > 3
 
+
+@log_call_and_result
 def is_dim_network_down():
     '''DIM network not available'''
     # can be checked this way according to:
@@ -192,6 +225,8 @@ def is_dim_network_down():
     dim_network_status = sfc.status().dim
     return dim_network_status == 'Offline'
 
+
+@log_call_and_result
 def is_no_dimctrl_server_available():
     '''no dimctrl server available'''
     # Didn't find a clear way to check this, so I do:
@@ -203,10 +238,13 @@ def is_no_dimctrl_server_available():
         'FATAL',
         ]
 
+
+@log_call_and_result
 def is_no_shift_at_the_moment():
     return not is_shift_at_the_moment
 
 
+@log_call_and_result
 def is_nobody_awake():
     '''Parker not Awake'''
     awake = {}
@@ -219,11 +257,14 @@ def is_nobody_awake():
     else:
         return whoisonshift() not in awake
 
+
+@log_call_and_result
 def is_20minutes_or_less_before_shutdown():
     '''20min before shutdown'''
     return datetime.utcnow() > get_next_shutdown() - timedelta(minutes=20)
 
 
+@log_call_and_result
 def is_nobody_on_shift():
     '''Nobody on Shift'''
     try:
@@ -233,11 +274,14 @@ def is_nobody_on_shift():
     else:
         return False
 
+
+@log_call_and_result
 def is_last_shutdown_already_10min_past():
     '''Last Shutdown is already 10min past'''
     return get_last_shutdown() + timedelta(minutes=10) > datetime.utcnow()
 
 
+@log_call_and_result
 def is_checklist_not_filled():
     '''checklist not filled'''
     return get_last_parking_checklist_entry() > get_last_shutdown()
