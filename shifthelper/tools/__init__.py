@@ -4,6 +4,7 @@ import threading
 import sqlalchemy
 import json
 import pandas as pd
+from retrying import retry, RetryError
 
 __all__ = ['create_db_connection', 'config']
 
