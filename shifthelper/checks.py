@@ -14,6 +14,7 @@ log = logging.getLogger(__name__)
 
 CATEGORY_SHIFTER = 'shifter'
 CATEGORY_DEVELOPER = 'developer'
+CATEGORY_FLARE_EXPERT = 'flare_expert'
 
 class MainJsStatusCheck(IntervalCheck, MessageMixin):
     def check(self):
@@ -249,5 +250,5 @@ class FlareAlert(IntervalCheck, MessageMixin):
         if all(f() for f in checklist):
             data = qla.get_data()
             image = qla.create_mpl_plot(data)
-            self.message(checklist, category=CATEGORY_DEVELOPER, image=image)
+            self.message(checklist, category=CATEGORY_FLARE_EXPERT, image=image)
 
