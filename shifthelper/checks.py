@@ -7,6 +7,7 @@ log = logging.getLogger(__name__)
 
 from .message_mixin import MessageMixin
 from . import conditions
+from . import retry_smart_fact_crawler as sfc
 
 CATEGORY_SHIFTER = 'shifter'
 CATEGORY_DEVELOPER = 'developer'
@@ -17,7 +18,7 @@ class MainJsStatusCheck(IntervalCheck, MessageMixin):
             conditions.is_shift_at_the_moment,
             conditions.is_mainjs_not_running
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
@@ -28,7 +29,7 @@ class WindSpeedCheck(IntervalCheck, MessageMixin):
             conditions.is_high_windspeed,
             conditions.is_not_parked,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
@@ -39,7 +40,7 @@ class WindGustCheck(IntervalCheck, MessageMixin):
             conditions.is_high_windgusts,
             conditions.is_not_parked,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
@@ -49,7 +50,7 @@ class MedianCurrentCheck(IntervalCheck, MessageMixin):
             conditions.is_shift_at_the_moment,
             conditions.is_median_current_high,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
@@ -59,7 +60,7 @@ class MaximumCurrentCheck(IntervalCheck, MessageMixin):
             conditions.is_shift_at_the_moment,
             conditions.is_maximum_current_high,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
@@ -69,7 +70,7 @@ class RelativeCameraTemperatureCheck(IntervalCheck, MessageMixin):
             conditions.is_shift_at_the_moment,
             conditions.is_rel_camera_temperature_high,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
@@ -81,7 +82,7 @@ class BiasNotOperatingDuringDataRun(IntervalCheck, MessageMixin):
             conditions.is_data_run,
             conditions.is_data_taking,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 class BiasChannelsInOverCurrent(IntervalCheck, MessageMixin):
@@ -90,7 +91,7 @@ class BiasChannelsInOverCurrent(IntervalCheck, MessageMixin):
             conditions.is_shift_at_the_moment,
             conditions.is_overcurrent,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
@@ -100,7 +101,7 @@ class BiasVoltageNotAtReference(IntervalCheck, MessageMixin):
             conditions.is_shift_at_the_moment,
             conditions.is_bias_voltage_not_at_reference,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
@@ -110,7 +111,7 @@ class ContainerTooWarm(IntervalCheck, MessageMixin):
             conditions.is_shift_at_the_moment,
             conditions.is_container_too_warm,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
@@ -123,7 +124,7 @@ class DriveInErrorDuringDataRun(IntervalCheck, MessageMixin):
             conditions.is_data_run,
             conditions.is_data_taking,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
@@ -134,7 +135,7 @@ class BiasVoltageOnButNotCalibrated(IntervalCheck, MessageMixin):
             conditions.is_voltage_on,
             conditions.is_feedback_not_calibrated,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
@@ -144,7 +145,7 @@ class DIMNetworkNotAvailable(IntervalCheck, MessageMixin):
             conditions.is_shift_at_the_moment,
             conditions.is_dim_network_down,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
@@ -154,7 +155,7 @@ class NoDimCtrlServerAvailable(IntervalCheck, MessageMixin):
             conditions.is_shift_at_the_moment,
             conditions.is_no_dimctrl_server_available,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
@@ -169,7 +170,7 @@ class TriggerRateLowForTenMinutes(IntervalCheck, MessageMixin):
             conditions.is_data_taking,
             self.is_trigger_rate_low_for_ten_minutes,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
     def is_trigger_rate_low_for_ten_minutes(self):
@@ -204,7 +205,7 @@ class IsUserAwakeBeforeShutdown(IntervalCheck, MessageMixin):
             conditions.is_20minutes_or_less_before_shutdown,
             conditions.is_nobody_awake,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_SHIFTER)
 
 
@@ -216,7 +217,7 @@ class ShifterOnShift(IntervalCheck, MessageMixin):
             conditions.is_shift_at_the_moment,
             conditions.is_nobody_on_shift,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_DEVELOPER)
 
 
@@ -232,5 +233,5 @@ class ParkingChecklistFilled(IntervalCheck, MessageMixin):
             conditions.is_last_shutdown_already_10min_past,
             conditions.is_checklist_not_filled,
         ]
-        if all(f() for f in checklist):
+        if all([f() for f in checklist]):
             self.message(checklist, category=CATEGORY_DEVELOPER)
