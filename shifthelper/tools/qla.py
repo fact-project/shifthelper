@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import os
+import io
 import numpy as np
 import pandas as pd
 
@@ -10,17 +11,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from . import create_db_connection
+from . import night_integer
 
 colors = ['red', 'blue', 'green', 'black', 'cyan', 'yellow']
-
-outdir = os.path.join(os.environ['HOME'], '.shifthelper', 'plots')
-if not os.path.exists(outdir):
-    os.makedirs(outdir)
-
-
-
-
-
 
 def get_data(bin_width_minutes=20, timestamp=None):
     ''' this will get the QLA results to call if you have to send an alert '''
@@ -47,7 +40,7 @@ def get_data(bin_width_minutes=20, timestamp=None):
     """
     sql_query = sql_query.format(
         comma_sep_keys=', '.join(keys),
-        night=tools.night_integer(timestamp),
+        night=night_integer(timestamp),
     )
 
     data = pd.read_sql_query(
@@ -113,7 +106,7 @@ def dorner_binning(data, bin_width_minutes=20):
 
 
 
-def create_mpl_plot(data, outfile=os.path.join(outdir, 'qla.png')):
+def create_mpl_plot(data):
     alert_rate = create_alert_rate()
     with plt.style.context(('ggplot', )):
         try:
@@ -166,8 +159,12 @@ def create_mpl_plot(data, outfile=os.path.join(outdir, 'qla.png')):
         ax_sig.set_ylim(0, ymax)
         fig.autofmt_xdate()
         fig.tight_layout()
-        fig.savefig(outfile)
+
+        image = io.BytesIO()
+        plt.savefig(image, format='png')
+        image.seek(0)
         plt.close('all')
+        return image
 
 
 def create_alert_rate():

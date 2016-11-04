@@ -15,6 +15,8 @@ from .tools.whosonshift import whoisonshift
 from .tools import get_last_parking_checklist_entry
 from .tools import fetch_users_awake
 from . import retry_smart_fact_crawler as sfc
+from .tools import qla
+
 
 def is_mainjs_not_running():
     '''Main.js is not running'''
@@ -241,4 +243,35 @@ def is_last_shutdown_already_10min_past():
 def is_checklist_not_filled():
     '''checklist not filled'''
     return get_last_parking_checklist_entry() > get_last_shutdown()
+
+
+
+def is_significant_flare_detected():
+    '''A Flare was detected'''
+    data = qla.get_data()
+    if data is None:
+        return False
+    if len(data.index) == 0:
+        return False
+
+
+
+    significance_cut = 3 # sigma
+    significant = data[data.significance >= significance_cut]
+
+    qla_max_rates = data.groupby('fSourceName').agg({
+        'rate': 'max',
+        'fSourceKEY': 'median',
+    })
+    for source, data in qla_max_rates.iterrows():
+        rate = float(data['rate'])
+
+        significant_qla_max_rates = significant.groupby('fSourceName').agg({
+            'rate': 'max',
+            'fSourceKEY': 'median',
+        })
+
+        for source, data in significant_qla_max_rates.iterrows():
+            if float(data['rate']) > qla.create_alert_rate()[source]:
+                return True
 

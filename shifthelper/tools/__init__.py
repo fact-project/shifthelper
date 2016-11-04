@@ -61,3 +61,16 @@ def fetch_users_awake():
         return retry_fetch_fail_after_30sec()
     except RetryError:
         return {}
+
+
+def night_integer(timestamp=None):
+    """ get the correct night in fact format
+        if it is after 0:00, take the date
+        of yesterday
+    """
+    if timestamp is None:
+        timestamp = datetime.datetime.utcnow()
+    if timestamp.hour < 12:
+        timestamp = timestamp - datetime.timedelta(days=1)
+    night = int(timestamp.strftime('%Y%m%d'))
+    return night
