@@ -33,9 +33,9 @@ class WeatherCheck(Check):
             'humidity', fmt.format(humidity), w.humidity.unit
         )
 
-        if humidity >= 98:
-            mesg = "humidity_outside >= 98 %: {:2.1f} "+w.humidity.unit
-            self.queue.append(mesg.format(humidity))
+        # if humidity >= 98:
+        #     mesg = "humidity_outside >= 98 %: {:2.1f} "+w.humidity.unit
+        #     self.queue.append(mesg.format(humidity))
         if wind_speed >= 50:
             mesg = "wind_speed >= 50 km/h: {:2.1f} "+w.wind_speed.unit
             self.queue.append(mesg.format(wind_speed))
