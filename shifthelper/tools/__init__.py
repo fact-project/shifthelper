@@ -1,10 +1,11 @@
 import os
+import requests
 import datetime
 import threading
 import sqlalchemy
 import json
 import pandas as pd
-
+from retrying import retry, RetryError
 __all__ = ['create_db_connection', 'config']
 
 with open(os.path.join(os.environ['HOME'], '.shifthelper', 'config.json')) as f:

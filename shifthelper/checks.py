@@ -1,12 +1,15 @@
-from custos import IntervalCheck
-import pandas as pd
-from datetime import timedelta, datetime
-
 import logging
-log = logging.getLogger(__name__)
+from datetime import timedelta, datetime
+import pandas as pd
 
+
+from custos import IntervalCheck
+
+from . import retry_smart_fact_crawler as sfc
 from .message_mixin import MessageMixin
 from . import conditions
+
+log = logging.getLogger(__name__)
 
 CATEGORY_SHIFTER = 'shifter'
 CATEGORY_DEVELOPER = 'developer'
@@ -234,3 +237,41 @@ class ParkingChecklistFilled(IntervalCheck, MessageMixin):
         ]
         if all(f() for f in checklist):
             self.message(checklist, category=CATEGORY_DEVELOPER)
+
+
+class FlareAlert(IntervalCheck, MessageMixin):
+    max_rate = defaultdict(lambda: 0)
+
+    def check(self):
+        data = get_data()
+        if data is None:
+            return
+        if len(data.index) == 0:
+            return
+
+        create_mpl_plot(data)
+
+        significance_cut = 3 # sigma
+        significant = data[data.significance >= significance_cut]
+
+        qla_max_rates = data.groupby('fSourceName').agg({
+            'rate': 'max',
+            'fSourceKEY': 'median',
+        })
+        for source, data in qla_max_rates.iterrows():
+            rate = float(data['rate'])
+            self.update_qla_data(source, '{:3.1f}'.format(rate))
+
+        significant_qla_max_rates = significant.groupby('fSourceName').agg({
+            'rate': 'max',
+            'fSourceKEY': 'median',
+        })
+
+        for source, data in significant_qla_max_rates.iterrows():
+            rate = float(data['rate'])
+            if rate > self.max_rate[source]:
+                self.max_rate[source] = rate
+                if self.max_rate[source] > create_alert_rate()[source]:
+                    msg = 'Source {} over alert rate: {:3.1f} Events/h'
+                    self.queue.append(msg.format(source, self.max_rate[source]))
+
