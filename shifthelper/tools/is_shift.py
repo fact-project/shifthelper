@@ -4,6 +4,7 @@ from functools import lru_cache
 from datetime import datetime
 from retrying import retry
 
+from ..debug_log_wrapper import log_call_and_result
 
 @lru_cache(1)
 def get_MeasurementType(db=None):
@@ -42,7 +43,7 @@ def get_last_startup_or_shutdown(current_time_rounded_to_seconds=None, db=None):
         on="fMeasurementTypeKey"
     )
 
-
+@log_call_and_result
 @retry(stop_max_delay=30000,  # 30 seconds max
        wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
        wait_exponential_max=1000,  # but wait 1 second per try maximum
