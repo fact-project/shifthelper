@@ -22,18 +22,16 @@ setup(
         'sqlalchemy',       # in anaconda
         'PyMySQL',          # in anaconda
         'pytz',             # in anaconda
-        'blessings',
         'twilio',
-        'docopt',           # in anaconda
         'numexpr',
         'smart_fact_crawler==0.2.1',
+        'custos==0.0.2',
         'retrying',
         'wrapt',
     ],
     entry_points={'console_scripts': [
         'shifthelper = shifthelper.__main__:main',
         'shifthelper_db_cloner = shifthelper.db_cloner.__main__:main',
-        'fact_ircam = shifthelper.tools.ircam:main',
     ]},
     zip_safe=False,
 )
