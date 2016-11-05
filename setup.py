@@ -11,6 +11,7 @@ setup(
     packages=[
         'shifthelper',
         'shifthelper.tools',
+        'shifthelper.db_cloner',
         ],
     install_requires=[
         'pandas',           # in anaconda
