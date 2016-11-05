@@ -9,7 +9,13 @@ from retrying import retry, RetryError
 
 __all__ = ['create_db_connection', 'config']
 
-with open(os.path.join(os.environ['HOME'], '.shifthelper', 'config.json')) as f:
+
+configfile = os.environ.get(
+    'SHIFTHELPER_CONFIG',
+    os.path.join(os.environ['HOME'], '.shifthelper', 'config.json')
+)
+
+with open(configfile) as f:
     config = json.load(f)
 
 
