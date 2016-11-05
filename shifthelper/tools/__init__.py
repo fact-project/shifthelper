@@ -16,6 +16,7 @@ lock = threading.Lock()
 
 db_engines = {}
 
+
 def create_db_connection(db_config=None):
     with lock:
         if db_config is None:
@@ -24,14 +25,15 @@ def create_db_connection(db_config=None):
         if not frozenset(db_config.items()) in db_engines:
             db_engines[frozenset(db_config.items())] = sqlalchemy.create_engine(
                 "mysql+pymysql://{user}:{pw}@{host}:{port}/{db}".format(
-                    user = db_config['user'],
-                    pw = db_config['password'],
-                    host = db_config['host'],
-                    db = db_config['database'],
-                    port = db_config.get('port', 3306)
+                    user=db_config['user'],
+                    pw=db_config['password'],
+                    host=db_config['host'],
+                    db=db_config['database'],
+                    port=db_config.get('port', 3306)
                 )
             )
     return db_engines[frozenset(db_config.items())]
+
 
 def get_last_parking_checklist_entry():
     try:
@@ -49,11 +51,12 @@ def get_last_parking_checklist_entry():
 
 
 def fetch_users_awake():
-    @retry(stop_max_delay=30000,  # 30 seconds max
-          wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
-          wait_exponential_max=1000,  # but wait 1 second per try maximum
-          wrap_exception=True
-         )
+    @retry(
+        stop_max_delay=30000,  # 30 seconds max
+        wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+        wait_exponential_max=1000,  # but wait 1 second per try maximum
+        wrap_exception=True
+    )
     def retry_fetch_fail_after_30sec():
         return requests.get('https://ihp-pc41.ethz.ch/iAmAwake').json()
 
