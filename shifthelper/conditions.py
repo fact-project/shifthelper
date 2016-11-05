@@ -285,7 +285,7 @@ def is_last_shutdown_already_10min_past():
 @log_call_and_result
 def is_checklist_not_filled():
     '''checklist not filled'''
-    return get_last_parking_checklist_entry() > get_last_shutdown()
+    return get_last_parking_checklist_entry() < get_last_shutdown()
 
 
 @log_call_and_result
