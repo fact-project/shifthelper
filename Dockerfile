@@ -17,4 +17,4 @@ COPY shifthelper /opt/shifthelper/shifthelper
 RUN pip install /opt/shifthelper
 
 COPY run.sh /
-CMD run.sh
+CMD /run.sh
