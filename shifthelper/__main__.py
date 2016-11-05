@@ -15,7 +15,6 @@ config_logging(to_console=False)
 
 
 def telegram_book(category):
-    return [config['developer']['telegram_id']]
     return [whoisonshift().telegram_id]
 
 
