@@ -13,12 +13,13 @@ from .tools import config
 
 log = logging.getLogger(__name__)
 
+
 class FactIntervalCheck(IntervalCheck):
     def __init__(self, name, checklist, category, interval=300):
+        super().__init__(interval=interval)
         self.name = name
         self.checklist = checklist
         self.category = category
-        super().__init__(interval=interval)
 
     def check(self):
         if all([f() for f in self.checklist]):
@@ -32,11 +33,11 @@ class FactIntervalCheck(IntervalCheck):
             category=self.category,
             ))
 
+
 @retry(stop_max_delay=30000,  # 30 seconds max
        wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
        wait_exponential_max=1000,  # but wait 1 second per try maximum
        )
-
 def message_level(checkname):
     '''
     return the message severity level for a certain check,
@@ -46,6 +47,7 @@ def message_level(checkname):
         return levels.INFO
     else:
         return levels.WARNING
+
 
 def all_recent_alerts_acknowledged(checkname):
     '''
@@ -81,4 +83,3 @@ def all_recent_alerts_acknowledged(checkname):
     if not my_recent_alerts.acknowledged.all():
         return False
     return True
-
