@@ -61,6 +61,7 @@ def main():
                 checks.NoDimCtrlServerAvailable(interval=300),
                 checks.TriggerRateLowForTenMinutes(interval=300),
                 checks.IsUserAwakeBeforeShutdown(interval=300),
+                checks.ParkingChecklistFilled(interval=300),
             ],
             notifiers=[
                 twilio,
