@@ -9,6 +9,7 @@ conditions are used by the Check-classes inside checks.py
 import re as regex
 from datetime import datetime, timedelta
 from pandas import to_datetime
+import pandas as pd
 
 from .tools.is_shift import is_shift_at_the_moment, get_next_shutdown, get_last_shutdown
 from .tools.whosonshift import whoisonshift
@@ -241,7 +242,7 @@ def is_no_dimctrl_server_available():
 
 @log_call_and_result
 def is_no_shift_at_the_moment():
-    return not is_shift_at_the_moment
+    return not is_shift_at_the_moment()
 
 
 @log_call_and_result
@@ -286,3 +287,25 @@ def is_checklist_not_filled():
     '''checklist not filled'''
     return get_last_parking_checklist_entry() > get_last_shutdown()
 
+
+@log_call_and_result
+def is_trigger_rate_low_for_ten_minutes():
+    '''Trigger rate < 1/s for 10 minutes'''
+    self = is_trigger_rate_low_for_ten_minutes
+
+    if not hasattr(self, 'history'):
+        self.history = pd.DataFrame()
+
+    current_trigger_rate = sfc.trigger_rate().trigger_rate.value
+    self.history = self.history.append(
+        [{
+            'timestamp': datetime.utcnow(),
+            'rate': current_trigger_rate,
+        }]
+    )
+    now = datetime.utcnow()
+    self.history = self.history[
+        (now - self.history.timestamp) < timedelta(minutes=10)
+    ]
+    df = pd.DataFrame(self.history)
+    return not df.empty and (df.rate < 1).all()

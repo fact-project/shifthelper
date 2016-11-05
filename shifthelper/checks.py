@@ -1,237 +1,84 @@
-from custos import IntervalCheck
-import pandas as pd
-from datetime import timedelta, datetime
-
 import logging
+from operator import attrgetter
+from datetime import datetime, timedelta
+import requests
+from requests.exceptions import RequestException
+from retrying import retry
+import pandas as pd
+
+from custos import IntervalCheck
+
+from custos import levels, Message
+from .tools import config
+
 log = logging.getLogger(__name__)
 
-from .message_mixin import MessageMixin
-from . import conditions
-from . import retry_smart_fact_crawler as sfc
-
-CATEGORY_SHIFTER = 'shifter'
-CATEGORY_DEVELOPER = 'developer'
-
-class MainJsStatusCheck(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_mainjs_not_running
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-
-class WindSpeedCheck(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_high_windspeed,
-            conditions.is_not_parked,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-
-class WindGustCheck(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_high_windgusts,
-            conditions.is_not_parked,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-
-class MedianCurrentCheck(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_median_current_high,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-
-class MaximumCurrentCheck(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_maximum_current_high,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-
-class RelativeCameraTemperatureCheck(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_rel_camera_temperature_high,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-
-class BiasNotOperatingDuringDataRun(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_bias_not_operating,
-            conditions.is_data_run,
-            conditions.is_data_taking,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-class BiasChannelsInOverCurrent(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_overcurrent,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-
-class BiasVoltageNotAtReference(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_bias_voltage_not_at_reference,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-
-class ContainerTooWarm(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_container_too_warm,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-
-
-class DriveInErrorDuringDataRun(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_drive_error,
-            conditions.is_data_run,
-            conditions.is_data_taking,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-
-class BiasVoltageOnButNotCalibrated(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_voltage_on,
-            conditions.is_feedback_not_calibrated,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-
-class DIMNetworkNotAvailable(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_dim_network_down,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-
-class NoDimCtrlServerAvailable(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_no_dimctrl_server_available,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
-
-
-
-
-class TriggerRateLowForTenMinutes(IntervalCheck, MessageMixin):
-    history = pd.DataFrame()
+class FactIntervalCheck(IntervalCheck):
+    def __init__(self, name, checklist, category, interval=300):
+        self.name = name
+        self.checklist = checklist
+        self.category = category
+        super().__init__(interval=interval)
 
     def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_data_taking,
-            self.is_trigger_rate_low_for_ten_minutes,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
+        if all([f() for f in self.checklist]):
+            self.message(self.checklist)
 
-    def is_trigger_rate_low_for_ten_minutes(self):
-        '''Trigger rate < 1/s for 10 minutes'''
-        current_trigger_rate = sfc.trigger_rate().trigger_rate.value
-        self._append_to_history(current_trigger_rate)
-        self._remove_old_entries()
-        df = pd.DataFrame(self.history)
-        return not df.empty and (df.rate < 1).all()
+    def message(self, checklist, **kwargs):
+        self.queue.put(Message(
+            text=' and \n'.join(map(attrgetter('__doc__'), checklist)),
+            level=message_level(self.__class__.__name__),
+            check=self.name,
+            category=self.category,
+            ))
 
-    def _append_to_history(self, rate):
-        self.history = self.history.append([{'timestamp': datetime.utcnow(), 'rate': rate}])
+@retry(stop_max_delay=30000,  # 30 seconds max
+       wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+       wait_exponential_max=1000,  # but wait 1 second per try maximum
+       )
 
-    def _remove_old_entries(self):
-        now = datetime.utcnow()
-        self.history = self.history[(now - self.history.timestamp) < timedelta(minutes=10)]
-
-
-class IsUserAwakeBeforeShutdown(IntervalCheck, MessageMixin):
+def message_level(checkname):
     '''
-    This Check should find out if the user is actually awake some time before
-    the scheduled shutdown.
-
-    In order to find out, if the shifter is awake, we need to find out:
-      * Is it 20minutes (or less) before shutdown?
-      * Who is the current shifter (username)?
-      * Is she awake, i.e. did he press the "I am awake button" recently?
+    return the message severity level for a certain check,
+    based on whether all the alerts have been acknowledged or not
     '''
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_20minutes_or_less_before_shutdown,
-            conditions.is_nobody_awake,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_SHIFTER)
+    if all_recent_alerts_acknowledged(checkname):
+        return levels.INFO
+    else:
+        return levels.WARNING
 
-
-
-
-class ShifterOnShift(IntervalCheck, MessageMixin):
-    def check(self):
-        checklist = [
-            conditions.is_shift_at_the_moment,
-            conditions.is_nobody_on_shift,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_DEVELOPER)
-
-
-class ParkingChecklistFilled(IntervalCheck, MessageMixin):
+def all_recent_alerts_acknowledged(checkname):
     '''
-    This Check should find out if the parking/shutdown checklist
-    was filled, i.e. "if the shutdown checked by a person"
-    within a certain time after the scheduled shutdown.
+    have a look at shifthelper webinterface page and see if the
+    user has already acknowledged all the alerts from the given
+    checkname.
+
+    In case we cannot even reach the webinterface, we have to assume the
+    user also cannot reach the website, so nothing will be acknowledged.
+    So in that case we simply return False as well
     '''
-    def check(self):
-        checklist = [
-            conditions.is_no_shift_at_the_moment,
-            conditions.is_last_shutdown_already_10min_past,
-            conditions.is_checklist_not_filled,
-        ]
-        if all([f() for f in checklist]):
-            self.message(checklist, category=CATEGORY_DEVELOPER)
+    try:
+        all_alerts = requests.get(config['webservice']['post-url']).json()
+    except RequestException:
+        log.warning('Could not check acknowledged alerts')
+        return False
+
+    if not all_alerts:
+        return False
+
+    now = datetime.utcnow()
+    all_alerts = pd.DataFrame(all_alerts)
+    all_alerts['timestamp'] = pd.to_datetime(all_alerts.timestamp, utc=True)
+
+    my_alerts = all_alerts[all_alerts.check == checkname]
+    if my_alerts.empty:
+        return False
+
+    my_recent_alerts = my_alerts[(now - my_alerts.timestamp) < timedelta(minutes=10)]
+    if my_recent_alerts.empty:
+        return False
+
+    if not my_recent_alerts.acknowledged.all():
+        return False
+    return True
+
