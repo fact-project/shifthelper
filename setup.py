@@ -28,6 +28,8 @@ setup(
         'custos==0.0.2',
         'retrying',
         'wrapt',
+        'python-json-logger',
+        'telepot',
     ],
     entry_points={'console_scripts': [
         'shifthelper = shifthelper.__main__:main',
