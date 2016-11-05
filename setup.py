@@ -13,6 +13,9 @@ setup(
         'shifthelper.tools',
         'shifthelper.db_cloner',
         ],
+    package_data={
+        'shifthelper.db_cloner': ['logging.conf'],
+    },
     install_requires=[
         'pandas',           # in anaconda
         'requests',         # in anaconda
