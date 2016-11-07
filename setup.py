@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='shifthelper',
-    version='0.6.3',
+    version='0.6.4',
     description='a tool for helping people with a FACT night shift',
     url='https://github.com/fact-project/shifthelper',
     author='Dominik Neise, Maximilian Noethe, Sebastian Mueller',
@@ -11,7 +11,11 @@ setup(
     packages=[
         'shifthelper',
         'shifthelper.tools',
+        'shifthelper.db_cloner',
         ],
+    package_data={
+        'shifthelper.db_cloner': ['logging.conf'],
+    },
     install_requires=[
         'pandas',           # in anaconda
         'requests',         # in anaconda
@@ -21,17 +25,18 @@ setup(
         'sqlalchemy',       # in anaconda
         'PyMySQL',          # in anaconda
         'pytz',             # in anaconda
-        'blessings',
         'twilio',
-        'docopt',           # in anaconda
         'numexpr',
         'smart_fact_crawler==0.2.1',
+        'custos==0.0.2',
         'retrying',
+        'wrapt',
+        'python-json-logger',
+        'telepot',
     ],
     entry_points={'console_scripts': [
         'shifthelper = shifthelper.__main__:main',
         'shifthelper_db_cloner = shifthelper.db_cloner.__main__:main',
-        'fact_ircam = shifthelper.tools.ircam:main',
     ]},
     zip_safe=False,
 )

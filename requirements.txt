@@ -8,8 +8,11 @@ sqlalchemy
 PyMySQL
 pymongo
 pytz
-blessings
 twilio
 scikit-image
-git+http://github.com/fact-project/smart_fact_crawler.git#egg=smart_fact_crawler
+http://github.com/fact-project/smart_fact_crawler/archive/v0.2.1.tar.gz
+http://github.com/fact-project/pycustos/archive/v0.0.2.tar.gz
 retrying
+wrapt
+python-json-logger
+telepot
