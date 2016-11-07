@@ -29,6 +29,7 @@ setup(
         'docopt',           # in anaconda
         'numexpr',
         'smart_fact_crawler==0.2.1',
+        'retrying'
     ],
     entry_points={'console_scripts': [
         'shifthelper = shifthelper.__main__:main',
