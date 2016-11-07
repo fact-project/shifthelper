@@ -6,8 +6,11 @@ from ..tools import create_db_connection
 import time
 
 import logging
-dir_path = os.path.dirname(os.path.realpath(__file__))
-logging.config.fileConfig(os.path.join(dir_path, 'logging.conf'))
+import logging.config
+from pkg_resources import resource_filename
+
+
+logging.config.fileConfig(resource_filename('shifthelper', 'db_cloner/logging.conf'))
 log = logging.getLogger(__name__)
 
 
