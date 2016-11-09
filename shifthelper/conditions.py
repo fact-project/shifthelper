@@ -242,6 +242,7 @@ def is_no_dimctrl_server_available():
 
 @log_call_and_result
 def is_no_shift_at_the_moment():
+    '''no shift at the moment'''
     return not is_shift_at_the_moment()
 
 
