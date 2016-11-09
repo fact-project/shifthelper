@@ -49,7 +49,7 @@ def config_logging(to_console=False, level=logging.DEBUG):
     stream_handler.setFormatter(formatter)
 
     for logger_name in ('shifthelper', 'custos'):
-        log = logging.getLogger('shifthelper')
+        log = logging.getLogger(logger_name)
         log.setLevel(level)
         log.addHandler(logfile_handler)
         log.addHandler(text_logfile_handler)
