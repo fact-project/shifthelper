@@ -11,11 +11,13 @@ def config_logging(to_console=False, level=logging.DEBUG):
     dot_shifthelper_dir = os.path.join(os.environ['HOME'], '.shifthelper')
     os.makedirs(dot_shifthelper_dir, exist_ok=True)
 
+    logdir = os.environ.get('SHIFTHELPER_LOGDIR', dot_shifthelper_dir)
+
     text_logfile_handler = logging.handlers.TimedRotatingFileHandler(
-        filename=os.path.join(dot_shifthelper_dir, 'shifthelper.log'),
+        filename=os.path.join(logdir, 'shifthelper.log'),
         when='D',
         interval=1,
-        backupCount=300, 
+        backupCount=300,
         utc=True)
     text_logfile_handler.setLevel(level)
 
@@ -24,7 +26,7 @@ def config_logging(to_console=False, level=logging.DEBUG):
     text_logfile_handler.setFormatter(formatter)
 
     logfile_handler = logging.handlers.TimedRotatingFileHandler(
-        filename=os.path.join(dot_shifthelper_dir, 'shifthelper_log.jsonl'),
+        filename=os.path.join(logdir, 'shifthelper_log.jsonl'),
         when='D', interval=1,  # roll over every day.
         backupCount=300,       # keep 300 days back log
         utc=True,

@@ -16,5 +16,7 @@ COPY setup.py /opt/shifthelper/
 COPY shifthelper /opt/shifthelper/shifthelper
 RUN pip install /opt/shifthelper
 
-COPY run.sh /
-CMD /run.sh
+RUN useradd --create-home --uid 1064 --user-group factshifthelper
+COPY run.sh /home/factshifthelper
+USER factshifthelper
+CMD /home/factshifthelper/run.sh
