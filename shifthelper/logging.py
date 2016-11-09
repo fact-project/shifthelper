@@ -7,7 +7,7 @@ import time
 from pythonjsonlogger.jsonlogger import JsonFormatter
 
 
-def config_logging(to_console=False, level=logging.DEBUG):
+def config_logging(to_console=True, level=logging.DEBUG):
     dot_shifthelper_dir = os.path.join(os.environ['HOME'], '.shifthelper')
     os.makedirs(dot_shifthelper_dir, exist_ok=True)
 

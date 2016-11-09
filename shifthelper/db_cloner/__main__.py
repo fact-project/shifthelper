@@ -53,14 +53,15 @@ def main():
         'SHIFTHELPER_DBCLONER_LOG',
         os.path.join(os.environ['HOME'], '.shifthelper', 'dbcloner.log')
     )
-    handler = logging.FileHandler(logfile)
-    handler.level = logging.INFO
     formatter = logging.Formatter(
         fmt='%(asctime)s|%(name)s|%(levelname)s|%(module)s|%(lineno)d|%(message)s'
     )
     formatter.converter = time.gmtime  # use utc in log
-    handler.setFormatter(formatter)
-    log.addHandler(handler)
+    for handler in (logging.FileHandler(logfile), logging.StreamHandler()):
+        handler.level = logging.INFO
+        handler.setFormatter(formatter)
+        log.addHandler(handler)
+
     db_in = create_db_connection(config["database"])
     db_out = create_db_connection(config["cloned_db"])
 
