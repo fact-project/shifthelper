@@ -15,8 +15,9 @@ def config_logging(to_console=False, level=logging.DEBUG):
         filename=os.path.join(dot_shifthelper_dir, 'shifthelper.log'),
         when='D',
         interval=1,
-        backupCount=300, 
-        utc=True)
+        backupCount=300,
+        utc=True,
+    )
     text_logfile_handler.setLevel(level)
 
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -37,16 +38,26 @@ def config_logging(to_console=False, level=logging.DEBUG):
     ))
     formatter.converter = time.gmtime  # use utc in log
     logfile_handler.setFormatter(formatter)
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setLevel(level)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s'
+    )
+    formatter.converter = time.gmtime  # use utc in log
+    stream_handler.setFormatter(formatter)
 
-    log = logging.getLogger('shifthelper')
-    log.setLevel(level)
+    for logger_name in ('shifthelper', 'custos'):
+        log = logging.getLogger('shifthelper')
+        log.setLevel(level)
+        log.addHandler(logfile_handler)
+        log.addHandler(text_logfile_handler)
+
+        if to_console:
+            log.addHandler(stream_handler)
+
+    log = logging.getLogger('root')
+    log.setLevel(logging.INFO)
     log.addHandler(logfile_handler)
     log.addHandler(text_logfile_handler)
     if to_console:
-        stream_handler = logging.StreamHandler(sys.stdout)
-        stream_handler.setLevel(level)
-        formatter = logging.Formatter(
-            '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(message)s'
-        )
-        stream_handler.setFormatter(formatter)
-        logging.getLogger().addHandler(stream_handler)
+        log.addHandler(stream_handler)
