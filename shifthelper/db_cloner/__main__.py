@@ -56,7 +56,7 @@ def main():
     handler = logging.FileHandler(logfile)
     handler.level = logging.INFO
     formatter = logging.Formatter(
-        format='%(asctime)s|%(name)s|%(levelname)s|%(module)s|%(lineno)d|%(message)s'
+        fmt='%(asctime)s|%(name)s|%(levelname)s|%(module)s|%(lineno)d|%(message)s'
     )
     formatter.converter = time.gmtime  # use utc in log
     handler.setFormatter(formatter)
