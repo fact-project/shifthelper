@@ -13,7 +13,7 @@ from .logging import config_logging
 from .checks import FactIntervalCheck
 from . import conditions
 
-config_logging(to_console=False)
+config_logging(to_console=True)
 
 
 def telegram_book(category):

@@ -7,11 +7,6 @@ import time
 
 import logging
 import logging.config
-from pkg_resources import resource_filename
-
-
-logging.config.fileConfig(resource_filename('shifthelper', 'db_cloner/logging.conf'))
-log = logging.getLogger(__name__)
 
 
 def factdata_MeasurementType():
@@ -52,12 +47,27 @@ def users():
 
 
 def main():
+    log = logging.getLogger()
+    log.setLevel('INFO')
+    logfile = os.environ.get(
+        'SHIFTHELPER_DBCLONER_LOG',
+        os.path.join(os.environ['HOME'], '.shifthelper', 'dbcloner.log')
+    )
+    formatter = logging.Formatter(
+        fmt='%(asctime)s|%(name)s|%(levelname)s|%(module)s|%(lineno)d|%(message)s'
+    )
+    formatter.converter = time.gmtime  # use utc in log
+    for handler in (logging.FileHandler(logfile), logging.StreamHandler()):
+        handler.level = logging.INFO
+        handler.setFormatter(formatter)
+        log.addHandler(handler)
+
     db_in = create_db_connection(config["database"])
     db_out = create_db_connection(config["cloned_db"])
 
     while True:
         try:
-            log.info("clonging ...")
+            log.info("cloning ...")
             for query_func in [
                     factdata_MeasurementType,
                     calendar_data,
