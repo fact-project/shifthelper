@@ -57,7 +57,7 @@ def config_logging(to_console=True, level=logging.DEBUG):
         if to_console:
             log.addHandler(stream_handler)
 
-    log = logging.getLogger('root')
+    log = logging.getLogger()
     log.setLevel(logging.INFO)
     log.addHandler(logfile_handler)
     log.addHandler(text_logfile_handler)
