@@ -17,6 +17,8 @@ config_logging(to_console=True)
 
 
 def telegram_book(category):
+    if category == 'check_error':
+        return [config['developer']['telegram_id']]
     return [whoisonshift().telegram_id]
 
 
@@ -37,13 +39,15 @@ http = HTTPNotifier(
     recipients=[config['webservice']['post-url']],
     auth=(
         config['webservice']['user'],
-        config['webservice']['password']),
+        config['webservice']['password']
+    ),
 )
 
 log = LogNotifier(level=levels.DEBUG, recipients=['all'])
 
 CATEGORY_SHIFTER = 'shifter'
 CATEGORY_DEVELOPER = 'developer'
+
 
 def main():
     with Custos(
