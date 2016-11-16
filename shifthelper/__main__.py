@@ -6,7 +6,6 @@ from custos import TelegramNotifier, LogNotifier
 from custos import HTTPNotifier
 from .notifiers import FactTwilioNotifier
 
-from . import checks
 from .tools.whosonshift import whoisonshift
 from .tools import config
 from .logging import config_logging
@@ -17,6 +16,9 @@ config_logging(to_console=True)
 
 
 def telegram_book(category):
+    if category == 'check_error':
+        return [config['developer']['telegram_id']]
+
     telegram_id = whoisonshift().telegram_id
     return [telegram_id] if telegram_id is not None else []
 
@@ -38,13 +40,15 @@ http = HTTPNotifier(
     recipients=[config['webservice']['post-url']],
     auth=(
         config['webservice']['user'],
-        config['webservice']['password']),
+        config['webservice']['password']
+    ),
 )
 
 log = LogNotifier(level=levels.DEBUG, recipients=['all'])
 
 CATEGORY_SHIFTER = 'shifter'
 CATEGORY_DEVELOPER = 'developer'
+
 
 def main():
     with Custos(

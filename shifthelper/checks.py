@@ -16,8 +16,7 @@ log = logging.getLogger(__name__)
 
 class FactIntervalCheck(IntervalCheck):
     def __init__(self, name, checklist, category, interval=300):
-        super().__init__(interval=interval)
-        self.name = name
+        super().__init__(interval=interval, name=name)
         self.checklist = checklist
         self.category = category
 
@@ -26,12 +25,11 @@ class FactIntervalCheck(IntervalCheck):
             self.message(self.checklist)
 
     def message(self, checklist, **kwargs):
-        self.queue.put(Message(
+        super().message(
             text=' and \n'.join(map(attrgetter('__doc__'), checklist)),
             level=message_level(self.__class__.__name__),
-            check=self.name,
             category=self.category,
-            ))
+        )
 
 
 @retry(stop_max_delay=30000,  # 30 seconds max
