@@ -9,7 +9,7 @@ from .notifiers import FactTwilioNotifier
 from .tools.whosonshift import whoisonshift
 from .tools import config
 from .logging import config_logging
-from .checks import FactIntervalCheck
+from .checks import FactIntervalCheck, FlareAlertCheck
 from . import conditions
 
 config_logging(to_console=True)
@@ -53,6 +53,7 @@ CATEGORY_DEVELOPER = 'developer'
 def main():
     with Custos(
             checks=[
+                FlareAlertCheck(category=CATEGORY_SHIFTER, interval=300),
                 FactIntervalCheck(
                     name='ShifterOnShift',
                     checklist=[

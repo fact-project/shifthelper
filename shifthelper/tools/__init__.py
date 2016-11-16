@@ -5,6 +5,7 @@ import sqlalchemy
 import json
 import pandas as pd
 import requests
+from datetime import datetime, timedelta
 from retrying import retry, RetryError
 
 __all__ = ['create_db_connection', 'config']
@@ -22,6 +23,15 @@ with open(configfile) as f:
 lock = threading.Lock()
 
 db_engines = {}
+
+
+def date2int(date):
+    return date.year * 10000 + date.month * 100 + date.day
+
+
+def tonight_night_integer():
+    now = datetime.utcnow() - timedelta(hours=12)
+    return date2int(now)
 
 
 def create_db_connection(db_config=None):
