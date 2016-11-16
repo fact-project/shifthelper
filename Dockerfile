@@ -9,7 +9,7 @@ RUN conda install \
 
 RUN pip install twilio retrying wrapt \
 	https://github.com/fact-project/smart_fact_crawler/archive/v0.2.1.tar.gz \
-	https://github.com/fact-project/pycustos/archive/v0.0.4.tar.gz
+	https://github.com/fact-project/pycustos/archive/v0.0.5.tar.gz
 
 RUN mkdir /opt/shifthelper
 COPY setup.py /opt/shifthelper/

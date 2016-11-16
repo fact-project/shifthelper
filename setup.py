@@ -28,7 +28,7 @@ setup(
         'twilio',
         'numexpr',
         'smart_fact_crawler==0.2.1',
-        'custos==0.0.4',
+        'custos==0.0.5',
         'retrying',
         'wrapt',
         'python-json-logger',
