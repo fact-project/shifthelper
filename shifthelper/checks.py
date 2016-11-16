@@ -21,7 +21,7 @@ class FactIntervalCheck(IntervalCheck):
         self.category = category
 
     def check(self):
-        if all([f() for f in self.checklist]):
+        if all(f() for f in self.checklist):
             self.message(self.checklist)
 
     def message(self, checklist, **kwargs):
