@@ -5,14 +5,18 @@ from functools import lru_cache
 from datetime import datetime
 from datetime import timedelta
 
+
 def whoisonshift(clear_cache=False):
     if clear_cache:
         retrieve_calendar_entries.cache_clear()
         retrieve_valid_usernames_from_logbook.cache_clear()
 
     full_shifter_info = retrieve_shifters_from_calendar()
-    only_interesting_stuff = full_shifter_info[["phone_mobile", "telegram_id", "skype", "username", "email"]]
+    only_interesting_stuff = full_shifter_info[
+        ["phone_mobile", "telegram_id", "skype", "username", "email"]
+    ]
     return only_interesting_stuff.iloc[0]
+
 
 def retrieve_shifters_from_calendar(
         time=None,
@@ -27,9 +31,13 @@ def retrieve_shifters_from_calendar(
     calendar_entries["username"] = calendar_entries["u"]
 
     all_shifters = retrieve_valid_usernames_from_logbook()
-    tonights_shifters = pd.merge(all_shifters, calendar_entries, how='inner', on="username")
+    tonights_shifters = pd.merge(
+        all_shifters, calendar_entries,
+        how='inner', on="username"
+    )
 
     return tonights_shifters
+
 
 @lru_cache(100)
 def retrieve_calendar_entries(dt_date, db=None):
@@ -44,6 +52,7 @@ def retrieve_calendar_entries(dt_date, db=None):
                 d=yesterday_night.day
             )
     return pd.read_sql_query(query, db)
+
 
 @lru_cache(1)
 def retrieve_valid_usernames_from_logbook(db=None):

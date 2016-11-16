@@ -17,7 +17,8 @@ config_logging(to_console=True)
 
 
 def telegram_book(category):
-    return [whoisonshift().telegram_id]
+    telegram_id = whoisonshift().telegram_id
+    return [telegram_id] if telegram_id is not None else []
 
 
 twilio = FactTwilioNotifier(
