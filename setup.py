@@ -20,7 +20,7 @@ setup(
         'pandas',           # in anaconda
         'requests',         # in anaconda
         'numpy',            # in anaconda
-        'matplotlib>=1.4',  # in anaconda
+        'matplotlib>=1.5',  # in anaconda
         'python-dateutil',  # in anaconda
         'sqlalchemy',       # in anaconda
         'PyMySQL',          # in anaconda
