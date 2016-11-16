@@ -1,9 +1,12 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.dates import DateFormatter
+import matplotlib
 
 from .tools import create_db_connection
+
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib.dates import DateFormatter
 
 database = create_db_connection()
 
