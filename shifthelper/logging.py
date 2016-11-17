@@ -51,11 +51,6 @@ def config_logging(to_console=True, level=logging.DEBUG):
     for logger_name in ('shifthelper', 'custos'):
         log = logging.getLogger(logger_name)
         log.setLevel(level)
-        log.addHandler(logfile_handler)
-        log.addHandler(text_logfile_handler)
-
-        if to_console:
-            log.addHandler(stream_handler)
 
     log = logging.getLogger()
     log.setLevel(logging.INFO)
