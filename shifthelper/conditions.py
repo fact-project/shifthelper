@@ -257,7 +257,7 @@ def is_nobody_awake():
     if not awake:
         return True
     else:
-        return whoisonshift() not in awake
+        return whoisonshift().username not in awake
 
 
 @log_call_and_result
