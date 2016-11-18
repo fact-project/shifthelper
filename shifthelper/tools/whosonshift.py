@@ -5,6 +5,11 @@ from functools import lru_cache
 from datetime import datetime
 from datetime import timedelta
 
+import logging
+
+log = logging.getLogger(__name__)
+
+
 
 def whoisonshift(clear_cache=False):
     if clear_cache:
@@ -15,7 +20,9 @@ def whoisonshift(clear_cache=False):
     only_interesting_stuff = full_shifter_info[
         ["phone_mobile", "telegram_id", "skype", "username", "email"]
     ]
-    return only_interesting_stuff.iloc[0]
+    shifter = only_interesting_stuff.iloc[0]
+    log.debug('Found shifter {}'.format(shifter.username))
+    return shifter
 
 
 def retrieve_shifters_from_calendar(
