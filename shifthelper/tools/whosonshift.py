@@ -1,4 +1,3 @@
-import warnings
 import pandas as pd
 from .. import tools
 from functools import lru_cache

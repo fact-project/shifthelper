@@ -19,7 +19,11 @@ def telegram_book(category):
     if category == 'check_error':
         return [config['developer']['telegram_id']]
 
-    telegram_id = whoisonshift().telegram_id
+    try:
+        telegram_id = whoisonshift().telegram_id
+    except IndexError:
+        return []
+
     return [telegram_id] if telegram_id is not None else []
 
 
