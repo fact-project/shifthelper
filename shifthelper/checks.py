@@ -12,12 +12,16 @@ from collections import defaultdict
 from custos import IntervalCheck
 from custos import levels
 
-from .tools import config, tonight_night_integer
-from .qla import get_qla_data, plot_qla
+from .tools import config, create_db_connection
+from fact.qla import get_qla_data, bin_qla_data, plot_qla
+from fact import night_integer
 
 log = logging.getLogger(__name__)
 
+database = create_db_connection()
 
+
+ALERT_SIGNIFICANCE = 3
 # for all sources but the mrks and crab the alert rate is 15 Evts / h
 FLARE_ALERT_LIMITS = defaultdict(lambda: 15.0)
 FLARE_ALERT_LIMITS['Mrk 501'] = 50.0
@@ -51,41 +55,43 @@ class FlareAlertCheck(IntervalCheck):
 
     def check(self):
 
-        qla_data = get_qla_data(tonight_night_integer())
+        unbinned_qla_data = get_qla_data(night_integer(datetime.utcnow()), database)
 
-        if qla_data is None:
+        if unbinned_qla_data is None:
             self.log.debug('No qla data available yet')
             return
-        if len(qla_data) == 0:
+        if len(unbinned_qla_data) == 0:
             self.log.debug('No qla data available yet')
             return
 
-        qla_max_rates = qla_data.groupby('fSourceName').agg({'rate': 'max'})
+        qla_data = bin_qla_data(unbinned_qla_data, bin_width_minutes=20)
+        qla_max_rates = get_max_rate_and_significance(qla_data)
         for source, data in qla_max_rates.iterrows():
             self.log.debug(
-                'Source {} has max rate of {:.1f} Evts/h'.format(
-                    source, data['rate']
+                'Source {} has max rate of {:.1f} Evts/h with {:.1f} sigma'.format(
+                    source, data['rate'], data['significance']
                 )
             )
 
-        alert_significance = 3
-        significant_bins = qla_data[qla_data.significance >= alert_significance]
-        significant_qla_max_rates = significant_bins.groupby('fSourceName').agg(
-            {'rate': 'max'}
+        significant_qla_max_rates = get_max_rate_and_significance(
+            qla_data[qla_data.significance >= ALERT_SIGNIFICANCE]
         )
 
         # create the image, send it only once if multiple sources flare
-        image_file = BytesIO()
-        plot_qla(qla_data, image_file)
-        image_file.seek(0)
+        image_file = None
         image_send = False
 
         for source, data in significant_qla_max_rates.iterrows():
             if data['rate'] > FLARE_ALERT_LIMITS[source]:
+                if image_file is None:
+                    image_file = BytesIO()
+                    plot_qla(qla_data, image_file)
+                    image_file.seek(0)
                 self.message(
-                    'Source {} above flare alert limit with {:.1f} Evts/h! '
+                    'Source {} above flare alert limit with '
+                    '{:.1f} Evts/h and {:.1f} sigma! '
                     'Please call the Flare Expert'.format(
-                        source, data['rate']
+                        source, data['rate'], data['significance'],
                     ),
                     category=self.category,
                     level=message_level(self.name),
@@ -143,3 +149,9 @@ def all_recent_alerts_acknowledged(checkname):
     if not my_recent_alerts.acknowledged.all():
         return False
     return True
+
+
+def get_max_rate_and_significance(qla_data):
+    idx = qla_data.groupby('fSourceName')['rate'].idxmax()
+    qla_max_rates = qla_data[['fSourceName', 'rate', 'significance']].loc[idx]
+    return qla_max_rates.set_index('fSourceName')

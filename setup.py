@@ -29,6 +29,7 @@ setup(
         'numexpr',
         'smart_fact_crawler==0.2.1',
         'custos==0.0.5',
+        'pyfact==0.8.1',
         'retrying',
         'wrapt',
         'python-json-logger',
