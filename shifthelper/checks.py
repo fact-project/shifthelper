@@ -39,7 +39,7 @@ class FactIntervalCheck(IntervalCheck):
     def message(self, checklist, **kwargs):
         super().message(
             text=' and \n'.join(map(attrgetter('__doc__'), checklist)),
-            level=message_level(self.__class__.__name__),
+            level=message_level(self.name),
             category=self.category,
         )
 
