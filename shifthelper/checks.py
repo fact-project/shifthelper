@@ -23,7 +23,7 @@ FLARE_ALERT_LIMITS = defaultdict(lambda: 15.0)
 FLARE_ALERT_LIMITS['Mrk 501'] = 50.0
 FLARE_ALERT_LIMITS['Mrk 421'] = 50.0
 # we won't issue flare alerts for crab without thorough investigation
-FLARE_ALERT_LIMITS['CRAB'] = np.inf
+FLARE_ALERT_LIMITS['Crab'] = np.inf
 
 
 class FactIntervalCheck(IntervalCheck):
