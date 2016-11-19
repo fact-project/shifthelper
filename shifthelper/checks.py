@@ -34,10 +34,10 @@ class FactIntervalCheck(IntervalCheck):
 
     def check(self):
         if all([f() for f in self.checklist]):
-            self.message(self.checklist)
+            self.message_from_docs(self.checklist)
 
-    def message(self, checklist, **kwargs):
-        super().message(
+    def message_from_docs(self, checklist, **kwargs):
+        self.message(
             text=' and \n'.join(map(attrgetter('__doc__'), checklist)),
             level=message_level(self.name),
             category=self.category,
