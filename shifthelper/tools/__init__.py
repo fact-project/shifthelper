@@ -25,15 +25,6 @@ lock = threading.Lock()
 db_engines = {}
 
 
-def date2int(date):
-    return date.year * 10000 + date.month * 100 + date.day
-
-
-def tonight_night_integer():
-    now = datetime.utcnow() - timedelta(hours=12)
-    return date2int(now)
-
-
 def create_db_connection(db_config=None):
     with lock:
         if db_config is None:
