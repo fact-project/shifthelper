@@ -12,7 +12,7 @@ from collections import defaultdict
 from custos import IntervalCheck
 from custos import levels
 
-from .tools import config, create_db_connection
+from .tools import config, create_db_connection, NightlyResettingDefaultdict
 from fact.qla import get_qla_data, bin_qla_data, plot_qla
 from fact import night_integer
 
@@ -28,6 +28,7 @@ FLARE_ALERT_LIMITS['Mrk 501'] = 50.0
 FLARE_ALERT_LIMITS['Mrk 421'] = 50.0
 # we won't issue flare alerts for crab without thorough investigation
 FLARE_ALERT_LIMITS['Crab'] = np.inf
+nightly_max_rate = NightlyResettingDefaultdict(lambda: -np.inf)
 
 
 class FactIntervalCheck(IntervalCheck):
@@ -82,11 +83,16 @@ class FlareAlertCheck(IntervalCheck):
         image_send = False
 
         for source, data in significant_qla_max_rates.iterrows():
-            if data['rate'] > FLARE_ALERT_LIMITS[source]:
+            if (data['rate'] > FLARE_ALERT_LIMITS[source] and
+                    data['rate'] > nightly_max_rate[source]):
+
+                nightly_max_rate[source] = data['rate']
+
                 if image_file is None:
                     image_file = BytesIO()
                     plot_qla(qla_data, image_file)
                     image_file.seek(0)
+
                 self.message(
                     'Source {} above flare alert limit with '
                     '{:.1f} Evts/h and {:.1f} sigma! '
