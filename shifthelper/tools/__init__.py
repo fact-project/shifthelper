@@ -5,7 +5,6 @@ import sqlalchemy
 import json
 import pandas as pd
 import requests
-from datetime import datetime, timedelta
 from retrying import retry, RetryError
 
 __all__ = ['create_db_connection', 'config']
