@@ -88,7 +88,7 @@ def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
     except IndexError:
         # in case we cannot find the next shutdown,
         # we simply say the next shutdown is waaaay far in the future.
-        return datetime.datetime.max
+        return datetime.max
 
 
 
@@ -121,4 +121,4 @@ def get_last_shutdown(current_time_rounded_to_seconds=None, db=None):
     except IndexError:
         # in case we cannot find the last shutdown,
         # we simply say the last shutdown was waaay in the past
-        return datetime.datetime.min
+        return datetime.min
