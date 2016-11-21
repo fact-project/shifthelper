@@ -31,7 +31,7 @@ twilio = FactTwilioNotifier(
     sid=config['twilio']['sid'],
     auth_token=config['twilio']['auth_token'],
     twilio_number=config['twilio']['number'],
-    ring_time=10,
+    ring_time=45,
     level=levels.WARNING,
 )
 telegram = TelegramNotifier(
