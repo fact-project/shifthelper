@@ -5,7 +5,7 @@ FROM continuumio/miniconda3
 RUN conda install \
 	pandas requests numpy matplotlib \
 	python-dateutil sqlalchemy PyMySQL \
-	docopt pytz numexpr 
+	docopt pytz numexpr
 
 RUN pip install twilio retrying wrapt \
 	https://github.com/fact-project/smart_fact_crawler/archive/v0.2.1.tar.gz \

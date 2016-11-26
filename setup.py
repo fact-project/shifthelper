@@ -20,7 +20,7 @@ setup(
         'pandas',           # in anaconda
         'requests',         # in anaconda
         'numpy',            # in anaconda
-        'matplotlib>=1.4',  # in anaconda
+        'matplotlib>=1.5',  # in anaconda
         'python-dateutil',  # in anaconda
         'sqlalchemy',       # in anaconda
         'PyMySQL',          # in anaconda
@@ -29,6 +29,7 @@ setup(
         'numexpr',
         'smart_fact_crawler==0.2.1',
         'custos==0.0.5',
+        'pyfact==0.8.2',
         'retrying',
         'wrapt',
         'python-json-logger',

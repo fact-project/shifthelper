@@ -68,16 +68,23 @@ class FactTwilioNotifier(TwilioNotifier):
             return config['developer']['phone_number']
 
     def handle_message(self, msg):
+        log.debug('Got a message')
         if msg.level >= self.level:
+            log.debug('Message is over alert level')
+
             if msg.category == 'check_error':
+                log.debug('Message has category "check_error"')
                 phone_number = config['developer']['phone_number']
             else:
                 if self._get_oldest_call_age() < self.time_before_fallback:
+                    log.debug('Getting phone number of primary shifter')
                     phone_number = self.phone_number_of_normal_shifter()
                 else:
+                    log.debug('Getting phone number of fallback shifter')
                     phone_number = self.phone_number_of_fallback_shifter()
 
             try:
+                log.info('Calling {}'.format(phone_number))
                 self.notify(phone_number, msg)
             except:
                 log.exception(

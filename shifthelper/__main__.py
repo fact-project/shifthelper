@@ -9,7 +9,7 @@ from .notifiers import FactTwilioNotifier
 from .tools.whosonshift import whoisonshift
 from .tools import config
 from .logging import config_logging
-from .checks import FactIntervalCheck
+from .checks import FactIntervalCheck, FlareAlertCheck
 from . import conditions
 
 config_logging(to_console=True)
@@ -19,7 +19,11 @@ def telegram_book(category):
     if category == 'check_error':
         return [config['developer']['telegram_id']]
 
-    telegram_id = whoisonshift().telegram_id
+    try:
+        telegram_id = whoisonshift().telegram_id
+    except IndexError:
+        return []
+
     return [telegram_id] if telegram_id is not None else []
 
 
@@ -27,7 +31,7 @@ twilio = FactTwilioNotifier(
     sid=config['twilio']['sid'],
     auth_token=config['twilio']['auth_token'],
     twilio_number=config['twilio']['number'],
-    ring_time=10,
+    ring_time=45,
     level=levels.WARNING,
 )
 telegram = TelegramNotifier(
@@ -53,6 +57,7 @@ CATEGORY_DEVELOPER = 'developer'
 def main():
     with Custos(
             checks=[
+                FlareAlertCheck(category=CATEGORY_SHIFTER, interval=300),
                 FactIntervalCheck(
                     name='ShifterOnShift',
                     checklist=[
