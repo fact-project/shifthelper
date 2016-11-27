@@ -56,7 +56,16 @@ class FlareAlertCheck(IntervalCheck):
 
     def check(self):
 
-        unbinned_qla_data = get_qla_data(night_integer(datetime.utcnow()), database)
+        @retry(
+        stop_max_delay=30000,  # 30 seconds max
+        wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+        wait_exponential_max=1000,  # but wait 1 second per try maximum
+        wrap_exception=True
+        )
+        def retry_get_qla_data_fail_after_30sec():
+            return get_qla_data(night_integer(datetime.utcnow()), database)
+
+        unbinned_qla_data = retry_get_qla_data_fail_after_30sec()
 
         if unbinned_qla_data is None:
             self.log.debug('No qla data available yet')
