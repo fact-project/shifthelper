@@ -55,15 +55,6 @@ class FlareAlertCheck(IntervalCheck):
         self.category = category
 
     def check(self):
-
-        @retry(
-        stop_max_delay=30000,  # 30 seconds max
-        wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
-        wait_exponential_max=1000,  # but wait 1 second per try maximum
-        )
-        def retry_get_qla_data_fail_after_30sec():
-            return get_qla_data(night_integer(datetime.utcnow()), database)
-
         unbinned_qla_data = retry_get_qla_data_fail_after_30sec()
 
         if unbinned_qla_data is None:
@@ -112,6 +103,14 @@ class FlareAlertCheck(IntervalCheck):
                     image=None if image_send else image_file,
                 )
                 image_send = True
+
+@retry(
+        stop_max_delay=30000,  # 30 seconds max
+        wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+        wait_exponential_max=1000,  # but wait 1 second per try maximum
+        )
+def retry_get_qla_data_fail_after_30sec():
+    return get_qla_data(night_integer(datetime.utcnow()), database)
 
 
 @retry(stop_max_delay=30000,  # 30 seconds max
