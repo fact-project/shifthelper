@@ -89,19 +89,16 @@ def is_data_run():
     # inside sfc.main_page().system_status, but I'm not sure yet.
     # yes it does: example:
     # sfc.main_page().system_status --> 'Idle [single-pe]'
-    try:
-        search_result = regex.search(
-            r'\[(.*)\]',
-            sfc.main_page().system_status
-            )
-        if search_result is None:
-            return False
-        else:
-            config_name = search_result.groups()[0]
-            return config_name in ['data', 'data-rt']
-    except IndexError:
+    search_result = regex.search(
+        r'\[(.*)\]',
+        sfc.main_page().system_status
+        )
+    if search_result is None:
         # regex did not match
         return False
+    else:
+        config_name = search_result.groups()[0]
+        return config_name in ['data', 'data-rt']
 
 
 @log_call_and_result
