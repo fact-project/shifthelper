@@ -16,6 +16,7 @@ class FactTwilioNotifier(TwilioNotifier):
         self.time_before_fallback = time_before_fallback
         self.not_acknowledged_calls = []
         self.nobody_is_listening = False
+        self.twiml == 'hangup'
 
         # actual recipients are determinded in
         # handle_message() using phone_number_of...()
