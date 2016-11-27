@@ -90,11 +90,15 @@ def is_data_run():
     # yes it does: example:
     # sfc.main_page().system_status --> 'Idle [single-pe]'
     try:
-        config_name = regex.search(
+        search_result = regex.search(
             r'\[(.*)\]',
             sfc.main_page().system_status
-            ).groups()[0]
-        return config_name in ['data', 'data-rt']
+            )
+        if search_result is None:
+            return False
+        else:
+            config_name = search_result.groups()[0]
+            return config_name in ['data', 'data-rt']
     except IndexError:
         # regex did not match
         return False
