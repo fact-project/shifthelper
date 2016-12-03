@@ -12,10 +12,12 @@ setup(
         'shifthelper',
         'shifthelper.tools',
         'shifthelper.db_cloner',
-        ],
+    ],
     package_data={
         'shifthelper.db_cloner': ['logging.conf'],
     },
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest>=3.0.0'],
     install_requires=[
         'pandas',           # in anaconda
         'requests',         # in anaconda

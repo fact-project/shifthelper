@@ -104,6 +104,7 @@ class FlareAlertCheck(IntervalCheck):
                 )
                 image_send = True
 
+
 @retry(
         stop_max_delay=30000,  # 30 seconds max
         wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
@@ -128,7 +129,11 @@ def message_level(checkname):
         return levels.WARNING
 
 
-def all_recent_alerts_acknowledged(checkname=None):
+def all_recent_alerts_acknowledged(
+        alerts=None,
+        checkname=None,
+        check_time=timedelta(minutes=10)
+        ):
     '''
     have a look at shifthelper webinterface page and see if the
     user has already acknowledged all the alerts from the given
@@ -138,30 +143,36 @@ def all_recent_alerts_acknowledged(checkname=None):
     user also cannot reach the website, so nothing will be acknowledged.
     So in that case we simply return False as well
     '''
-    try:
-        all_alerts = requests.get(config['webservice']['post-url']).json()
-    except RequestException:
-        log.warning('Could not check acknowledged alerts')
-        return False
+    now = datetime.utcnow()
 
-    if not all_alerts:
+    if alerts is None:
+        try:
+            alerts = requests.get(config['webservice']['post-url']).json()
+        except RequestException:
+            log.warning('Could not check acknowledged alerts')
+            return False
+
+        if not alerts:
+            return True
+
+        alerts = pd.DataFrame(alerts)
+        alerts['timestamp'] = pd.to_datetime(alerts.timestamp, utc=True)
+
+    if alerts.empty:
         return True
 
-    now = datetime.utcnow()
-    all_alerts = pd.DataFrame(all_alerts)
-    all_alerts['timestamp'] = pd.to_datetime(all_alerts.timestamp, utc=True)
+    alerts['age'] = now - alerts.timestamp
 
-    my_alerts = all_alerts[all_alerts.check == checkname]
-    if my_alerts.empty:
-        return False
+    if checkname is not None:
+        alerts = alerts[alerts.check == checkname]
 
-    my_recent_alerts = my_alerts[(now - my_alerts.timestamp) < timedelta(minutes=10)]
-    if my_recent_alerts.empty:
-        return False
+    if check_time is not None:
+        alerts = alerts[alerts.age < check_time]
 
-    if not my_recent_alerts.acknowledged.all():
-        return False
-    return True
+    if alerts.empty:
+        return True
+
+    return alerts.acknowledged.all()
 
 
 def get_max_rate_and_significance(qla_data):
