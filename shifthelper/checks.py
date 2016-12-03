@@ -18,8 +18,6 @@ from fact import night_integer
 
 log = logging.getLogger(__name__)
 
-database = create_db_connection()
-
 
 ALERT_SIGNIFICANCE = 3
 # for all sources but the mrks and crab the alert rate is 15 Evts / h
@@ -110,7 +108,8 @@ class FlareAlertCheck(IntervalCheck):
         wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
         wait_exponential_max=1000,  # but wait 1 second per try maximum
         )
-def retry_get_qla_data_fail_after_30sec():
+def retry_get_qla_data_fail_after_30sec(database=None):
+    database = database or create_db_connection()
     return get_qla_data(night_integer(datetime.utcnow()), database)
 
 

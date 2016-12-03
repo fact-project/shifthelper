@@ -20,3 +20,6 @@ install:
 
 script:
   - python setup.py test
+
+env:
+  - SHIFTHELPER_CONFIG=tests/resources/test_config.json
