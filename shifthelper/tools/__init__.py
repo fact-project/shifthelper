@@ -1,5 +1,4 @@
 import os
-import datetime
 import threading
 import sqlalchemy
 import json
@@ -25,6 +24,15 @@ with open(configfile) as f:
 lock = threading.Lock()
 
 db_engines = {}
+
+
+@retry(stop_max_delay=30000,  # 30 seconds max
+       wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+       wait_exponential_max=1000,  # but wait 1 second per try maximum
+       )
+def get_alerts():
+    alerts = requests.get(config['webservice']['post-url'])
+    return alerts.json()
 
 
 def create_db_connection(db_config=None):
@@ -57,7 +65,7 @@ def get_last_parking_checklist_entry():
         # we pretend it was only filled waaaay in the future.
         # In all checks, which check if it was *already* filled
         # this future timestamp will result as False
-        return datetime.datetime.max
+        return datetime.max
 
 
 def fetch_users_awake():

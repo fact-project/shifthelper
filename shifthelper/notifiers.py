@@ -1,8 +1,10 @@
 import datetime
+import requests
 
 from custos import TwilioNotifier
+from copy import copy
 from .tools.whosonshift import whoisonshift
-from .tools import config
+from .tools import config, get_alerts
 
 import logging
 log = logging.getLogger(__name__)
@@ -24,27 +26,26 @@ class FactTwilioNotifier(TwilioNotifier):
         super().__init__(*args, **kwargs)
 
     def notify(self, recipient, msg):
-        self._remove_acknowledged_calls()
         super().notify(recipient, msg)
         self.not_acknowledged_calls.append((self.call, msg))
 
     def _remove_acknowledged_calls(self):
         """ from the list of not acknowledged calls
-        remove all calls, which have been "completed",
-        i.e. a person has taken the call
-
-        remove also all calls, whose message.check is
-        equal to a call, which has been taken.
+        remove all calls, which have been acknowledged on the web page
         """
-        acknowledged_checks = set()
-        for call, msg in self.not_acknowledged_calls[:]:
-            call.update_instance()
-            if call.status in ["completed"]:
-                acknowledged_checks.add(msg.check)
-                self.not_acknowledged_calls.remove((call, msg))
+        try:
+            alerts = get_alerts()
+            alerts = {a['uuid']: a for a in alerts}
+        except requests.exceptions.RequestException:
+            return
 
-        for call, msg in self.not_acknowledged_calls[:]:
-            if msg.check in acknowledged_checks:
+        for call, msg in copy(self.not_acknowledged_calls):
+            try:
+                alert = alerts[msg.uuid]
+            except IndexError:
+                continue
+
+            if alert['acknowledged'] is True:
                 self.not_acknowledged_calls.remove((call, msg))
 
     def _get_oldest_call_age(self):
@@ -65,6 +66,7 @@ class FactTwilioNotifier(TwilioNotifier):
         return config['fallback_shifter']['phone_number']
 
     def handle_message(self, msg):
+        self._remove_acknowledged_calls()
         log.debug('Got a message')
         if msg.level >= self.level:
             log.debug('Message is over alert level')

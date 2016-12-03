@@ -1,5 +1,4 @@
 import logging
-import requests
 import pandas as pd
 import numpy as np
 from operator import attrgetter
@@ -12,7 +11,7 @@ from collections import defaultdict
 from custos import IntervalCheck
 from custos import levels
 
-from .tools import config, create_db_connection, NightlyResettingDefaultdict
+from .tools import create_db_connection, NightlyResettingDefaultdict, get_alerts
 from fact.qla import get_qla_data, bin_qla_data, plot_qla
 from fact import night_integer
 
@@ -149,7 +148,7 @@ def all_recent_alerts_acknowledged(
 
     if alerts is None:
         try:
-            alerts = requests.get(config['webservice']['post-url']).json()
+            alerts = get_alerts()
         except RequestException:
             log.warning('Could not check acknowledged alerts')
             return False

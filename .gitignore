@@ -1,6 +1,6 @@
 *.swp
 plots/
-config.ini
+config.*
 MANIFEST
 
 # Byte-compiled / optimized / DLL files
