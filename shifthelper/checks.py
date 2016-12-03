@@ -128,7 +128,7 @@ def message_level(checkname):
         return levels.WARNING
 
 
-def all_recent_alerts_acknowledged(checkname):
+def all_recent_alerts_acknowledged(checkname=None):
     '''
     have a look at shifthelper webinterface page and see if the
     user has already acknowledged all the alerts from the given
@@ -145,7 +145,7 @@ def all_recent_alerts_acknowledged(checkname):
         return False
 
     if not all_alerts:
-        return False
+        return True
 
     now = datetime.utcnow()
     all_alerts = pd.DataFrame(all_alerts)
