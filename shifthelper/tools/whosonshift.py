@@ -9,7 +9,6 @@ import logging
 log = logging.getLogger(__name__)
 
 
-
 def whoisonshift(clear_cache=False):
     if clear_cache:
         retrieve_calendar_entries.cache_clear()
