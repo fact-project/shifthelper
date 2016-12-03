@@ -114,25 +114,28 @@ def retry_get_qla_data_fail_after_30sec():
     return get_qla_data(night_integer(datetime.utcnow()), database)
 
 
-@retry(stop_max_delay=30000,  # 30 seconds max
-       wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
-       wait_exponential_max=1000,  # but wait 1 second per try maximum
-       )
-def message_level(checkname):
+def message_level(checkname, check_time=timedelta(minutes=10), alerts=None):
     '''
     return the message severity level for a certain check,
     based on whether all the alerts have been acknowledged or not
     '''
-    if all_recent_alerts_acknowledged(checkname):
+    acknowledged = all_recent_alerts_acknowledged(
+        checkname=checkname, check_time=check_time, alerts=alerts
+    )
+    if acknowledged:
         return levels.INFO
     else:
         return levels.WARNING
 
 
+@retry(stop_max_delay=30000,  # 30 seconds max
+       wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+       wait_exponential_max=1000,  # but wait 1 second per try maximum
+       )
 def all_recent_alerts_acknowledged(
-        alerts=None,
         checkname=None,
-        check_time=timedelta(minutes=10)
+        check_time=timedelta(minutes=10),
+        alerts=None,
         ):
     '''
     have a look at shifthelper webinterface page and see if the
