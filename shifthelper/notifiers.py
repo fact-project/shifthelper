@@ -63,10 +63,6 @@ class FactTwilioNotifier(TwilioNotifier):
 
     def phone_number_of_fallback_shifter(self):
         return config['fallback_shifter']['phone_number']
-        try:
-            return whoisonshift().phone_mobile
-        except IndexError:
-            return config['developer']['phone_number']
 
     def handle_message(self, msg):
         log.debug('Got a message')
