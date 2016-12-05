@@ -129,11 +129,14 @@ def message_level(checkname, check_time=timedelta(minutes=10), alerts=None):
             result_if_no_alerts=False,
         )
     except RequestException:
+        log.exception('Getting alerts failed')
         acknowledged = False
 
     if acknowledged:
         return levels.INFO
+        log.debug('Giving message status INFO')
     else:
+        log.debug('Giving message status WARNING')
         return levels.WARNING
 
 
