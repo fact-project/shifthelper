@@ -253,7 +253,7 @@ def is_nobody_awake():
     awake = {}
     for username, since in fetch_users_awake().items():
         since = to_datetime(since)
-        if since > get_next_shutdown() - timedelta(minutes=20):
+        if since > get_next_shutdown() - timedelta(minutes=30):
             awake[username] = since
     if not awake:
         return True
