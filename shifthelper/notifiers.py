@@ -49,7 +49,7 @@ class FactTwilioNotifier(TwilioNotifier):
             else:
                 try:
                     alert = alerts[msg.uuid]
-                except IndexError:
+                except KeyError:
                     continue
 
                 if alert['acknowledged'] is True:
