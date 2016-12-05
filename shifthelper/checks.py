@@ -152,7 +152,6 @@ def all_recent_alerts_acknowledged(
     is dependent on the `result_if_no_alerts` option, which defaults to `False`
     '''
     now = datetime.utcnow()
-    print(len(alerts))
 
     if alerts is None:
         alerts = get_alerts()
@@ -170,11 +169,9 @@ def all_recent_alerts_acknowledged(
 
     if checkname is not None:
         alerts = alerts[alerts.check == checkname]
-    print(len(alerts))
 
     if check_time is not None:
         alerts = alerts[alerts.age < check_time]
-    print(len(alerts))
 
     if alerts.empty:
         return result_if_no_alerts
