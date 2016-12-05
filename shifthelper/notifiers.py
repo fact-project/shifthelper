@@ -5,6 +5,7 @@ from custos import TwilioNotifier
 from copy import copy
 from .tools.whosonshift import whoisonshift
 from .tools import config, get_alerts
+from .categories import CATEGORY_DEVELOPER, CATEGORY_SHIFTER
 
 import logging
 log = logging.getLogger(__name__)
@@ -77,7 +78,7 @@ class FactTwilioNotifier(TwilioNotifier):
         if msg.level >= self.level:
             log.debug('Message is over alert level')
 
-            if msg.category == 'check_error':
+            if msg.category in ('check_error', CATEGORY_DEVELOPER):
                 log.debug('Message has category "check_error"')
                 phone_number = config['developer']['phone_number']
             else:
