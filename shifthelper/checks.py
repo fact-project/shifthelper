@@ -150,7 +150,7 @@ def all_recent_alerts_acknowledged(
         try:
             alerts = get_alerts()
         except RequestException:
-            log.warning('Could not check acknowledged alerts')
+            log.exception('Could not check acknowledged alerts')
             return False
 
         if not alerts:
