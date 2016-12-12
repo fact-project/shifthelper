@@ -12,7 +12,7 @@ from pandas import to_datetime
 import pandas as pd
 
 from .tools.is_shift import is_shift_at_the_moment, get_next_shutdown, get_last_shutdown
-from .tools.whosonshift import whoisonshift
+from .tools.shift import get_current_shifter
 from .tools import get_last_parking_checklist_entry
 from .tools import fetch_users_awake
 from . import retry_smart_fact_crawler as sfc
@@ -258,7 +258,7 @@ def is_nobody_awake():
     if not awake:
         return True
     else:
-        return whoisonshift().username not in awake
+        return get_current_shifter().username not in awake
 
 
 @log_call_and_result
@@ -271,7 +271,7 @@ def is_20minutes_or_less_before_shutdown():
 def is_nobody_on_shift():
     '''Nobody on Shift'''
     try:
-        whoisonshift()
+        get_current_shifter()
     except IndexError:
         return True
     else:

@@ -9,8 +9,19 @@ import logging
 log = logging.getLogger(__name__)
 
 
+calendar_query = '''
+SELECT u
+FROM calendar_data
+WHERE
+    y={y}
+    AND m={m}
+    AND d={d}
+    AND NOT x
+;
+'''
 
-def whoisonshift(clear_cache=False):
+
+def get_current_shifter(clear_cache=False):
     if clear_cache:
         retrieve_calendar_entries.cache_clear()
         retrieve_valid_usernames_from_logbook.cache_clear()
@@ -52,11 +63,11 @@ def retrieve_calendar_entries(dt_date, db=None):
 
     yesterday_night = (dt_date - timedelta(hours=12)).date()
 
-    query = "SELECT u from calendar_data where y={y} and m={m} and d={d}".format(
-                y=yesterday_night.year,
-                m=yesterday_night.month - 1,
-                d=yesterday_night.day
-            )
+    query = calendar_query.format(
+        y=yesterday_night.year,
+        m=yesterday_night.month - 1,
+        d=yesterday_night.day
+    )
     return pd.read_sql_query(query, db)
 
 

@@ -6,7 +6,7 @@ from custos import TelegramNotifier, LogNotifier
 from custos import HTTPNotifier
 from .notifiers import FactTwilioNotifier
 
-from .tools.whosonshift import whoisonshift
+from .tools.shift import get_current_shifter
 from .tools import config
 from .logging import config_logging
 from .checks import FactIntervalCheck, FlareAlertCheck
