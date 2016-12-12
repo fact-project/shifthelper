@@ -2,8 +2,9 @@ import datetime
 import requests
 
 from custos import TwilioNotifier
+from .tools.shift import get_current_shifter
+from .tools import config
 from copy import copy
-from .tools.whosonshift import whoisonshift
 from .tools import config, get_alerts
 from .categories import CATEGORY_DEVELOPER, CATEGORY_SHIFTER
 
@@ -65,7 +66,7 @@ class FactTwilioNotifier(TwilioNotifier):
 
     def phone_number_of_normal_shifter(self):
         try:
-            phone_number = whoisonshift().phone_mobile
+            phone_number = get_current_shifter().phone_mobile
             if not phone_number:
                 return self.phone_number_of_fallback_shifter()
         except IndexError:
