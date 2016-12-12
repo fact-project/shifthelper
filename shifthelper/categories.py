@@ -1,0 +1,2 @@
+CATEGORY_DEVELOPER = 'developer'
+CATEGORY_SHIFTER = 'shifter'

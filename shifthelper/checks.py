@@ -1,5 +1,4 @@
 import logging
-import requests
 import pandas as pd
 import numpy as np
 from operator import attrgetter
@@ -12,13 +11,11 @@ from collections import defaultdict
 from custos import IntervalCheck
 from custos import levels
 
-from .tools import config, create_db_connection, NightlyResettingDefaultdict
+from .tools import create_db_connection, NightlyResettingDefaultdict, get_alerts
 from fact.qla import get_qla_data, bin_qla_data, plot_qla
 from fact import night_integer
 
 log = logging.getLogger(__name__)
-
-database = create_db_connection()
 
 
 ALERT_SIGNIFICANCE = 3
@@ -104,64 +101,85 @@ class FlareAlertCheck(IntervalCheck):
                 )
                 image_send = True
 
+
 @retry(
         stop_max_delay=30000,  # 30 seconds max
         wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
         wait_exponential_max=1000,  # but wait 1 second per try maximum
         )
-def retry_get_qla_data_fail_after_30sec():
+def retry_get_qla_data_fail_after_30sec(database=None):
+    database = database or create_db_connection()
     return get_qla_data(night_integer(datetime.utcnow()), database)
 
 
-@retry(stop_max_delay=30000,  # 30 seconds max
-       wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
-       wait_exponential_max=1000,  # but wait 1 second per try maximum
-       )
-def message_level(checkname):
+def message_level(checkname, check_time=timedelta(minutes=10), alerts=None):
     '''
     return the message severity level for a certain check,
     based on whether all the alerts have been acknowledged or not
+
+    In case we cannot even reach the webinterface, we have to assume the
+    user also cannot reach the website, so nothing will be acknowledged.
+    So in that case we simply return the higher level as well.
     '''
-    if all_recent_alerts_acknowledged(checkname):
+    try:
+        acknowledged = all_recent_alerts_acknowledged(
+            checkname=checkname,
+            check_time=check_time,
+            alerts=alerts,
+            result_if_no_alerts=False,
+        )
+    except RequestException:
+        log.exception('Getting alerts failed')
+        acknowledged = False
+
+    if acknowledged:
         return levels.INFO
+        log.debug('Giving message status INFO')
     else:
+        log.debug('Giving message status WARNING')
         return levels.WARNING
 
 
-def all_recent_alerts_acknowledged(checkname):
+def all_recent_alerts_acknowledged(
+        checkname=None,
+        check_time=timedelta(minutes=10),
+        alerts=None,
+        result_if_no_alerts=False,
+        ):
     '''
     have a look at shifthelper webinterface page and see if the
     user has already acknowledged all the alerts from the given
     checkname.
 
-    In case we cannot even reach the webinterface, we have to assume the
-    user also cannot reach the website, so nothing will be acknowledged.
-    So in that case we simply return False as well
+    If there are no alerts matching the specified criteria, the result
+    is dependent on the `result_if_no_alerts` option, which defaults to `False`
     '''
-    try:
-        all_alerts = requests.get(config['webservice']['post-url']).json()
-    except RequestException:
-        log.warning('Could not check acknowledged alerts')
-        return False
-
-    if not all_alerts:
-        return False
-
     now = datetime.utcnow()
-    all_alerts = pd.DataFrame(all_alerts)
-    all_alerts['timestamp'] = pd.to_datetime(all_alerts.timestamp, utc=True)
 
-    my_alerts = all_alerts[all_alerts.check == checkname]
-    if my_alerts.empty:
-        return False
+    if alerts is None:
+        alerts = get_alerts()
 
-    my_recent_alerts = my_alerts[(now - my_alerts.timestamp) < timedelta(minutes=10)]
-    if my_recent_alerts.empty:
-        return False
+        if not alerts:
+            return result_if_no_alerts
 
-    if not my_recent_alerts.acknowledged.all():
-        return False
-    return True
+        alerts = pd.DataFrame(alerts)
+        alerts['timestamp'] = pd.to_datetime(alerts.timestamp, utc=True)
+
+    if alerts.empty:
+        return result_if_no_alerts
+
+    alerts['age'] = now - alerts.timestamp
+
+    if checkname is not None:
+        alerts = alerts[alerts.check == checkname]
+
+    if check_time is not None:
+        alerts = alerts[alerts.age < check_time]
+
+    if alerts.empty:
+        return result_if_no_alerts
+
+    return alerts.acknowledged.all()
 
 
 def get_max_rate_and_significance(qla_data):
