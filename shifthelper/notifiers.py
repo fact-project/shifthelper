@@ -65,7 +65,9 @@ class FactTwilioNotifier(TwilioNotifier):
 
     def phone_number_of_normal_shifter(self):
         try:
-            return whoisonshift().phone_mobile
+            phone_number = whoisonshift().phone_mobile
+            if not phone_number:
+                return self.phone_number_of_fallback_shifter()
         except IndexError:
             return config['developer']['phone_number']
 
