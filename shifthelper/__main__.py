@@ -56,6 +56,22 @@ def main():
             checks=[
                 FlareAlertCheck(category=CATEGORY_SHIFTER, interval=300),
                 FactIntervalCheck(
+                    name='SmartFactUpToDate',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_smartfact_outdatet,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='MAGICWeatherUpToDate',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_magic_weather_outdatet,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
                     name='ShifterOnShift',
                     checklist=[
                         conditions.is_shift_at_the_moment,
