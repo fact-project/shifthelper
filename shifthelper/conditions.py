@@ -165,6 +165,18 @@ def is_high_windspeed():
 
 
 @log_call_and_result
+def is_magic_weather_outdatet():
+    ''' MAGIC weather not updated in the last 10 minutes '''
+    return sfc.weather().timestamp() <= (datetime.utcnow() - timedelta(minutes=10))
+
+
+@log_call_and_result
+def is_smartfact_outdatet():
+    ''' SMARTFACT not updated in the last 10 minutes '''
+    return sfc.main_page().timestamp_1() <= (datetime.utcnow() - timedelta(minutes=10))
+
+
+@log_call_and_result
 def is_high_windgusts():
     '''Wind gusts > 50 km/h'''
     return sfc.weather().wind_gusts.value >= 50
