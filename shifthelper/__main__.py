@@ -11,14 +11,14 @@ from .tools import config
 from .logging import config_logging
 from .checks import FactIntervalCheck, FlareAlertCheck
 from . import conditions
+from .categories import CATEGORY_SHIFTER, CATEGORY_DEVELOPER
 
 config_logging(to_console=True)
 
 
 def telegram_book(category):
-    if category == 'check_error':
+    if category in ('check_error', CATEGORY_DEVELOPER):
         return [config['developer']['telegram_id']]
-
     try:
         telegram_id = whoisonshift().telegram_id
     except IndexError:
@@ -49,9 +49,6 @@ http = HTTPNotifier(
 )
 
 log = LogNotifier(level=levels.DEBUG, recipients=['all'])
-
-CATEGORY_SHIFTER = 'shifter'
-CATEGORY_DEVELOPER = 'developer'
 
 
 def main():
