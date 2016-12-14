@@ -1,80 +1,103 @@
 import os
-import datetime
-from six.moves.configparser import SafeConfigParser
+import threading
+import sqlalchemy
+import json
+import pandas as pd
 import requests
-from getpass import getpass
-import sys
-import pkg_resources
+from retrying import retry, RetryError
+from fact import night_integer
+from datetime import datetime
+from collections import defaultdict
 
-__version__ = pkg_resources.require('shifthelper')[0].version
+__all__ = ['create_db_connection', 'config']
 
-config_file_name = 'config-{}.ini'.format(__version__)
-config_file_path = os.path.join(
-    os.environ['HOME'], '.shifthelper', config_file_name
+
+configfile = os.environ.get(
+    'SHIFTHELPER_CONFIG',
+    os.path.join(os.environ['HOME'], '.shifthelper', 'config.json')
 )
 
-remote_config_url = "https://fact-project.org/sandbox/shifthelper/config/{cn}".format(
-    cn=config_file_name
-)
+with open(configfile) as f:
+    config = json.load(f)
 
 
-def night(timestamp=None):
-    """
-    gives the date for a day change at noon instead of midnight
-    """
-    if timestamp is None:
-        timestamp = datetime.datetime.utcnow()
-    if timestamp.hour < 12:
-        timestamp = timestamp - datetime.timedelta(days=1)
-    return timestamp
+lock = threading.Lock()
+
+db_engines = {}
 
 
-def night_integer(timestamp=None):
-    """ get the correct night in fact format
-        if it is after 0:00, take the date
-        of yesterday
-    """
-    if timestamp is None:
-        timestamp = datetime.datetime.utcnow()
-    if timestamp.hour < 12:
-        timestamp = timestamp - datetime.timedelta(days=1)
-    night = int(timestamp.strftime('%Y%m%d'))
-    return night
+@retry(stop_max_delay=30000,  # 30 seconds max
+       wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+       wait_exponential_max=1000,  # but wait 1 second per try maximum
+       )
+def get_alerts():
+    alerts = requests.get(config['webservice']['post-url'])
+    return alerts.json()
 
 
-def download_config_file():
-    dotpath = os.path.join(os.environ['HOME'], '.shifthelper')
-    if not os.path.exists(dotpath):
-        os.makedirs(dotpath)
+def create_db_connection(db_config=None):
+    with lock:
+        if db_config is None:
+            db_config = config['database']
 
-    passwd = getpass('Please enter the current FACT password')
+        if not frozenset(db_config.items()) in db_engines:
+            db_engines[frozenset(db_config.items())] = sqlalchemy.create_engine(
+                "mysql+pymysql://{user}:{pw}@{host}:{port}/{db}".format(
+                    user=db_config['user'],
+                    pw=db_config['password'],
+                    host=db_config['host'],
+                    db=db_config['database'],
+                    port=db_config.get('port', 3306)
+                )
+            )
+    return db_engines[frozenset(db_config.items())]
+
+
+def get_last_parking_checklist_entry():
+    try:
+        table = pd.read_sql_query(
+            'select * from park_checklist_filled',
+            create_db_connection(config['sandbox_db'])
+            )
+        return table.sort_values('created').iloc[-1].created
+    except IndexError:
+        # In case we can not find out when the checklist was filled
+        # we pretend it was only filled waaaay in the future.
+        # In all checks, which check if it was *already* filled
+        # this future timestamp will result as False
+        return datetime.max
+
+
+def fetch_users_awake():
+    @retry(
+        stop_max_delay=30000,  # 30 seconds max
+        wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+        wait_exponential_max=1000,  # but wait 1 second per try maximum
+        wrap_exception=True
+    )
+    def retry_fetch_fail_after_30sec():
+        return requests.get('https://ihp-pc41.ethz.ch/iAmAwake').json()
 
     try:
-        ret = requests.get(
-            remote_config_url, auth=('FACT', passwd), verify=False
-        )
-        ret.raise_for_status()
-    except requests.RequestException:
-        if ret.status_code == 401:
-            print('Wrong password')
-        else:
-            print('Could not download config file from fact-project.org')
-        sys.exit()
-
-    else:
-        with open(config_file_path, 'wb') as f:
-            f.write(ret.content)
+        return retry_fetch_fail_after_30sec()
+    except RetryError:
+        return {}
 
 
-def read_config_file():
-    if not os.path.isfile(config_file_path):
-        download_config_file()
+class NightlyResettingDefaultdict(defaultdict):
+    def __init__(self, *args, **kwargs):
+        self.night = night_integer(datetime.utcnow())
+        super().__init__(*args, **kwargs)
 
-    config = SafeConfigParser()
-    config.optionxform = str
-    list_of_successfully_parsed_files = config.read(config_file_path)
-    if config_file_path not in list_of_successfully_parsed_files:
-        raise Exception(
-            'Could not read {0} succesfully.'.format(config_file_path)
-        )
-    return config
+    def __setitem__(self, key, value):
+        self.reset_if_night_change()
+        super().__setitem__(key, value)
+
+    def __getitem__(self, key):
+        self.reset_if_night_change()
+        return super().__getitem__(key)
+
+    def reset_if_night_change(self):
+        current_night = night_integer(datetime.utcnow())
+        if current_night != self.night:
+            self.clear()

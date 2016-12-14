@@ -1,0 +1,24 @@
+[
+  {
+    "acknowledged": true, 
+    "category": "developer", 
+    "check": "ParkingChecklistFilled", 
+    "id": 43, 
+    "level": 30, 
+    "text": "no shift at the moment and \nLast Shutdown is already 10min past and \nchecklist not filled", 
+    "timestamp": "2016-12-03 06:54:55", 
+    "title": null, 
+    "uuid": "10767bd2-9b7c-4b67-b03a-e19d5ae0f2a8"
+  }, 
+  {
+    "acknowledged": true, 
+    "category": "shifter", 
+    "check": "MainJsStatusCheck", 
+    "id": 40, 
+    "level": 30, 
+    "text": "There is a shift at the moment and \nMain.js is not running", 
+    "timestamp": "2016-12-02 20:28:53", 
+    "title": null, 
+    "uuid": "f8b3319e-166d-4cd7-8dfc-b224a8a34cfb"
+  }
+]

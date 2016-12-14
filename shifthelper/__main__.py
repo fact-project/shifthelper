@@ -1,209 +1,239 @@
 #!/usr/bin/env python
 # coding: utf-8
-'''
-This script is intended to call the shifter
-if security or flare alert limits are reached.
-Please do not accept or deny the call as this will
-create costs for us. Just let it ring.
-<phone_number> can either be a real phone_number or a twilio account.
+import sys
+from custos import Custos, levels
+from custos import TelegramNotifier, LogNotifier
+from custos import HTTPNotifier
+from .notifiers import FactTwilioNotifier
 
-Logs are stored in ~/.shifthelper
+from .tools.shift import get_current_shifter
+from .tools import config
+from .logging import config_logging
+from .checks import FactIntervalCheck, FlareAlertCheck
+from . import conditions
+from .categories import CATEGORY_SHIFTER, CATEGORY_DEVELOPER
 
-Usage:
-    shift_helper.py [<phone_number>] [options]
+config_logging(to_console=True)
 
-Options
-    --debug       Start the program in debug mode,
-                  DO NOT USE ON SHIFT!
-                  Programming errors are raised normally
-                  and dimctrl status will not be checked for a running Main.js
-    --version     Show version.
-    --no-call     FOR DEBUGGING ONLY. Omit every call.
-'''
-from __future__ import print_function, absolute_import
-import os
-import time
-from threading import Event
-import logging
-from docopt import docopt
-from collections import deque
-import blessings
-import pkg_resources
 
-from . import tools, cli
-from . import Alert, TelegramInterface
-from . import (
-    MainJsStatusCheck,
-    WeatherCheck,
-    RelativeCameraTemperatureCheck,
-    CurrentCheck,
-    FlareAlert,
+def telegram_book(category):
+    if category in ('check_error', CATEGORY_DEVELOPER):
+        return [config['developer']['telegram_id']]
+    try:
+        telegram_id = whoisonshift().telegram_id
+    except IndexError:
+        return []
+
+    return [telegram_id] if telegram_id is not None else []
+
+
+twilio = FactTwilioNotifier(
+    sid=config['twilio']['sid'],
+    auth_token=config['twilio']['auth_token'],
+    twilio_number=config['twilio']['number'],
+    ring_time=45,
+    level=levels.WARNING,
+)
+telegram = TelegramNotifier(
+    token=config['telegram']['token'],
+    recipients=telegram_book,
+    level=levels.INFO,
+)
+http = HTTPNotifier(
+    level=levels.WARNING,
+    recipients=[config['webservice']['post-url']],
+    auth=(
+        config['webservice']['user'],
+        config['webservice']['password']
+    ),
 )
 
-__version__ = pkg_resources.require('shifthelper')[0].version
-# setup logging
-logdir = os.path.join(os.environ['HOME'], '.shifthelper')
-if not os.path.exists(logdir):
-    os.makedirs(logdir)
-
-log = logging.getLogger('shift_helper')
-log.setLevel(logging.INFO)
-logfile_path = os.path.join(
-    logdir, 'shifthelper_{:%Y-%m-%d}.log'.format(tools.night()),
-)
-logfile_handler = logging.FileHandler(filename=logfile_path)
-logfile_handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    fmt='%(asctime)s - %(levelname)s - %(name)s | %(message)s',
-    datefmt='%H:%M:%S',
-)
-formatter.converter = time.gmtime  # use utc in log
-logfile_handler.setFormatter(formatter)
-log.addHandler(logfile_handler)
-logging.getLogger('py.warnings').addHandler(logfile_handler)
-logging.captureWarnings(True)
+log = LogNotifier(level=levels.DEBUG, recipients=['all'])
 
 
 def main():
-    log.info('shift helper started')
-    log.info('version: {}'.format(__version__))
-
-    args = docopt(
-        __doc__,
-        version=__version__,
-    )
-    term = blessings.Terminal()
-    stop_event = Event()
-
-    print(term.red)
-    print(term.width * '=')
-    print('{{:^{}}}'.format(term.width).format(
-        'Welcome to the shift_helper!'
-    ))
-    print(term.width * '=')
-    print(term.normal)
-
-    config = tools.read_config_file()
-
-    if args['--debug']:
-        mesg = term.red(80*'=' + '\n' + '{:^80}\n' + 80*'=')
-        print(mesg.format('DEBUG MODE - DO NOT USE DURING SHIFT'))
-        log.setLevel(logging.DEBUG)
-        log.debug('started shift helper in debug mode')
-
-    if args['--no-call']:
-        from . import NoCaller as Caller
-    else:
-        from . import TwilioInterface as Caller
-        print(term.cyan('Twilio Phone Setup'))
-
-    caller = Caller(
-        phone_number=args['<phone_number>'],
-        ring_time=20,
-        sid=config.get('twilio', 'sid'),
-        auth_token=config.get('twilio', 'auth_token'),
-        twilio_number=config.get('twilio', 'number'),
-    )
-    caller.check_phone_number()
-
-    log.info('Using phone_number: {}'.format(caller.phone_number))
-
-    print(term.cyan('\nTelegram Setup'))
-    telegram = None
-    if cli.ask_user('Do you want to use Telegram to receive notifications?'):
-        telegram = TelegramInterface(config.get('telegram', 'token'))
-        log.info('Using Telegram')
-
-    print(
-        term.bold_white(
-            "\n"
-            "    Thank you for using shift_helper tonight.\n"
-            "    -----------------------------------------\n"
-            "    We hope it was a pleasant experience.\n"
-            "    Please consider sending your log-file:\n"
-            "    {}\n".format(logfile_path) +
-            "    to: neised@phys.ethz.ch for future improvements\n"
-        )
-    )
-
-    qla_data = {}
-    system_status = {}
-
-    try:
-        alert = Alert(
-            queue=deque(),
-            interval=5,
-            stop_event=stop_event,
-            caller=caller,
-            messenger=telegram,
-            logger=log,
-        )
-
-        if not args['--debug']:
-            check_mainjs = MainJsStatusCheck(
-                alert.queue,
-                60,  # seconds
-                stop_event,
-                qla_data,
-                system_status,
-            )
-            check_mainjs.start()
-
-        check_weather = WeatherCheck(
-            alert.queue,
-            60,  # seconds
-            stop_event,
-            qla_data,
-            system_status,
-        )
-        check_weather.start()
-
-        check_rel_camera_temp = RelativeCameraTemperatureCheck(
-            alert.queue,
-            60,  # seconds
-            stop_event,
-            qla_data,
-            system_status,
-        )
-        check_rel_camera_temp.start()
-
-        check_currents = CurrentCheck(
-            alert.queue,
-            60,   # seconds
-            stop_event,
-            qla_data,
-            system_status,
-        )
-        check_currents.start()
-
-        flare_alert = FlareAlert(
-            alert.queue,
-            300,   # seconds
-            stop_event,
-            qla_data,
-            system_status,
-        )
-        flare_alert.start()
-
-        log.info('All checkers are running.')
-        status = cli.StatusDisplay(
-            qla_data,
-            system_status,
-            stop_event,
-            logfile_path,
-        )
-
-        alert.start()
-        status.start()
-
-        log.info('Entering main loop.')
-        while True:
-            time.sleep(10)
-
-    except (KeyboardInterrupt, SystemExit):
-        stop_event.set()
-        log.info('Exit')
-
-
-if __name__ == '__main__':
-    main()
+    with Custos(
+            checks=[
+                FlareAlertCheck(category=CATEGORY_SHIFTER, interval=300),
+                FactIntervalCheck(
+                    name='SmartFactUpToDate',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_smartfact_outdatet,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='MAGICWeatherUpToDate',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_magic_weather_outdatet,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='ShifterOnShift',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_nobody_on_shift,
+                    ],
+                    category=CATEGORY_DEVELOPER
+                ),
+                FactIntervalCheck(
+                    name='MainJsStatusCheck',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_mainjs_not_running
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='WindSpeedCheck',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_high_windspeed,
+                        conditions.is_not_parked,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='WindGustCheck',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_high_windgusts,
+                        conditions.is_not_parked,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='MedianCurrentCheck',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_median_current_high,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='MaximumCurrentCheck',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_maximum_current_high,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='RelativeCameraTemperatureCheck',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_rel_camera_temperature_high,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='BiasNotOperatingDuringDataRun',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_bias_not_operating,
+                        conditions.is_data_run,
+                        conditions.is_data_taking,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='BiasChannelsInOverCurrent',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_overcurrent,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='BiasVoltageNotAtReference',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_bias_voltage_not_at_reference,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='ContainerTooWarm',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_container_too_warm,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='DriveInErrorDuringDataRun',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_drive_error,
+                        conditions.is_data_run,
+                        conditions.is_data_taking,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='BiasVoltageOnButNotCalibrated',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_voltage_on,
+                        conditions.is_feedback_not_calibrated,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='DIMNetworkNotAvailable',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_dim_network_down,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='NoDimCtrlServerAvailable',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_no_dimctrl_server_available,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='IsUserAwakeBeforeShutdown',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_20minutes_or_less_before_shutdown,
+                        conditions.is_nobody_awake,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
+                    name='ParkingChecklistFilled',
+                    checklist=[
+                        conditions.is_no_shift_at_the_moment,
+                        conditions.is_last_shutdown_already_10min_past,
+                        conditions.is_checklist_not_filled,
+                    ],
+                    category=CATEGORY_DEVELOPER
+                ),
+                FactIntervalCheck(
+                    name='TriggerRateLowForTenMinutes',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_data_taking,
+                        conditions.is_trigger_rate_low_for_ten_minutes,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+            ],
+            notifiers=[
+                twilio,
+                telegram,
+                http,
+                log,
+            ],
+            ) as custos:
+        try:
+            custos.run()
+        except (KeyboardInterrupt, SystemError):
+            sys.exit(0)

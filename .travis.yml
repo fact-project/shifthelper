@@ -1,0 +1,24 @@
+language: python
+python:
+  - "3.5"
+before_install:
+  - export MPLBACKEND=Agg
+  - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b -p /home/travis/miniconda 
+  - export PATH=/home/travis/miniconda/bin:$PATH
+  # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
+  - sudo rm -rf /dev/shm
+  - sudo ln -s /run/shm /dev/shm
+
+install:
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib pip pymongo flake8 pandas astropy pygments
+  - pip install https://github.com/fact-project/smart_fact_crawler/archive/v0.2.1.tar.gz
+  - pip install https://github.com/fact-project/pycustos/archive/v0.0.5.tar.gz
+  - pip install .
+
+script:
+  - python setup.py test
+
+env:
+  - SHIFTHELPER_CONFIG=tests/resources/test_config.json
