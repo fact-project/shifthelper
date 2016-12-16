@@ -10,11 +10,13 @@ import re as regex
 from datetime import datetime, timedelta
 from pandas import to_datetime
 import pandas as pd
+import logging
 
 from .tools.is_shift import is_shift_at_the_moment, get_next_shutdown, get_last_shutdown
 from .tools.shift import get_current_shifter
 from .tools import get_last_parking_checklist_entry
 from .tools import fetch_users_awake
+from .tools import fetch_dummy_alerts
 from . import retry_smart_fact_crawler as sfc
 from .debug_log_wrapper import log_call_and_result
 
@@ -271,6 +273,26 @@ def is_nobody_awake():
         return True
     else:
         return get_current_shifter().username not in awake
+
+
+@log_call_and_result
+def is_dummy_alert_by_shifter():
+    '''Dummy Alert'''
+    log = logging.getLogger(__name__)
+    for username, since in fetch_dummy_alerts().items():
+        since = to_datetime(since)
+
+        if since > datetime.utcnow() - timedelta(minutes=3):
+            log.debug('%s issued a dummy alert at: %s', user, since)
+            current_shifter = get_current_shifter().username
+            log.debug('current shifter is: %s', current_shifter)
+            if  current_shifter != user:
+                log.debug('no message sent')
+                return False
+            else:
+                log.debug('sending dummy alert message')
+                return True
+
 
 
 @log_call_and_result
