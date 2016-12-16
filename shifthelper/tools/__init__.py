@@ -84,6 +84,22 @@ def fetch_users_awake():
         return {}
 
 
+def fetch_dummy_alerts():
+    @retry(
+        stop_max_delay=30000,  # 30 seconds max
+        wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+        wait_exponential_max=1000,  # but wait 1 second per try maximum
+        wrap_exception=True
+    )
+    def retry_fetch_fail_after_30sec():
+        return requests.get('https://ihp-pc41.ethz.ch/dummyAlert').json()
+
+    try:
+        return retry_fetch_fail_after_30sec()
+    except RetryError:
+        return {}
+
+
 class NightlyResettingDefaultdict(defaultdict):
     def __init__(self, *args, **kwargs):
         self.night = night_integer(datetime.utcnow())
