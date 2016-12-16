@@ -3,10 +3,9 @@ import requests
 
 from custos import TwilioNotifier
 from .tools.shift import get_current_shifter
-from .tools import config
 from copy import copy
 from .tools import config, get_alerts
-from .categories import CATEGORY_DEVELOPER, CATEGORY_SHIFTER
+from .categories import CATEGORY_DEVELOPER
 
 import logging
 log = logging.getLogger(__name__)
