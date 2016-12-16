@@ -82,28 +82,29 @@ class FactTwilioNotifier(TwilioNotifier):
         return config['developer']['phone_number']
 
 
+    def get_numbers_to_call(self, msg):
+        numbers_to_call = []
+        if msg.category in ('check_error', CATEGORY_DEVELOPER):
+            log.debug('Message has category "check_error"')
+            numbers_to_call.append(self.phone_number_of_developer())
+
+        else:
+            if self._get_oldest_call_age() < self.time_before_fallback:
+                log.debug('Getting phone number of primary shifter')
+                numbers_to_call.append(self.phone_number_of_normal_shifter())
+
+            else:
+                log.debug('Getting phone number of fallback shifter')
+                numbers_to_call.append(self.phone_number_of_fallback_shifter())
+
+
     def handle_message(self, msg):
         self._remove_acknowledged_and_old_calls()
         log.debug('Got a message')
         if msg.level >= self.level:
             log.debug('Message is over alert level')
 
-            numbers_to_call = []
-
-            if msg.category in ('check_error', CATEGORY_DEVELOPER):
-                log.debug('Message has category "check_error"')
-                numbers_to_call.append(self.phone_number_of_developer())
-
-            else:
-                if self._get_oldest_call_age() < self.time_before_fallback:
-                    log.debug('Getting phone number of primary shifter')
-                    numbers_to_call.append(self.phone_number_of_normal_shifter())
-
-                else:
-                    log.debug('Getting phone number of fallback shifter')
-                    numbers_to_call.append(self.phone_number_of_fallback_shifter())
-
-
+            numbers_to_call = self.get_numbers_to_call(msg)
             for phone_number in numbers_to_call:
                 try:
                     log.info('Calling {}'.format(phone_number))
