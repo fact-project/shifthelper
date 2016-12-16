@@ -20,7 +20,7 @@ def telegram_book(category):
     if category in ('check_error', CATEGORY_DEVELOPER):
         return [config['developer']['telegram_id']]
     try:
-        telegram_id = whoisonshift().telegram_id
+        telegram_id = get_current_shifter().telegram_id
     except IndexError:
         return []
 
