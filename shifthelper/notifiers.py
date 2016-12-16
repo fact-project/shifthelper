@@ -71,10 +71,16 @@ class FactTwilioNotifier(TwilioNotifier):
             return phone_number
         except:
             log.exception('Error getting phone number, calling developer')
-            return config['developer']['phone_number']
+            return self.phone_number_of_developer()
+
 
     def phone_number_of_fallback_shifter(self):
         return config['fallback_shifter']['phone_number']
+
+
+    def phone_number_of_developer(self):
+        return config['developer']['phone_number']
+
 
     def handle_message(self, msg):
         self._remove_acknowledged_and_old_calls()
@@ -82,20 +88,26 @@ class FactTwilioNotifier(TwilioNotifier):
         if msg.level >= self.level:
             log.debug('Message is over alert level')
 
+            numbers_to_call = []
+
             if msg.category in ('check_error', CATEGORY_DEVELOPER):
                 log.debug('Message has category "check_error"')
-                phone_number = config['developer']['phone_number']
+                numbers_to_call.append(self.phone_number_of_developer())
+
             else:
                 if self._get_oldest_call_age() < self.time_before_fallback:
                     log.debug('Getting phone number of primary shifter')
-                    phone_number = self.phone_number_of_normal_shifter()
+                    numbers_to_call.append(self.phone_number_of_normal_shifter())
+
                 else:
                     log.debug('Getting phone number of fallback shifter')
-                    phone_number = self.phone_number_of_fallback_shifter()
+                    numbers_to_call.append(self.phone_number_of_fallback_shifter())
 
-            try:
-                log.info('Calling {}'.format(phone_number))
-                self.notify(phone_number, msg)
-            except:
-                log.exception(
-                    'Could not notifiy recipient {}'.format(phone_number))
+
+            for phone_number in numbers_to_call:
+                try:
+                    log.info('Calling {}'.format(phone_number))
+                    self.notify(phone_number, msg)
+                except:
+                    log.exception(
+                        'Could not notifiy recipient {}'.format(phone_number))
