@@ -12,12 +12,13 @@ before_install:
   - sudo ln -s /run/shm /dev/shm
 
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib pip pymongo flake8 pandas astropy pygments
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib pip pymongo flake8 pandas astropy pygments pyflakes
   - pip install https://github.com/fact-project/smart_fact_crawler/archive/v0.2.1.tar.gz
   - pip install https://github.com/fact-project/pycustos/archive/v0.0.5.tar.gz
   - pip install .
 
 script:
+  - pyflakes shifthelper
   - python setup.py test
 
 env:
