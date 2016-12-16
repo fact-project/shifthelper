@@ -70,7 +70,8 @@ class FactTwilioNotifier(TwilioNotifier):
             if not phone_number:
                 return self.phone_number_of_fallback_shifter()
             return phone_number
-        except IndexError:
+        except:
+            log.exception('Error getting phone number, calling developer')
             return config['developer']['phone_number']
 
     def phone_number_of_fallback_shifter(self):
