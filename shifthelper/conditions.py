@@ -283,10 +283,10 @@ def is_dummy_alert_by_shifter():
         since = to_datetime(since)
 
         if since > datetime.utcnow() - timedelta(minutes=3):
-            log.debug('%s issued a dummy alert at: %s', user, since)
+            log.debug('%s issued a dummy alert at: %s', username, since)
             current_shifter = get_current_shifter().username
             log.debug('current shifter is: %s', current_shifter)
-            if  current_shifter != user:
+            if  current_shifter != username:
                 log.debug('no message sent')
                 return False
             else:
