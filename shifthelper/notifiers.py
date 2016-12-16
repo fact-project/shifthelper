@@ -69,6 +69,7 @@ class FactTwilioNotifier(TwilioNotifier):
             phone_number = get_current_shifter().phone_mobile
             if not phone_number:
                 return self.phone_number_of_fallback_shifter()
+            return phone_number
         except IndexError:
             return config['developer']['phone_number']
 
