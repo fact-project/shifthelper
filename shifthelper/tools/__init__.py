@@ -76,7 +76,7 @@ def fetch_users_awake():
         wrap_exception=True
     )
     def retry_fetch_fail_after_30sec():
-        return requests.get('https://ihp-pc41.ethz.ch/iAmAwake').json()
+        return requests.get('http://webinterface/iAmAwake').json()
 
     try:
         return retry_fetch_fail_after_30sec()
@@ -92,7 +92,7 @@ def fetch_dummy_alerts():
         wrap_exception=True
     )
     def retry_fetch_fail_after_30sec():
-        return requests.get('https://ihp-pc41.ethz.ch/dummyAlert').json()
+        return requests.get('http://webinterface/dummyAlert').json()
 
     try:
         return retry_fetch_fail_after_30sec()
