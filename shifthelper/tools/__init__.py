@@ -76,7 +76,7 @@ def fetch_users_awake():
         wrap_exception=True
     )
     def retry_fetch_fail_after_30sec():
-        return requests.get('http://webinterface/iAmAwake').json()
+        return requests.get(config['webservice']['i_am_awake_url']).json()
 
     try:
         return retry_fetch_fail_after_30sec()
@@ -92,7 +92,7 @@ def fetch_dummy_alerts():
         wrap_exception=True
     )
     def retry_fetch_fail_after_30sec():
-        return requests.get('http://webinterface/dummyAlert').json()
+        return requests.get(config['webservice']['dummy_alerts_url']).json()
 
     try:
         return retry_fetch_fail_after_30sec()
