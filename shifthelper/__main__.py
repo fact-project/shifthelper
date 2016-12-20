@@ -56,6 +56,14 @@ def main():
             checks=[
                 FlareAlertCheck(category=CATEGORY_SHIFTER, interval=300),
                 FactIntervalCheck(
+                    name='DummyAlert',
+                    interval=60,
+                    checklist=[
+                        conditions.is_dummy_alert_by_shifter,
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),
+                FactIntervalCheck(
                     name='SmartFactUpToDate',
                     checklist=[
                         conditions.is_shift_at_the_moment,
