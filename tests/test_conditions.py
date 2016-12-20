@@ -49,3 +49,16 @@ def test_wind():
         assert is_high_windgusts()
         assert is_high_windspeed()
 
+
+def test_currents():
+    from shifthelper.conditions import is_median_current_high, is_maximum_current_high
+
+    with fake_smartfact('all_good'):
+        assert not is_median_current_high()
+        assert not is_maximum_current_high()
+
+    with fake_smartfact('high_currents'):
+        assert is_median_current_high()
+        assert is_maximum_current_high()
+
+
