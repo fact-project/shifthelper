@@ -43,18 +43,19 @@ def get_last_startup_or_shutdown(current_time_rounded_to_seconds=None, db=None):
         on="fMeasurementTypeKey"
     )
 
+
 @log_call_and_result
 @retry(stop_max_delay=30000,  # 30 seconds max
        wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
        wait_exponential_max=1000,  # but wait 1 second per try maximum
        )
-def is_shift_at_the_moment(time=None):
+def is_shift_at_the_moment(time=None, db=None):
     '''There is a shift at the moment'''
     if time is None:
         now = datetime.utcnow().replace(microsecond=0)
     else:
         now = time.replace(microsecond=0)
-    last_entry = get_last_startup_or_shutdown(current_time_rounded_to_seconds=now, db=None)
+    last_entry = get_last_startup_or_shutdown(current_time_rounded_to_seconds=now, db=db)
     name = last_entry.iloc[0].fMeasurementTypeName
     return name == "Startup"
 
