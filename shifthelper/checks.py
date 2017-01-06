@@ -29,7 +29,7 @@ nightly_max_rate = NightlyResettingDefaultdict(lambda: -np.inf)
 
 
 class FactIntervalCheck(IntervalCheck):
-    def __init__(self, name, checklist, category, interval=300):
+    def __init__(self, name, checklist, category, interval=120):
         super().__init__(interval=interval, name=name)
         self.checklist = checklist
         self.category = category
