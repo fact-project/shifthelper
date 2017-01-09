@@ -21,8 +21,8 @@ log = logging.getLogger(__name__)
 ALERT_SIGNIFICANCE = 3
 # for all sources but the mrks and crab the alert rate is 15 Evts / h
 FLARE_ALERT_LIMITS = defaultdict(lambda: 15.0)
-FLARE_ALERT_LIMITS['Mrk 501'] = 50.0
-FLARE_ALERT_LIMITS['Mrk 421'] = 50.0
+FLARE_ALERT_LIMITS['Mrk 501'] = 60.0
+FLARE_ALERT_LIMITS['Mrk 421'] = 60.0
 # we won't issue flare alerts for crab without thorough investigation
 FLARE_ALERT_LIMITS['Crab'] = np.inf
 nightly_max_rate = NightlyResettingDefaultdict(lambda: -np.inf)
