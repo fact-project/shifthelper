@@ -287,7 +287,7 @@ def is_dummy_alert_by_shifter():
             try:
                 current_shifter = get_current_shifter().username
             except IndexError:
-                log.error('Could not get current shifter')
+                log.debug('Nobody on shift')
                 return False
             log.debug('current shifter is: %s', current_shifter)
             if current_shifter != username:
