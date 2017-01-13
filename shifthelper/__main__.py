@@ -222,7 +222,7 @@ def main():
                         conditions.is_last_shutdown_already_10min_past,
                         conditions.is_checklist_not_filled,
                     ],
-                    category=CATEGORY_DEVELOPER
+                    category=CATEGORY_SHIFTER
                 ),
                 FactIntervalCheck(
                     name='TriggerRateLowForTenMinutes',
