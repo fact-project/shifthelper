@@ -98,6 +98,7 @@ class FactTwilioNotifier(TwilioNotifier):
             else:
                 log.debug('Getting phone number of fallback shifter')
                 numbers_to_call.append(self.phone_number_of_fallback_shifter())
+        return numbers_to_call
 
 
     def handle_message(self, msg):

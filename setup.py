@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='shifthelper',
-    version='1.0.1',
+    version='1.1.0',
     description='a tool for helping people with a FACT night shift',
     url='https://github.com/fact-project/shifthelper',
     author='Dominik Neise, Maximilian Noethe, Sebastian Mueller',
@@ -31,7 +31,7 @@ setup(
         'numexpr',
         'smart_fact_crawler==0.2.1',
         'custos==0.0.5',
-        'pyfact==0.8.2',
+        'pyfact==0.8.3',
         'retrying',
         'wrapt',
         'python-json-logger',
