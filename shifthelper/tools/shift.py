@@ -21,12 +21,12 @@ WHERE
 '''
 
 
-def get_current_shifter(clear_cache=False):
+def get_current_shifter(clear_cache=False, db=None):
     if clear_cache:
         retrieve_calendar_entries.cache_clear()
         retrieve_valid_usernames_from_logbook.cache_clear()
 
-    full_shifter_info = retrieve_shifters_from_calendar()
+    full_shifter_info = retrieve_shifters_from_calendar(db=db)
     only_interesting_stuff = full_shifter_info[
         ["phone_mobile", "telegram_id", "skype", "username", "email"]
     ]
@@ -44,10 +44,10 @@ def retrieve_shifters_from_calendar(
 
     time = time.replace(second=0, microsecond=0)
 
-    calendar_entries = retrieve_calendar_entries(time)
+    calendar_entries = retrieve_calendar_entries(time, db=db)
     calendar_entries["username"] = calendar_entries["u"]
 
-    all_shifters = retrieve_valid_usernames_from_logbook()
+    all_shifters = retrieve_valid_usernames_from_logbook(db=db)
     tonights_shifters = pd.merge(
         all_shifters, calendar_entries,
         how='inner', on="username"

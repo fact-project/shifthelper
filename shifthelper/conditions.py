@@ -187,16 +187,18 @@ def is_high_windgusts():
 @log_call_and_result
 def is_median_current_high():
     '''Median GAPD current > 115uA'''
-    is_currents_calibrated = sfc.sipm_currents().calibrated
-    median_current = sfc.sipm_currents().median_per_sipm.value
+    current_info = sfc.sipm_currents()
+    is_currents_calibrated = current_info.calibrated
+    median_current = current_info.median_per_sipm.value
     return is_currents_calibrated and median_current >= 115
 
 
 @log_call_and_result
 def is_maximum_current_high():
     '''Maximum GAPD current > 160uA'''
-    is_currents_calibrated = sfc.sipm_currents().calibrated
-    max_current = sfc.sipm_currents().max_per_sipm.value
+    current_info = sfc.sipm_currents()
+    is_currents_calibrated = current_info.calibrated
+    max_current = current_info.max_per_sipm.value
     return is_currents_calibrated and max_current >= 160
 
 
