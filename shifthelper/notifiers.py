@@ -13,10 +13,12 @@ log = logging.getLogger(__name__)
 
 class FactTwilioNotifier(TwilioNotifier):
     def __init__(self,
-                 time_before_fallback=datetime.timedelta(minutes=10),
+                 time_before_fallback=datetime.timedelta(minutes=15),
+                 max_time_for_fallback=datetime.timedelta(minutes=15),
                  *args,
                  **kwargs):
         self.time_before_fallback = time_before_fallback
+        self.max_time_for_fallback = max_time_for_fallback
         self.not_acknowledged_calls = []
         self.nobody_is_listening = False
         self.twiml = 'hangup'
@@ -44,7 +46,7 @@ class FactTwilioNotifier(TwilioNotifier):
 
         for call, msg in copy(self.not_acknowledged_calls):
             age = datetime.datetime.utcnow() - msg.timestamp
-            if age > datetime.timedelta(hours=2):
+            if age > self.max_time_for_fallback:
                 self.not_acknowledged_calls.remove((call, msg))
             else:
                 try:
