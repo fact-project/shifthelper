@@ -29,7 +29,7 @@ setup(
         'pytz',             # in anaconda
         'twilio',
         'numexpr',
-        'smart_fact_crawler==0.2.1',
+        'smart_fact_crawler==0.2.2',
         'custos==0.0.5',
         'pyfact==0.8.3',
         'retrying',
