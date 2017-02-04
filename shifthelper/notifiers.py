@@ -7,6 +7,8 @@ from copy import copy
 from .tools import config, get_alerts
 from .categories import CATEGORY_DEVELOPER
 
+from urllib.parse import urlencode
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -17,16 +19,23 @@ class FactTwilioNotifier(TwilioNotifier):
                  max_time_for_fallback=datetime.timedelta(minutes=15),
                  *args,
                  **kwargs):
-        self.time_before_fallback = time_before_fallback
-        self.max_time_for_fallback = max_time_for_fallback
-        self.not_acknowledged_calls = []
-        self.nobody_is_listening = False
-        self.twiml = 'hangup'
 
         # actual recipients are determinded in
         # handle_message() using phone_number_of...()
         kwargs["recipients"] = []
         super().__init__(*args, **kwargs)
+        self.time_before_fallback = time_before_fallback
+        self.max_time_for_fallback = max_time_for_fallback
+        self.not_acknowledged_calls = []
+        self.nobody_is_listening = False
+
+        def build_url(url, params):
+            return url + '?' + urlencode(params)
+
+        self.twiml = build_url('http://twimlets.com/echo', {'Twiml': '''<Response>
+            <Hangup/>
+        </Response>
+        '''})
 
     def notify(self, recipient, msg):
         super().notify(recipient, msg)
