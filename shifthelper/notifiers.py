@@ -17,6 +17,7 @@ class FactTwilioNotifier(TwilioNotifier):
                  max_time_for_fallback=datetime.timedelta(minutes=15),
                  *args,
                  **kwargs):
+        super().__init__(*args, **kwargs)
         self.time_before_fallback = time_before_fallback
         self.max_time_for_fallback = max_time_for_fallback
         self.not_acknowledged_calls = []
@@ -26,7 +27,6 @@ class FactTwilioNotifier(TwilioNotifier):
         # actual recipients are determinded in
         # handle_message() using phone_number_of...()
         kwargs["recipients"] = []
-        super().__init__(*args, **kwargs)
 
     def notify(self, recipient, msg):
         super().notify(recipient, msg)
