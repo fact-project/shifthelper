@@ -26,8 +26,7 @@ class FactTwilioNotifier(TwilioNotifier):
         self.max_time_for_fallback = max_time_for_fallback
         self.not_acknowledged_calls = []
         self.nobody_is_listening = False
-
-        self.twiml = '''<Response><Hangup/></Response>'''
+        self.twiml = 'hangup'
 
     def notify(self, recipient, msg):
         super().notify(recipient, msg)
