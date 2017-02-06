@@ -11,7 +11,8 @@ pytz
 twilio
 scikit-image
 http://github.com/fact-project/smart_fact_crawler/archive/v0.2.2.tar.gz
-http://github.com/fact-project/pycustos/archive/v0.0.5.tar.gz
+custos==0.0.7
+pyfact==0.8.4
 retrying
 wrapt
 python-json-logger

@@ -8,9 +8,9 @@ RUN conda install \
 	docopt pytz numexpr scipy pymongo astropy 
 
 RUN pip install twilio retrying wrapt \
-	simple-crypt pyfact==0.8.2 python-json-logger telepot \
-	https://github.com/fact-project/smart_fact_crawler/archive/v0.2.2.tar.gz \
-	https://github.com/fact-project/pycustos/archive/v0.0.5.tar.gz
+	simple-crypt python-json-logger telepot \
+	pyfact==0.8.4 custos==0.0.7 \
+	https://github.com/fact-project/smart_fact_crawler/archive/v0.2.2.tar.gz
 
 RUN mkdir /opt/shifthelper
 COPY setup.py /opt/shifthelper/
