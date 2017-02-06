@@ -46,7 +46,7 @@ class FactTwilioNotifier(TwilioNotifier):
 
         for call, msg in copy(self.not_acknowledged_calls):
             age = datetime.datetime.utcnow() - msg.timestamp
-            if age > self.max_time_for_fallback:
+            if age > (self.max_time_for_fallback + self.time_before_fallback):
                 self.not_acknowledged_calls.remove((call, msg))
             else:
                 try:
