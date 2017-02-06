@@ -116,4 +116,6 @@ class NightlyResettingDefaultdict(defaultdict):
     def reset_if_night_change(self):
         current_night = night_integer(datetime.utcnow())
         if current_night != self.night:
+            self.night = current_night
             self.clear()
+
