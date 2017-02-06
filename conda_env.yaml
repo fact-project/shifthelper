@@ -51,7 +51,7 @@ dependencies:
   - async-timeout==1.0.0
   - autopep8==1.2.4
   - chardet==2.3.0
-  - custos==0.0.2
+  - custos==0.0.7
   - docopt==0.6.2
   - httplib2==0.9.2
   - multidict==2.1.2
