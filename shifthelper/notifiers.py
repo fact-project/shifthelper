@@ -46,7 +46,7 @@ class FactTwilioNotifier(TwilioNotifier):
 
         for call, msg in copy(self.not_acknowledged_calls):
             age = datetime.datetime.utcnow() - msg.timestamp
-            if age > self.max_time_for_fallback:
+            if age > (self.max_time_for_fallback + self.time_before_fallback):
                 self.not_acknowledged_calls.remove((call, msg))
             else:
                 try:
@@ -86,18 +86,19 @@ class FactTwilioNotifier(TwilioNotifier):
 
     def get_numbers_to_call(self, msg):
         numbers_to_call = []
+
         if msg.category in ('check_error', CATEGORY_DEVELOPER):
-            log.debug('Message has category "check_error"')
+            log.debug('Message has category "check_error" or "{}"'.format(CATEGORY_DEVELOPER))
             numbers_to_call.append(self.phone_number_of_developer())
 
         else:
-            if self._get_oldest_call_age() < self.time_before_fallback:
-                log.debug('Getting phone number of primary shifter')
-                numbers_to_call.append(self.phone_number_of_normal_shifter())
+            log.debug('Getting phone number of primary shifter')
+            numbers_to_call.append(self.phone_number_of_normal_shifter())
 
-            else:
+            if self._get_oldest_call_age() >= self.time_before_fallback:
                 log.debug('Getting phone number of fallback shifter')
                 numbers_to_call.append(self.phone_number_of_fallback_shifter())
+
         return numbers_to_call
 
 
