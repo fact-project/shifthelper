@@ -55,7 +55,8 @@ class FactTwilioNotifier(TwilioNotifier):
                     continue
 
                 if alert['acknowledged'] is True:
-                    self.not_acknowledged_calls.remove((call, msg))
+                    while (call, msg) in self.not_acknowledged_calls:
+                        self.not_acknowledged_calls.remove((call, msg))
 
     def _get_oldest_call_age(self):
         max_age = datetime.timedelta()
