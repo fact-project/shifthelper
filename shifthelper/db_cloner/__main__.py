@@ -12,6 +12,23 @@ import logging.config
 def factdata_MeasurementType():
     return """SELECT * from factdata.MeasurementType"""
 
+def shiftcalendar_roles_and_user():
+    return """
+        SELECT
+            u.username,
+            uf.fid5 as mobile,
+            uf.fid9 as telegram,
+            r.name as role_name,
+            c.start,
+            c.end
+        FROM sandbox.calendarentry c
+            INNER JOIN sandbox.role r
+                ON c.role_id = r.id
+            INNER JOIN logbook.users u
+                ON c.user_id = u.uid
+            INNER JOIN logbook.userfields uf
+                ON c.user_id = uf.ufid
+    """
 
 def calendar_data():
     yesterday_night = (datetime.utcnow() - timedelta(hours=12)).date()
@@ -70,6 +87,7 @@ def main():
             log.info("cloning ...")
             for query_func in [
                     factdata_MeasurementType,
+                    shiftcalendar_roles_and_user,
                     calendar_data,
                     factdata_Schedule,
                     users]:
