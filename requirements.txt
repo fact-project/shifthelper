@@ -17,3 +17,4 @@ retrying
 wrapt
 python-json-logger
 telepot
+cachetools

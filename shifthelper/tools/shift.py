@@ -3,6 +3,7 @@ from .. import tools
 from functools import lru_cache
 from datetime import datetime
 from datetime import timedelta
+from cachetools import TTLCache, cached
 
 import logging
 
@@ -71,7 +72,8 @@ def retrieve_calendar_entries(dt_date, db=None):
     return pd.read_sql_query(query, db)
 
 
-@lru_cache(1)
+# cache user data only for ten minutes, so changes take effect eventually
+@cached(cache=TTLCache(1, ttl=10 * 60))
 def retrieve_valid_usernames_from_logbook(db=None):
     if db is None:
         db = tools.create_db_connection(tools.config['cloned_db'])

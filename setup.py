@@ -36,6 +36,7 @@ setup(
         'wrapt',
         'python-json-logger',
         'telepot',
+        'cachetools',
     ],
     entry_points={'console_scripts': [
         'shifthelper = shifthelper.__main__:main',
