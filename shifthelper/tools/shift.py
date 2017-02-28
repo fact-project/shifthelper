@@ -10,18 +10,6 @@ import logging
 log = logging.getLogger(__name__)
 
 
-calendar_query = '''
-SELECT u
-FROM calendar_data
-WHERE
-    y={y}
-    AND m={m}
-    AND d={d}
-    AND NOT x
-;
-'''
-
-
 def get_current_shifter(clear_cache=False, db=None):
     if clear_cache:
         retrieve_calendar_entries.cache_clear()
@@ -29,11 +17,10 @@ def get_current_shifter(clear_cache=False, db=None):
 
     full_shifter_info = retrieve_shifters_from_calendar(db=db)
     only_interesting_stuff = full_shifter_info[
-        ["phone_mobile", "telegram_id", "skype", "username", "email"]
+        ["phone_mobile", "telegram_id", "username", "rolename"]
     ]
-    shifter = only_interesting_stuff.iloc[0]
-    log.debug('Found shifter {}'.format(shifter.username))
-    return shifter
+    log.debug('Found these shifters: {}'.format(only_interesting_stuff))
+    return only_interesting_stuff
 
 
 def retrieve_shifters_from_calendar(
@@ -46,12 +33,15 @@ def retrieve_shifters_from_calendar(
     time = time.replace(second=0, microsecond=0)
 
     calendar_entries = retrieve_calendar_entries(time, db=db)
-    calendar_entries["username"] = calendar_entries["u"]
 
     all_shifters = retrieve_valid_usernames_from_logbook(db=db)
     tonights_shifters = pd.merge(
-        all_shifters, calendar_entries,
-        how='inner', on="username"
+        left=all_shifters,
+        right=calendar_entries,
+        left_on='uid',
+        right_on='user_id',
+        how='inner',
+
     )
 
     return tonights_shifters
@@ -62,14 +52,35 @@ def retrieve_calendar_entries(dt_date, db=None):
     if db is None:
         db = tools.create_db_connection(tools.config['cloned_db'])
 
-    yesterday_night = (dt_date - timedelta(hours=12)).date()
-
-    query = calendar_query.format(
-        y=yesterday_night.year,
-        m=yesterday_night.month - 1,
-        d=yesterday_night.day
+    roles = pd.read_sql_query(
+        """SELECT
+            id as role_id,
+            name as rolename
+        FROM sandbox_role
+        """,
+        db
     )
-    return pd.read_sql_query(query, db)
+
+    calendarentries = pd.read_sql_query(
+        """SELECT *
+        FROM sandbox_calendarentry
+        WHERE
+            start<'{now}'
+            AND end>'{now}'
+        """.format(
+            now=dt_date.strftime('%Y-%m-%d %H:%M:%S'),
+        ),
+        db
+    )
+
+    result = pd.merge(
+        left=calendarentries,
+        right=roles,
+        on='role_id',
+        how='inner',
+    )
+
+    return result
 
 
 # cache user data only for ten minutes, so changes take effect eventually
