@@ -1,2 +1,3 @@
 CATEGORY_DEVELOPER = 'developer'
 CATEGORY_SHIFTER = 'shifter'
+CATEGORY_FLARE = 'flare'
