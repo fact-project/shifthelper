@@ -15,28 +15,16 @@ from .categories import CATEGORY_SHIFTER, CATEGORY_DEVELOPER
 
 config_logging(to_console=True)
 
-
-def telegram_book(category):
-    if category in ('check_error', CATEGORY_DEVELOPER):
-        return [config['developer']['telegram_id']]
-    try:
-        telegram_id = get_current_shifter().telegram_id
-    except IndexError:
-        return []
-
-    return [telegram_id] if telegram_id is not None else []
-
-
 twilio = FactTwilioNotifier(
     sid=config['twilio']['sid'],
     auth_token=config['twilio']['auth_token'],
     twilio_number=config['twilio']['number'],
     ring_time=45,
     level=levels.WARNING,
+    twiml='hangup',
 )
-telegram = TelegramNotifier(
+telegram = FactTelegramNotifier(
     token=config['telegram']['token'],
-    recipients=telegram_book,
     level=levels.INFO,
 )
 http = HTTPNotifier(

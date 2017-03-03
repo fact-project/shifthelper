@@ -3,6 +3,7 @@ import requests
 
 from custos import TwilioNotifier
 from .tools.shift import get_current_shifter
+from .tools import shift
 from copy import copy
 from .tools import config, get_alerts
 from .categories import CATEGORY_DEVELOPER
@@ -10,110 +11,110 @@ from .categories import CATEGORY_DEVELOPER
 import logging
 log = logging.getLogger(__name__)
 
+class UnAcknowledgedMessages:
+    """
+    list like. collection of custos.Message
+    that can find out which messages were not acknowledged on
+    the shifthelper_webinterface.
 
-class FactTwilioNotifier(TwilioNotifier):
+    Can find out, how old the oldest message is, which was not
+    yet ack'ed.
+    """
+    def __init__(self, age_limit):
+        self.messages = []
+        self.age_limit = age_limit
+
+    def append(self, msg):
+        """ append a new message to the list
+        """
+        self.messages.append(msg)
+
+    def oldest_age(self):
+        """ return max(age) of messages, that were not acknowledged.
+        """
+        # when ever we need this info, we simply do this kind of "update"
+        self._remove_old_messages()
+        self._remove_acknowledged_messages()
+
+        return max(
+            datetime.datetime.utcnow() - msg.timestamp for msg in self.messages
+        )
+
+    def _remove_old_messages(self):
+        self.messages = [msg for msg in self.messages if
+            datetime.datetime.utcnow() - msg.timestamp <= self.age_limit
+        ]
+
+    def _remove_acknowledged_messages(self):
+        self.messages = [
+            msg for msg in self.messages if
+                self._alerts().get(msg.uuid, False) is False
+        ]
+
+    def _alerts(self):
+        try:
+            alerts = {a['uuid']: a for a in get_alerts()}
+        except requests.exceptions.RequestException:
+            return {}
+
+
+class FactNotifierMixin:
+    """ Mixin for FACT Notifiers.
+
+
+    provides `people_to_inform()` method, which is needed by
+    explicit Notifiers to generate `recipients`.
+
+    Takes care of tracking the age of unacknowledged messages,
+    in order to implement `people_to_inform`
+
+    overwrites custos.Notifier.notify in order to keep track of
+    old messages.
+    """
+
     def __init__(self,
                  time_before_fallback=datetime.timedelta(minutes=15),
                  max_time_for_fallback=datetime.timedelta(minutes=15),
                  *args,
                  **kwargs):
 
-        # actual recipients are determinded in
-        # handle_message() using phone_number_of...()
-        kwargs["recipients"] = []
+        kwargs["recipients"] = None  # set to make __init__ work;
         super().__init__(*args, **kwargs)
+
         self.time_before_fallback = time_before_fallback
         self.max_time_for_fallback = max_time_for_fallback
-        self.not_acknowledged_calls = []
-        self.nobody_is_listening = False
-        self.twiml = 'hangup'
+        self.unacknowledged_messages = UnAcknowledgedMessages(
+            age_limit=self.max_time_for_fallback + self.time_before_fallback
+        )
 
     def notify(self, recipient, msg):
         super().notify(recipient, msg)
-        self.not_acknowledged_calls.append((self.call, msg))
+        self.unacknowledged_messages.append(msg)
 
-    def _remove_acknowledged_and_old_calls(self):
-        """ from the list of not acknowledged calls
-        remove all calls, which have been acknowledged on the web page
+    def people_to_inform(self, category):
+        people = []
 
-        Also remove calls older than 2 hours, to get out of
-        a "call the backup shifter" dead lock
-        """
-        try:
-            alerts = {a['uuid']: a for a in get_alerts()}
-        except requests.exceptions.RequestException:
-            return
+        if category not in ('check_error', CATEGORY_DEVELOPER):
+            log.debug('Getting shifter')
+            people.append(shift.normal_shifter())
 
-        for call, msg in copy(self.not_acknowledged_calls):
-            age = datetime.datetime.utcnow() - msg.timestamp
-            if age > (self.max_time_for_fallback + self.time_before_fallback):
-                self.not_acknowledged_calls.remove((call, msg))
-            else:
-                try:
-                    alert = alerts[msg.uuid]
-                except KeyError:
-                    continue
-
-                if alert['acknowledged'] is True:
-                    while (call, msg) in self.not_acknowledged_calls:
-                        self.not_acknowledged_calls.remove((call, msg))
-
-    def _get_oldest_call_age(self):
-        max_age = datetime.timedelta()
-        for call, msg in self.not_acknowledged_calls:
-            age = datetime.datetime.utcnow() - msg.timestamp
-            if age > max_age:
-                max_age = age
-        return max_age
-
-    def phone_number_of_normal_shifter(self):
-        try:
-            phone_number = get_current_shifter().phone_mobile
-            if not phone_number:
-                return self.phone_number_of_fallback_shifter()
-            return phone_number
-        except:
-            log.exception('Error getting phone number, calling developer')
-            return self.phone_number_of_developer()
-
-
-    def phone_number_of_fallback_shifter(self):
-        return config['fallback_shifter']['phone_number']
-
-
-    def phone_number_of_developer(self):
-        return config['developer']['phone_number']
-
-
-    def get_numbers_to_call(self, msg):
-        numbers_to_call = []
-
-        if msg.category in ('check_error', CATEGORY_DEVELOPER):
-            log.debug('Message has category "check_error" or "{}"'.format(CATEGORY_DEVELOPER))
-            numbers_to_call.append(self.phone_number_of_developer())
-
+            if self.unacknowledged_messages.oldest_age() >= self.time_before_fallback:
+                log.debug('shifter does not ack messages; getting fallback')
+                people.append(shift.fallback_shifter())
         else:
-            log.debug('Getting phone number of primary shifter')
-            numbers_to_call.append(self.phone_number_of_normal_shifter())
+            log.debug('Message has category "check_error" or "{}"'.format(CATEGORY_DEVELOPER))
+            people.append(shift.developer())
 
-            if self._get_oldest_call_age() >= self.time_before_fallback:
-                log.debug('Getting phone number of fallback shifter')
-                numbers_to_call.append(self.phone_number_of_fallback_shifter())
+        return people
 
-        return numbers_to_call
+class FactTwilioNotifier(FactNotifierMixin, TwilioNotifier):
+    def recipients(self, category):
+        return [
+            p.phone_mobile for p in self.people_to_inform(category)
+        ]
 
-
-    def handle_message(self, msg):
-        self._remove_acknowledged_and_old_calls()
-        log.debug('Got a message')
-        if msg.level >= self.level:
-            log.debug('Message is over alert level')
-
-            numbers_to_call = self.get_numbers_to_call(msg)
-            for phone_number in numbers_to_call:
-                try:
-                    log.info('Calling {}'.format(phone_number))
-                    self.notify(phone_number, msg)
-                except:
-                    log.exception(
-                        'Could not notifiy recipient {}'.format(phone_number))
+class FactTelegramNotifier(FactNotifierMixin, TelegramNotifier):
+    def recipients(self, category):
+        return [
+            p.telegram_id for p in self.people_to_inform(category)
+        ]

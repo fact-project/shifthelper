@@ -102,3 +102,41 @@ def retrieve_valid_usernames_from_logbook(db=None):
         })
 
     return memberlist
+
+NORMAL_SHIFTERS = ['Starter', 'Shifter', 'Parker', 'Shifter_Awake']
+FALLBACK_SHIFTERS = ['Fallback_Shifter']
+FLARE_EXPERS = ['Flare_Expert',]
+FALLBACK_FLARE_EXPERS = ['Fallback_Flare_Expert',]
+
+def get_shifter_of_category(category, next_level):
+    shifters = get_current_shifter()
+    shifters = shifters[shifters.rolename.isin(category)]
+    if len(shifters) == 0:
+        log.warn(
+            'Found no shifters of category: {0:%r}'.format(category)
+        )
+        return next_level()
+    else:
+        if len(shifters) > 1:
+            log.warn(
+                'found {} shifters. Choosing a random shifter'.format(
+                    len(shifters)
+                )
+            )
+        return shifters.iloc[0]
+
+def normal_shifter():
+    return get_shifter_of_category(
+        NORMAL_SHIFTERS,
+        fallback_shifter
+    )
+
+def fallback_shifter():
+    return get_shifter_of_category(
+        FALLBACK_SHIFTERS,
+        developer
+    )
+
+def developer():
+    return config['developer']['phone_number']
+    return [config['developer']['telegram_id']]
