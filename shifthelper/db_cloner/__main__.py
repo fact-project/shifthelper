@@ -85,9 +85,12 @@ def main():
                 # change atomic
                 table.to_sql('t1', db_out, if_exists="replace")
                 db_out.execute('DROP TABLE IF EXISTS t2')
-                db_out.execute('RENAME TABLE {t} to t2, t1 to {t}'.format(
-                    t=table_name)
-                )
+                if db_out.dialect.has_table(db_out, table_name):
+                    db_out.execute('RENAME TABLE {t} to t2, t1 to {t}'.format(
+                        t=table_name)
+                    )
+                else:
+                    db_out.execute('RENAME TABLE t1 to {t}'.format(t=table_name))
 
             log.info("...done")
             time.sleep(5 * 60)  # 5 minutes
