@@ -13,8 +13,7 @@ before_install:
 
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib pip pymongo flake8 pandas astropy pygments pyflakes
-  - pip install https://github.com/fact-project/smart_fact_crawler/archive/v0.2.2.tar.gz
-  - pip install https://github.com/fact-project/pycustos/archive/v0.0.5.tar.gz
+  - pip install -r requirements.txt
   - pip install .
 
 script:

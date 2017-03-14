@@ -11,7 +11,7 @@ RUN pip install twilio retrying wrapt \
 	simple-crypt python-json-logger telepot \
 	cachetools \
 	pyfact==0.8.4 custos==0.0.7 \
-	https://github.com/fact-project/smart_fact_crawler/archive/v0.2.2.tar.gz
+	https://github.com/fact-project/smart_fact_crawler/archive/v0.3.0.tar.gz
 
 RUN mkdir /opt/shifthelper
 COPY setup.py /opt/shifthelper/
