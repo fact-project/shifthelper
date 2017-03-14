@@ -46,6 +46,14 @@ def users():
         """
 
 
+query_funcs = [
+    factdata_MeasurementType,
+    calendar_data,
+    factdata_Schedule,
+    users,
+]
+
+
 def main():
     log = logging.getLogger()
     log.setLevel('INFO')
@@ -68,16 +76,25 @@ def main():
     while True:
         try:
             log.info("cloning ...")
-            for query_func in [
-                    factdata_MeasurementType,
-                    calendar_data,
-                    factdata_Schedule,
-                    users]:
+
+            for query_func in query_funcs:
+                table_name = query_func.__name__
+
                 table = pd.read_sql_query(query_func(), db_in)
-                table.to_sql(query_func.__name__, db_out, if_exists="replace")
+                # we save the table to a temporary placeholder to make the
+                # change atomic
+                table.to_sql('t1', db_out, if_exists="replace")
+                db_out.execute('DROP TABLE IF EXISTS t2')
+                db_out.execute('RENAME TABLE {t} to t2, t1 to {t}'.format(
+                    t=table_name)
+                )
+
             log.info("...done")
             time.sleep(5 * 60)  # 5 minutes
         except (SystemExit, KeyboardInterrupt):
             break
         except:
             log.exception("error")
+
+if __name__ == '__main__':
+    main()
