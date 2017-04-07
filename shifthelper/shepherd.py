@@ -6,6 +6,7 @@ from datetime import datetime
 from twilio.rest import RestClient as Client
 from .tools import config
 import time
+from urllib.parse import urlencode
 
 c = config
 
@@ -13,6 +14,12 @@ url = 'https://ihp-pc41.ethz.ch/time'
 # -> {  "time": "Fri, 07 Apr 2017 10:37:15 GMT" }
 
 TIMEOUT = 10 * 60  # timeout in seconds
+
+
+def build_url(url, params):
+    return url + '?' + urlencode(params)
+
+echo_url = 'http://twimlets.com/echo'
 hangup_twiml = '''<Response><Hangup/></Response>'''
 hangup_url = build_url(echo_url, {'Twiml': hangup_twiml})
 
