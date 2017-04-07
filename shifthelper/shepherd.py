@@ -36,7 +36,11 @@ def check_server_time():
                 timeout=20,
         )
 
-if __name__ == "__main__":
+
+def main():
     while True:
         check_server_time()
         time.sleep(60)
+
+if __name__ == "__main__":
+    main()
