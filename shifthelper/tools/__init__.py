@@ -8,6 +8,7 @@ from retrying import retry, RetryError
 from fact import night_integer
 from datetime import datetime
 from collections import defaultdict
+from cachetools import cached, TTLCache
 
 __all__ = ['create_db_connection', 'config']
 
@@ -30,9 +31,18 @@ db_engines = {}
        wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
        wait_exponential_max=1000,  # but wait 1 second per try maximum
        )
+@cached(cache=TTLCache(1, ttl=30))
 def get_alerts():
     alerts = requests.get(config['webservice']['post-url'])
     return alerts.json()
+
+
+def is_alert_acknowledged(uuid):
+    alerts = get_alerts()
+    try:
+        return alerts[uuid]['acknowledged']
+    except:
+        return False
 
 
 def create_db_connection(db_config=None):

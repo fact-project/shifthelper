@@ -4,7 +4,7 @@ import requests
 from custos import TwilioNotifier
 from .tools.shift import get_current_shifter
 from copy import copy
-from .tools import config, get_alerts
+from .tools import config, is_alert_acknowledged
 from .categories import CATEGORY_DEVELOPER
 
 import logging
@@ -34,29 +34,18 @@ class FactTwilioNotifier(TwilioNotifier):
 
     def _remove_acknowledged_and_old_calls(self):
         """ from the list of not acknowledged calls
-        remove all calls, which have been acknowledged on the web page
-
-        Also remove calls older than 2 hours, to get out of
-        a "call the backup shifter" dead lock
+        remove all calls:
+         * which have been acknowledged on the web page
+         * which are old
         """
-        try:
-            alerts = {a['uuid']: a for a in get_alerts()}
-        except requests.exceptions.RequestException:
-            return
-
         for call, msg in copy(self.not_acknowledged_calls):
             age = datetime.datetime.utcnow() - msg.timestamp
             if age > (self.max_time_for_fallback + self.time_before_fallback):
                 self.not_acknowledged_calls.remove((call, msg))
-            else:
-                try:
-                    alert = alerts[msg.uuid]
-                except KeyError:
-                    continue
 
-                if alert['acknowledged'] is True:
-                    while (call, msg) in self.not_acknowledged_calls:
-                        self.not_acknowledged_calls.remove((call, msg))
+            if is_alert_acknowledged(msg.uuid):
+                while (call, msg) in self.not_acknowledged_calls:
+                    self.not_acknowledged_calls.remove((call, msg))
 
     def _get_oldest_call_age(self):
         max_age = datetime.timedelta()
