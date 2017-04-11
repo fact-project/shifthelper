@@ -30,6 +30,7 @@ db_engines = {}
 @retry(stop_max_delay=30000,  # 30 seconds max
        wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
        wait_exponential_max=1000,  # but wait 1 second per try maximum
+       wrap_exception=True,
        )
 @cached(cache=TTLCache(1, ttl=30))
 def get_alerts():
@@ -38,10 +39,10 @@ def get_alerts():
 
 
 def is_alert_acknowledged(uuid):
-    alerts = get_alerts()
     try:
+        alerts = get_alerts()
         return alerts[uuid]['acknowledged']
-    except:
+    except IndexError, TypeError, RetryError:
         return False
 
 
