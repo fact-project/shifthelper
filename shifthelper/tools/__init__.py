@@ -42,7 +42,7 @@ def is_alert_acknowledged(uuid):
     try:
         alerts = get_alerts()
         return alerts[uuid]['acknowledged']
-    except IndexError, TypeError, RetryError:
+    except (IndexError, TypeError, RetryError):
         return False
 
 
@@ -129,4 +129,3 @@ class NightlyResettingDefaultdict(defaultdict):
         if current_night != self.night:
             self.night = current_night
             self.clear()
-
