@@ -27,25 +27,6 @@ lock = threading.Lock()
 db_engines = {}
 
 
-@retry(stop_max_delay=30000,  # 30 seconds max
-       wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
-       wait_exponential_max=1000,  # but wait 1 second per try maximum
-       wrap_exception=True,
-       )
-@cached(cache=TTLCache(1, ttl=30))
-def get_alerts():
-    alerts = requests.get(config['webservice']['post-url'])
-    return alerts.json()
-
-
-def is_alert_acknowledged(uuid):
-    try:
-        alerts = get_alerts()
-        return alerts[uuid]['acknowledged']
-    except (IndexError, TypeError, RetryError):
-        return False
-
-
 def create_db_connection(db_config=None):
     with lock:
         if db_config is None:
