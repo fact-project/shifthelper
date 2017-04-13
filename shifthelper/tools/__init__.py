@@ -17,9 +17,21 @@ configfile = os.environ.get(
     os.path.join(os.environ['HOME'], '.shifthelper', 'config.json')
 )
 
+
+def check_config_sanity(json):
+    """Anything that raises in here. Is good, as it shows the config file is
+    broken early on
+    """
+    people = json['people']
+    assert json['developer'] in people
+    assert json['fallback'] in people
+    for person in people:
+        assert person['phone_mobile']
+        assert person['telegram_id']
+
 with open(configfile) as f:
     config = json.load(f)
-
+    check_config_sanity(config)
 
 lock = threading.Lock()
 
