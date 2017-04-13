@@ -10,7 +10,9 @@ from ..debug_log_wrapper import log_call_and_result
 def get_MeasurementType(db=None):
     if db is None:
         db = tools.create_db_connection(tools.config['cloned_db'])
-    df = pd.read_sql_query("select * from factdata_MeasurementType", db)
+
+    with db.connect() as conn:
+        df = pd.read_sql_query("select * from factdata_MeasurementType", conn)
     df.set_index("fMeasurementTypeName", inplace=True)
     return df
 
@@ -37,11 +39,12 @@ def get_last_startup_or_shutdown(current_time_rounded_to_seconds=None, db=None):
         now=current_time_rounded_to_seconds
         )
 
-    return pd.merge(
-        pd.read_sql_query(query, db),
-        types.reset_index(),
-        on="fMeasurementTypeKey"
-    )
+    with db.connect() as conn:
+        return pd.merge(
+            pd.read_sql_query(query, conn),
+            types.reset_index(),
+            on="fMeasurementTypeKey"
+        )
 
 
 @log_call_and_result
@@ -81,11 +84,12 @@ def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
         )
 
     try:
-        return pd.merge(
-            pd.read_sql_query(query, db),
-            types.reset_index(),
-            on="fMeasurementTypeKey"
-        ).iloc[0].fStart
+        with db.connect() as conn:
+            return pd.merge(
+                pd.read_sql_query(query, conn),
+                types.reset_index(),
+                on="fMeasurementTypeKey"
+            ).iloc[0].fStart
     except IndexError:
         # in case we cannot find the next shutdown,
         # we simply say the next shutdown is waaaay far in the future.
@@ -114,11 +118,12 @@ def get_last_shutdown(current_time_rounded_to_seconds=None, db=None):
             now=current_time_rounded_to_seconds
             )
 
-        return pd.merge(
-            pd.read_sql_query(query, db),
-            types.reset_index(),
-            on="fMeasurementTypeKey"
-        ).iloc[0].fStart
+        with db.connect() as conn:
+            return pd.merge(
+                pd.read_sql_query(query, conn),
+                types.reset_index(),
+                on="fMeasurementTypeKey"
+            ).iloc[0].fStart
     except IndexError:
         # in case we cannot find the last shutdown,
         # we simply say the last shutdown was waaay in the past
