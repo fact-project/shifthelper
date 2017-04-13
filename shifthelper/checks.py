@@ -29,7 +29,7 @@ nightly_max_rate = NightlyResettingDefaultdict(lambda: -np.inf)
 class ExponentialTimedActor:
     def __init__(self,
                  action,
-                 minimum_pause=timedelta(minutes=1),
+                 minimum_pause=timedelta(seconds=30),
                  maximum_pause=timedelta(minutes=10),
                  multiplicator=2,
                  ):
