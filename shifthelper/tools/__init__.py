@@ -8,7 +8,6 @@ from retrying import retry, RetryError
 from fact import night_integer
 from datetime import datetime
 from collections import defaultdict
-from cachetools import cached, TTLCache
 
 __all__ = ['create_db_connection', 'config']
 
