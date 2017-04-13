@@ -1,5 +1,4 @@
 import datetime
-from custos import TwilioNotifier
 from .tools.shift import get_current_shifter
 from copy import copy
 from .tools import config, is_alert_acknowledged
@@ -9,26 +8,47 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class FactTwilioNotifier(TwilioNotifier):
+class NotAcknowledgedMessagePseudoNotifier:
+    """
+    Pseudo-Notifier, using the custos.Notifier API to keep track of what
+    messages have been issued to the outside world.
+
+    By checking the "acknowledge" status of alerts on the website
+    it can provide `recipients` functions for other real Notifiers, like e.g.
+    the custos.TwilioNotifier.
+    """
+
     def __init__(self,
                  time_before_fallback=datetime.timedelta(minutes=15),
                  max_time_for_fallback=datetime.timedelta(minutes=15),
-                 *args,
-                 **kwargs):
-
-        # actual recipients are determinded in
-        # handle_message() using phone_number_of...()
-        kwargs["recipients"] = []
-        super().__init__(*args, **kwargs)
+                 ):
         self.time_before_fallback = time_before_fallback
         self.max_time_for_fallback = max_time_for_fallback
         self.not_acknowledged_calls = []
-        self.nobody_is_listening = False
-        self.twiml = 'hangup'
 
-    def notify(self, recipient, msg):
-        super().notify(recipient, msg)
-        self.not_acknowledged_calls.append((self.call, msg))
+    def handle_message(self, msg):
+        self.not_acknowledged_calls.append(msg)
+
+    def recipients_phone_numbers(self, msg_category):
+        self._remove_acknowledged_and_old_calls()
+        numbers_to_call = []
+
+        if msg_category in ('check_error', CATEGORY_DEVELOPER):
+            log.debug(
+                'Message has category "check_error" or "{}"'.format(
+                    CATEGORY_DEVELOPER)
+                )
+            numbers_to_call.append(self.phone_number_of_developer())
+
+        else:
+            log.debug('Getting phone number of primary shifter')
+            numbers_to_call.append(self.phone_number_of_normal_shifter())
+
+            if self._get_oldest_call_age() >= self.time_before_fallback:
+                log.debug('Getting phone number of fallback shifter')
+                numbers_to_call.append(self.phone_number_of_fallback_shifter())
+
+        return numbers_to_call
 
     def _remove_acknowledged_and_old_calls(self):
         """ from the list of not acknowledged calls
@@ -36,18 +56,17 @@ class FactTwilioNotifier(TwilioNotifier):
          * which have been acknowledged on the web page
          * which are old
         """
-        for call, msg in copy(self.not_acknowledged_calls):
+        for msg in copy(self.not_acknowledged_calls):
             age = datetime.datetime.utcnow() - msg.timestamp
             if age > (self.max_time_for_fallback + self.time_before_fallback):
-                self.not_acknowledged_calls.remove((call, msg))
+                self.not_acknowledged_calls.remove(msg)
 
             if is_alert_acknowledged(msg.uuid):
-                while (call, msg) in self.not_acknowledged_calls:
-                    self.not_acknowledged_calls.remove((call, msg))
+                self.not_acknowledged_calls.remove(msg)
 
     def _get_oldest_call_age(self):
         max_age = datetime.timedelta()
-        for call, msg in self.not_acknowledged_calls:
+        for msg in self.not_acknowledged_calls:
             age = datetime.datetime.utcnow() - msg.timestamp
             if age > max_age:
                 max_age = age
@@ -63,44 +82,9 @@ class FactTwilioNotifier(TwilioNotifier):
             log.exception('Error getting phone number, calling developer')
             return self.phone_number_of_developer()
 
-
     def phone_number_of_fallback_shifter(self):
         return config['fallback_shifter']['phone_number']
-
 
     def phone_number_of_developer(self):
         return config['developer']['phone_number']
 
-
-    def get_numbers_to_call(self, msg):
-        numbers_to_call = []
-
-        if msg.category in ('check_error', CATEGORY_DEVELOPER):
-            log.debug('Message has category "check_error" or "{}"'.format(CATEGORY_DEVELOPER))
-            numbers_to_call.append(self.phone_number_of_developer())
-
-        else:
-            log.debug('Getting phone number of primary shifter')
-            numbers_to_call.append(self.phone_number_of_normal_shifter())
-
-            if self._get_oldest_call_age() >= self.time_before_fallback:
-                log.debug('Getting phone number of fallback shifter')
-                numbers_to_call.append(self.phone_number_of_fallback_shifter())
-
-        return numbers_to_call
-
-
-    def handle_message(self, msg):
-        self._remove_acknowledged_and_old_calls()
-        log.debug('Got a message')
-        if msg.level >= self.level:
-            log.debug('Message is over alert level')
-
-            numbers_to_call = self.get_numbers_to_call(msg)
-            for phone_number in numbers_to_call:
-                try:
-                    log.info('Calling {}'.format(phone_number))
-                    self.notify(phone_number, msg)
-                except:
-                    log.exception(
-                        'Could not notifiy recipient {}'.format(phone_number))
