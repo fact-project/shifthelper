@@ -2,6 +2,7 @@ import logging
 import numpy as np
 from operator import attrgetter
 from datetime import datetime, timedelta
+from functools import wraps
 from retrying import retry
 from io import BytesIO
 from collections import defaultdict
@@ -25,43 +26,63 @@ FLARE_ALERT_LIMITS['Mrk 421'] = 60.0
 FLARE_ALERT_LIMITS['Crab'] = np.inf
 nightly_max_rate = NightlyResettingDefaultdict(lambda: -np.inf)
 
+# `expo_throttle` follows `throttle` this example:
+# https://gist.github.com/ChrisTM/5834503
+# scroll down to the answer by *philer*
 
-class ExponentialTimedActor:
-    def __init__(self,
-                 action,
-                 minimum_pause=timedelta(seconds=30),
-                 maximum_pause=timedelta(minutes=10),
-                 multiplicator=2,
-                 ):
-        self.maximum_pause = maximum_pause
-        self.minimum_pause = minimum_pause
-        self.multiplicator = multiplicator
 
-        self.action = action
-        self.reset()
+def throttle(seconds=0, minutes=0, hours=0):
+    throttle_period = timedelta(seconds=seconds, minutes=minutes, hours=hours)
 
-    @property
-    def _is_time_for_action(self):
-        if self.last_action is None:
-            return True
-        return datetime.utcnow() - self.last_action > self.pause
+    def throttle_decorator(fn):
+        time_of_last_call = datetime.min
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            now = datetime.now()
+            if now - time_of_last_call > throttle_period:
+                nonlocal time_of_last_call
+                time_of_last_call = now
+                return fn(*args, **kwargs)
+        return wrapper
+    return throttle_decorator
 
-    def _update(self):
-        self.last_action = datetime.utcnow()
-        self.pause *= self.multiplicator
-        if self.pause > self.maximum_pause:
-            self.pause = self.maximum_pause
-        if self.pause < self.minimum_pause:
-            self.pause = self.minimum_pause
 
-    def reset(self):
-        self.last_action = None
-        self.pause = self.minimum_pause
+def expo_throttle(
+    minimum_pause=timedelta(seconds=30),
+    maximum_pause=timedelta(minutes=10),
+    multiplicator=2,
+):
+    minimum_pause = minimum_pause
+    maximum_pause = maximum_pause
+    multiplicator = multiplicator
+    pause = minimum_pause
 
-    def __call__(self, *args, **kwargs):
-        if self._is_time_for_action:
-            self._update()
-            self.action(*args, **kwargs)
+    def throttle_decorator(fn):
+        time_of_last_call = datetime.min
+
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            now = datetime.now()
+            if now - time_of_last_call > pause:
+                nonlocal pause
+                pause *= multiplicator
+                if pause < minimum_pause:
+                    pause = minimum_pause
+                if pause > maximum_pause:
+                    pause = maximum_pause
+                nonlocal time_of_last_call
+                time_of_last_call = now
+                return fn(*args, **kwargs)
+
+        def reset_throttle():
+            nonlocal time_of_last_call
+            time_of_last_call = datetime.min
+            nonlocal pause
+            pause = minimum_pause
+
+        wrapper.reset_throttle = reset_throttle
+        return wrapper
+    return throttle_decorator
 
 
 class FactIntervalCheck(IntervalCheck):
@@ -69,14 +90,18 @@ class FactIntervalCheck(IntervalCheck):
         super().__init__(interval=interval, name=name)
         self.checklist = checklist
         self.category = category
-        self.send_msg = ExponentialTimedActor(action=self.message_from_docs)
 
     def check(self):
         if all([f() for f in self.checklist]):
-            self.send_msg(self.checklist)
+            self.message_from_docs(self.checklist)
         else:
-            self.send_msg.reset()
+            self.message_from_docs.reset_throttle()
 
+    @expo_throttle(
+        minimum_pause=timedelta(minutes=2),
+        maximum_pause=timedelta(minutes=10),
+        multiplicator=2,
+    )
     def message_from_docs(self, checklist, **kwargs):
         self.message(
             text=' and \n'.join(map(attrgetter('__doc__'), checklist)),
