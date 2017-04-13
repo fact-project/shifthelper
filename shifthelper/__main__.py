@@ -4,7 +4,8 @@ import sys
 from custos import Custos, levels
 from custos import TelegramNotifier, LogNotifier
 from custos import HTTPNotifier
-from .notifiers import FactTwilioNotifier
+from custos import TwilioNotifier
+from .notifiers import NotAcknowledgedMessagePseudoNotifier
 
 from .tools.shift import get_current_shifter
 from .tools import config
@@ -26,13 +27,15 @@ def telegram_book(category):
 
     return [telegram_id] if telegram_id is not None else []
 
+not_acked_messages = NotAcknowledgedMessagePseudoNotifier()
 
-twilio = FactTwilioNotifier(
+twilio = TwilioNotifier(
     sid=config['twilio']['sid'],
     auth_token=config['twilio']['auth_token'],
     twilio_number=config['twilio']['number'],
     ring_time=45,
     level=levels.WARNING,
+    recipients=not_acked_messages.recipients_phone_numbers
 )
 telegram = TelegramNotifier(
     token=config['telegram']['token'],
@@ -235,6 +238,7 @@ def main():
                 ),
             ],
             notifiers=[
+                not_acked_messages,
                 twilio,
                 telegram,
                 http,
