@@ -1,9 +1,7 @@
 import logging
-import pandas as pd
 import numpy as np
 from operator import attrgetter
 from datetime import datetime, timedelta
-from requests.exceptions import RequestException
 from retrying import retry
 from io import BytesIO
 from collections import defaultdict
