@@ -11,7 +11,7 @@ from collections import defaultdict
 from custos import IntervalCheck
 from custos import levels
 
-from .tools import create_db_connection, NightlyResettingDefaultdict, get_alerts
+from .tools import create_db_connection, NightlyResettingDefaultdict
 from fact.qla import get_qla_data, bin_qla_data, plot_qla
 from fact import night_integer
 
@@ -28,20 +28,61 @@ FLARE_ALERT_LIMITS['Crab'] = np.inf
 nightly_max_rate = NightlyResettingDefaultdict(lambda: -np.inf)
 
 
+class ExponentialTimedActor:
+    def __init__(self,
+                 action,
+                 minimum_pause=timedelta(minutes=1),
+                 maximum_pause=timedelta(minutes=10),
+                 multiplicator=2,
+                 ):
+        self.maximum_pause = maximum_pause
+        self.minimum_pause = minimum_pause
+        self.multiplicator = multiplicator
+
+        self.action = action
+        self.reset()
+
+    @property
+    def _is_time_for_action(self):
+        if self.last_action is None:
+            return True
+        return datetime.utcnow() - self.last_action > self.pause
+
+    def _update(self):
+        self.last_action = datetime.utcnow()
+        self.pause *= self.multiplicator
+        if self.pause > self.maximum_pause:
+            self.pause = self.maximum_pause
+        if self.pause < self.minimum_pause:
+            self.pause = self.minimum_pause
+
+    def reset(self):
+        self.last_action = None
+        self.pause = self.minimum_pause
+
+    def __call__(self, *args, **kwargs):
+        if self._is_time_for_action:
+            self._update()
+            self.action(*args, **kwargs)
+
+
 class FactIntervalCheck(IntervalCheck):
     def __init__(self, name, checklist, category, interval=120):
         super().__init__(interval=interval, name=name)
         self.checklist = checklist
         self.category = category
+        self.send_msg = ExponentialTimedActor(action=self.message_from_docs)
 
     def check(self):
         if all([f() for f in self.checklist]):
-            self.message_from_docs(self.checklist)
+            self.send_msg(self.checklist)
+        else:
+            self.send_msg.reset()
 
     def message_from_docs(self, checklist, **kwargs):
         self.message(
             text=' and \n'.join(map(attrgetter('__doc__'), checklist)),
-            level=message_level(self.name),
+            level=levels.WARNING,
             category=self.category,
         )
 
@@ -96,7 +137,7 @@ class FlareAlertCheck(IntervalCheck):
                         source, data['rate'], data['significance'],
                     ),
                     category=self.category,
-                    level=message_level(self.name),
+                    level=levels.WARNING,
                     image=None if image_send else image_file,
                 )
                 image_send = True
@@ -110,76 +151,6 @@ class FlareAlertCheck(IntervalCheck):
 def retry_get_qla_data_fail_after_30sec(database=None):
     database = database or create_db_connection()
     return get_qla_data(night_integer(datetime.utcnow()), database)
-
-
-def message_level(checkname, check_time=timedelta(minutes=10), alerts=None):
-    '''
-    return the message severity level for a certain check,
-    based on whether all the alerts have been acknowledged or not
-
-    In case we cannot even reach the webinterface, we have to assume the
-    user also cannot reach the website, so nothing will be acknowledged.
-    So in that case we simply return the higher level as well.
-    '''
-    try:
-        acknowledged = all_recent_alerts_acknowledged(
-            checkname=checkname,
-            check_time=check_time,
-            alerts=alerts,
-            result_if_no_alerts=False,
-        )
-    except RequestException:
-        log.exception('Getting alerts failed')
-        acknowledged = False
-
-    if acknowledged:
-        return levels.INFO
-        log.debug('Giving message status INFO')
-    else:
-        log.debug('Giving message status WARNING')
-        return levels.WARNING
-
-
-def all_recent_alerts_acknowledged(
-        checkname=None,
-        check_time=timedelta(minutes=10),
-        alerts=None,
-        result_if_no_alerts=False,
-        ):
-    '''
-    have a look at shifthelper webinterface page and see if the
-    user has already acknowledged all the alerts from the given
-    checkname.
-
-    If there are no alerts matching the specified criteria, the result
-    is dependent on the `result_if_no_alerts` option, which defaults to `False`
-    '''
-    now = datetime.utcnow()
-
-    if alerts is None:
-        alerts = get_alerts()
-
-        if not alerts:
-            return result_if_no_alerts
-
-        alerts = pd.DataFrame(alerts)
-        alerts['timestamp'] = pd.to_datetime(alerts.timestamp, utc=True)
-
-    if alerts.empty:
-        return result_if_no_alerts
-
-    alerts['age'] = now - alerts.timestamp
-
-    if checkname is not None:
-        alerts = alerts[alerts.check == checkname]
-
-    if check_time is not None:
-        alerts = alerts[alerts.age < check_time]
-
-    if alerts.empty:
-        return result_if_no_alerts
-
-    return alerts.acknowledged.all()
 
 
 def get_max_rate_and_significance(qla_data):
