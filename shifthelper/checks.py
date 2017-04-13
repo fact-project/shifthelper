@@ -36,6 +36,7 @@ def throttle(seconds=0, minutes=0, hours=0):
 
     def throttle_decorator(fn):
         time_of_last_call = datetime.min
+
         @wraps(fn)
         def wrapper(*args, **kwargs):
             now = datetime.now()
@@ -51,7 +52,7 @@ def expo_throttle(
     minimum_pause=timedelta(seconds=30),
     maximum_pause=timedelta(minutes=10),
     multiplicator=2,
-):
+        ):
     minimum_pause = minimum_pause
     maximum_pause = maximum_pause
     multiplicator = multiplicator
