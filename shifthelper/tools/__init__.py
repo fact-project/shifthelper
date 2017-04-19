@@ -55,9 +55,11 @@ def create_db_connection(db_config=None):
 
 def get_last_parking_checklist_entry():
     try:
-        table = pd.read_sql_query(
-            'select * from park_checklist_filled',
-            create_db_connection(config['sandbox_db'])
+        db = create_db_connection(config['sandbox_db'])
+        with db.connect() as conn:
+            table = pd.read_sql_query(
+                'select * from park_checklist_filled',
+                conn
             )
         return table.sort_values('created').iloc[-1].created
     except IndexError:

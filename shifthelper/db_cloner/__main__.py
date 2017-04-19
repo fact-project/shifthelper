@@ -80,7 +80,8 @@ def main():
             for query_func in query_funcs:
                 table_name = query_func.__name__
 
-                table = pd.read_sql_query(query_func(), db_in)
+                with db_in.connect() as conn:
+                    table = pd.read_sql_query(query_func(), conn)
                 # we save the table to a temporary placeholder to make the
                 # change atomic
                 table.to_sql('t1', db_out, if_exists="replace")

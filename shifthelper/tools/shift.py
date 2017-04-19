@@ -69,7 +69,9 @@ def retrieve_calendar_entries(dt_date, db=None):
         m=yesterday_night.month - 1,
         d=yesterday_night.day
     )
-    return pd.read_sql_query(query, db)
+
+    with db.connect() as conn:
+        return pd.read_sql_query(query, conn)
 
 
 # cache user data only for ten minutes, so changes take effect eventually
@@ -78,7 +80,9 @@ def retrieve_valid_usernames_from_logbook(db=None):
     if db is None:
         db = tools.create_db_connection(tools.config['cloned_db'])
 
-    memberlist = pd.read_sql_query("SELECT * from users", db)
+    with db.connect() as conn:
+        memberlist = pd.read_sql_query("SELECT * from users", conn)
+
     memberlist = memberlist.rename(columns={
             "fid1": "institute",
             "fid3": "gender",
