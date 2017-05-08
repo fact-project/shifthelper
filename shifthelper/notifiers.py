@@ -27,10 +27,10 @@ class NotAcknowledgedMessagePseudoNotifier:
                  ):
         self.time_before_fallback = time_before_fallback
         self.max_time_for_fallback = max_time_for_fallback
-        self.not_acknowledged_calls = []
+        self.handled_messages = []
 
     def handle_message(self, msg):
-        self.not_acknowledged_calls.append(msg)
+        self.handled_messages.append(msg)
 
     def recipients_phone_numbers(self, msg_category):
         self._remove_acknowledged_and_old_calls()
@@ -59,17 +59,17 @@ class NotAcknowledgedMessagePseudoNotifier:
          * which have been acknowledged on the web page
          * which are old
         """
-        for msg in copy(self.not_acknowledged_calls):
+        for msg in copy(self.handled_messages):
             age = datetime.datetime.utcnow() - msg.timestamp
             if age > (self.max_time_for_fallback + self.time_before_fallback):
-                self.not_acknowledged_calls.remove(msg)
+                self.handled_messages.remove(msg)
 
             if is_alert_acknowledged(msg.uuid):
-                self.not_acknowledged_calls.remove(msg)
+                self.handled_messages.remove(msg)
 
     def _get_oldest_call_age(self):
         max_age = datetime.timedelta()
-        for msg in self.not_acknowledged_calls:
+        for msg in self.handled_messages:
             age = datetime.datetime.utcnow() - msg.timestamp
             if age > max_age:
                 max_age = age
