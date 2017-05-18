@@ -48,7 +48,8 @@ def create_db_connection(db_config=None):
                     host=db_config['host'],
                     db=db_config['database'],
                     port=db_config.get('port', 3306)
-                )
+                ),
+                pool_recycle=3600,
             )
     return db_engines[frozenset(db_config.items())]
 
