@@ -29,8 +29,14 @@ class FactTwilioNotifier(TwilioNotifier):
         self.twiml = 'hangup'
 
     def notify(self, recipient, msg):
-        super().notify(recipient, msg)
-        self.not_acknowledged_calls.append((self.call, msg))
+        try:
+            super().notify(recipient, msg)
+            self.not_acknowledged_calls.append((self.call, msg))
+        except:
+            self.not_acknowledged_calls.append((None, msg))
+            log.exception(
+                'Could not notifiy recipient {}'.format(recipient)
+            )
 
     def _remove_acknowledged_and_old_calls(self):
         """ from the list of not acknowledged calls
@@ -75,14 +81,11 @@ class FactTwilioNotifier(TwilioNotifier):
             log.exception('Error getting phone number, calling developer')
             return self.phone_number_of_developer()
 
-
     def phone_number_of_fallback_shifter(self):
         return config['fallback_shifter']['phone_number']
 
-
     def phone_number_of_developer(self):
         return config['developer']['phone_number']
-
 
     def get_numbers_to_call(self, msg):
         numbers_to_call = []
@@ -101,7 +104,6 @@ class FactTwilioNotifier(TwilioNotifier):
 
         return numbers_to_call
 
-
     def handle_message(self, msg):
         self._remove_acknowledged_and_old_calls()
         log.debug('Got a message')
@@ -110,9 +112,5 @@ class FactTwilioNotifier(TwilioNotifier):
 
             numbers_to_call = self.get_numbers_to_call(msg)
             for phone_number in numbers_to_call:
-                try:
-                    log.info('Calling {}'.format(phone_number))
-                    self.notify(phone_number, msg)
-                except:
-                    log.exception(
-                        'Could not notifiy recipient {}'.format(phone_number))
+                log.info('Calling {}'.format(phone_number))
+                self.notify(phone_number, msg)
