@@ -27,7 +27,7 @@ setup(
         'sqlalchemy',       # in anaconda
         'PyMySQL',          # in anaconda
         'pytz',             # in anaconda
-        'twilio',
+        'twilio==5.7.0',
         'numexpr',
         'smart_fact_crawler==0.3.0',
         'custos==0.0.7',
