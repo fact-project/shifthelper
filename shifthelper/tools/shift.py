@@ -3,6 +3,7 @@ from .. import tools
 from datetime import datetime
 from datetime import timedelta
 from cachetools import TTLCache, cached
+from cachetools.keys import hashkey
 
 import logging
 
@@ -52,7 +53,10 @@ def retrieve_shifters_from_calendar(
     return tonights_shifters
 
 
-@cached(cache=TTLCache(1, ttl=5 * 60))
+@cached(
+    cache=TTLCache(1, ttl=5 * 60),
+    key=lambda dt_date, db: hashkey(dt_date)
+)
 def retrieve_calendar_entries(dt_date, db=None):
     if db is None:
         db = tools.create_db_connection(tools.config['cloned_db'])
@@ -69,7 +73,10 @@ def retrieve_calendar_entries(dt_date, db=None):
         return pd.read_sql_query(query, conn)
 
 
-@cached(cache=TTLCache(1, ttl=5 * 60))
+@cached(
+    cache=TTLCache(1, ttl=5 * 60),
+    key=lambda db: hashkey(None)
+)
 def retrieve_valid_usernames_from_logbook(db=None):
     if db is None:
         db = tools.create_db_connection(tools.config['cloned_db'])
