@@ -1,6 +1,5 @@
 import pandas as pd
 from .. import tools
-from functools import lru_cache
 from datetime import datetime
 from datetime import timedelta
 from cachetools import TTLCache, cached
@@ -22,11 +21,7 @@ WHERE
 '''
 
 
-def get_current_shifter(clear_cache=False, db=None):
-    if clear_cache:
-        retrieve_calendar_entries.cache_clear()
-        retrieve_valid_usernames_from_logbook.cache_clear()
-
+def get_current_shifter(db=None):
     full_shifter_info = retrieve_shifters_from_calendar(db=db)
     only_interesting_stuff = full_shifter_info[
         ["phone_mobile", "telegram_id", "skype", "username", "email"]
@@ -57,7 +52,7 @@ def retrieve_shifters_from_calendar(
     return tonights_shifters
 
 
-@lru_cache(100)
+@cached(cache=TTLCache(1, ttl=5 * 60))
 def retrieve_calendar_entries(dt_date, db=None):
     if db is None:
         db = tools.create_db_connection(tools.config['cloned_db'])
@@ -74,8 +69,7 @@ def retrieve_calendar_entries(dt_date, db=None):
         return pd.read_sql_query(query, conn)
 
 
-# cache user data only for ten minutes, so changes take effect eventually
-@cached(cache=TTLCache(1, ttl=10 * 60))
+@cached(cache=TTLCache(1, ttl=5 * 60))
 def retrieve_valid_usernames_from_logbook(db=None):
     if db is None:
         db = tools.create_db_connection(tools.config['cloned_db'])
