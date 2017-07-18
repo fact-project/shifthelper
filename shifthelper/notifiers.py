@@ -24,19 +24,18 @@ class FactTwilioNotifier(TwilioNotifier):
         super().__init__(*args, **kwargs)
         self.time_before_fallback = time_before_fallback
         self.max_time_for_fallback = max_time_for_fallback
-        self.not_acknowledged_calls = []
+        self.not_acknowledged_messages = []
         self.nobody_is_listening = False
         self.twiml = 'hangup'
 
     def notify(self, recipient, msg):
         try:
             super().notify(recipient, msg)
-            self.not_acknowledged_calls.append((self.call, msg))
         except:
-            self.not_acknowledged_calls.append((None, msg))
             log.exception(
                 'Could not notifiy recipient {}'.format(recipient)
             )
+        self.not_acknowledged_messages.append(msg)
 
     def _remove_acknowledged_and_old_calls(self):
         """ from the list of not acknowledged calls
@@ -50,10 +49,10 @@ class FactTwilioNotifier(TwilioNotifier):
         except requests.exceptions.RequestException:
             return
 
-        for call, msg in copy(self.not_acknowledged_calls):
+        for msg in copy(self.not_acknowledged_messages):
             age = datetime.datetime.utcnow() - msg.timestamp
             if age > (self.max_time_for_fallback + self.time_before_fallback):
-                self.not_acknowledged_calls.remove((call, msg))
+                self.not_acknowledged_messages.remove(msg)
             else:
                 try:
                     alert = alerts[str(msg.uuid)]
@@ -61,11 +60,11 @@ class FactTwilioNotifier(TwilioNotifier):
                     continue
 
                 if alert['acknowledged'] is True:
-                    self.not_acknowledged_calls.remove((call, msg))
+                    self.not_acknowledged_messages.remove(msg)
 
     def _get_oldest_call_age(self):
         max_age = datetime.timedelta()
-        for call, msg in self.not_acknowledged_calls:
+        for msg in self.not_acknowledged_messages:
             age = datetime.datetime.utcnow() - msg.timestamp
             if age > max_age:
                 max_age = age
