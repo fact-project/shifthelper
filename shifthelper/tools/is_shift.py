@@ -1,12 +1,17 @@
 import pandas as pd
 from .. import tools
-from functools import lru_cache
 from datetime import datetime
 from retrying import retry
+from cachetools import TTLCache, cached
+from cachetools.keys import hashkey
 
 from ..debug_log_wrapper import log_call_and_result
 
-@lru_cache(1)
+
+@cached(
+    cache=TTLCache(1, ttl=5 * 60),
+    key=lambda db: hashkey(None)
+)
 def get_MeasurementType(db=None):
     if db is None:
         db = tools.create_db_connection(tools.config['cloned_db'])
@@ -94,7 +99,6 @@ def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
         # in case we cannot find the next shutdown,
         # we simply say the next shutdown is waaaay far in the future.
         return datetime.max
-
 
 
 def get_last_shutdown(current_time_rounded_to_seconds=None, db=None):

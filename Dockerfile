@@ -1,11 +1,12 @@
 FROM continuumio/miniconda3
 
-
+RUN apt update && apt install build-essential --yes
 
 RUN conda install \
 	pandas requests numpy matplotlib \
 	python-dateutil sqlalchemy PyMySQL \
-	docopt pytz numexpr scipy pymongo astropy 
+	docopt pytz numexpr scipy pymongo astropy \
+	&& conda clean --all --yes 
 
 RUN pip install twilio retrying wrapt \
 	simple-crypt python-json-logger telepot \
