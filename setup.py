@@ -41,6 +41,7 @@ setup(
     entry_points={'console_scripts': [
         'shifthelper = shifthelper.__main__:main',
         'shifthelper_db_cloner = shifthelper.db_cloner.__main__:main',
+        'shifthelper_shepherd = shifthelper.shepherd:main',
     ]},
     zip_safe=False,
 )
