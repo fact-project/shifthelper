@@ -85,11 +85,6 @@ The shifhelper runs two processes in supervised containers which get restatred w
 In case the webinterface gets DDOSed, the shifthelper still runs and calls people,
 but they cannot acknowledge the calls anymore. Very annoying but at least safe.
 
-# Future plans
-
- * Check if shifthelper is running (couner checker)
- * Introducing 'Starter' and 'Parker' shift mode (needs mayor changes)
-
 # Reported Safety issues?
 
 In order to see if we can really trust the shifthelper v1.1.4, I listed below
@@ -130,3 +125,19 @@ In fact **No critical issue was reported to us in 2017** but these issues here c
 
  * 2017-05-24 - [FAD Loss results in call to Developer, not the shifter](https://github.com/fact-project/shifthelper/issues/238)
 
+
+
+# Future plans
+
+We think the shifthelper v1.1.4 is very stable. So we want to avoid any changes to the code, apart form the necessary bug fixes, that might turn up.
+
+However already now 2 future changes are foreseen:
+
+## Mutual Cross Check
+
+In case the shifthelper process (or entire host) is unavailable, nobody is informed. This is a safety issue. 
+We plan to solve it by introducing an independent process named maybe "shifthelper-heartbeat-check", running on an independent node, that continously checks if the shifthelper is running. At the same time, the shifthelper will get an additional check, that ensures this 
+"shifthelper-heartbeat-check" is really up and running. Only such a mutual check ensures (with fairly high probability) that we get notified in case either one dies. 
+
+For this, we need to give the heartbeact-check something to check. We propose to show a human readable timestamp on the shifthelper webinterface, that is updates by the shifthelper process, not by the webinterface. This timestamp is the shifthelper heartbeat. 
+So this requires some changes in the webinterface and in the shifthelper.
