@@ -41,8 +41,7 @@ At the same moment, a more severe bug was found an removed. In case the call
 to the shifter threw an exception, the fallback was not called.
 An exception was raised, because the number to be called was an
 international number from a country our Twilio contract was (for security reasons)
-not allowed to make calls to.
-Now we may make calls to the whole world. This bug was found using the test call during startup. Making test calls is a part of the startup checklist.
+not allowed to make calls to. Now we may make calls to the whole world. This bug was found using the test call during startup. Making test calls (DummyAlert) is a part of the startup checklist.
 
 ## 17.07. Fix cache misses
 
@@ -63,7 +62,7 @@ These lead to expert calls. Recycling the connection pool fixed these.
 ## 28.02. Allow shifters to change their phone numbers.
 
 The shifter contact DB was cloned only once at SH startup. So changes in contact
-details would require a SH restart. This fixed this.
+details would require a SH restart.
 
 ## 06.02. Fix Flare Alerts
 
@@ -78,15 +77,10 @@ Shifthelper is running in one of two places:
  * Either the Rancher cloud at TU Dortmund (https://shifthelper.app.tu-dortmund.de/)
  * Or on a desktop PC at ETH Zurich (https://ihp-pc41.ethz.ch/)
 
-The Shifthelper-Suite consists of 2 independent processes:
+The shifhelper runs two processes in supervised containers which get restatred when they crash ([Docker container](https://www.docker.com/)):
 
  * shifthelper
  * webinterface
 
 In case the webinterface gets DDOSed, the shifthelper still runs and calls people,
 but they cannot acknowledge the calls anymore. Very annoying but at least safe.
-
-When running on a PC, both processes are simply started in a screen. In the
-rancher cloud, the rancher takes care of running the processes on one of its
-nodes.
-
