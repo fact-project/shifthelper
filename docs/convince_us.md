@@ -73,3 +73,22 @@ details would require a SH restart. This fixed this.
  * Fallback shifter was not called in this case.
 
 
+# How is it running?
+
+Shifthelper is running in one of two places:
+
+ * Either the Rancher cloud at TU Dortmund (https://shifthelper.app.tu-dortmund.de/)
+ * Or on a desktop PC at ETH Zurich (https://ihp-pc41.ethz.ch/)
+
+The Shifthelper-Suite consists of 2 independent processes:
+
+ * shifthelper
+ * webinterface
+
+In case the webinterface gets DDOSed, the shifthelper still runs and calls people,
+but they cannot acknowledge the calls anymore. Very annoying but at least safe.
+
+When running on a PC, both processes are simply started in a screen. In the
+rancher cloud, the rancher takes care of running the processes on one of its
+nodes.
+
