@@ -98,8 +98,6 @@ Or there was really no call, but it was realized during startup.
 
 In fact **No critical issue was reported to us in 2017** but these issues here come closest to what might have been ciritcal.
 
-
-
 ![fact-project-shifthelper-issues.png](fact-project-shifthelper-issues.png)
 
  * 2016-10-22 - [no call - during test 21.10.16](https://github.com/fact-project/shifthelper/issues/118)
@@ -125,6 +123,11 @@ In fact **No critical issue was reported to us in 2017** but these issues here c
 
  * 2017-05-24 - [FAD Loss results in call to Developer, not the shifter](https://github.com/fact-project/shifthelper/issues/238)
 
+
+# How often is the Shifthelper touched?
+
+The number of [code changes per week](https://github.com/fact-project/shifthelper/graphs/commit-activity) got less and less over the past year. 
+![commits_per_week.png](commits_per_week.png)
 
 
 # Future plans
