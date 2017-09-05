@@ -6,8 +6,6 @@ D.Neise
 
 | Name                           | limit        | Interval[s] | conditions                     |
 |--------------------------------|--------------|-------------|--------------------------------|
-| Flare                          | (individual) | 300         |                                |
-| DummyAlert                     |              | 60          |                                |
 | SmartFactUpToDate              | > 10 min     | 120         | only during shift              |
 | ParkingChecklistFilled         | after 10min  | 120         | only **outside** shift         |
 | IsUserAwakeBeforeShutdown      | 20min before | 120         | only during shift              |
@@ -28,7 +26,7 @@ D.Neise
 | DIMNetworkNotAvailable         |              | 120         | only during shift              |
 | NoDimCtrlServerAvailable       |              | 120         | only during shift              |
 | TriggerRateLowForTenMinutes    | < 1/sec      | 120         | only during shift              |
-
+| Flare                          | (individual) | 300         |                                |
 
 # Experience?
 
@@ -36,15 +34,15 @@ Shifthelper is running unmodified since 23.07.2017
 
 ## 24.07. Remove unnecessary fallback calls:
 
-Under certain conditions acknowledged calls were not being removed form the list
+Under certain conditions acknowledged alerts were not being removed form the alert list
 and thus the fallback was called unnecessaringly.
 
-At the same moment, a more sever bug was found an removed. In case the call
+At the same moment, a more severe bug was found an removed. In case the call
 to the shifter threw an exception, the fallback was not called.
 An exception was raised, because the number to be called was an
 international number from a country our Twilio contract was (for security reasons)
 not allowed to make calls to.
-Now we may make calls to the whole world.
+Now we may make calls to the whole world. This bug was found using the test call during startup. Making test calls is a part of the startup checklist.
 
 ## 17.07. Fix cache misses
 
