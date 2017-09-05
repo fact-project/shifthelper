@@ -84,3 +84,9 @@ The shifhelper runs two processes in supervised containers which get restatred w
 
 In case the webinterface gets DDOSed, the shifthelper still runs and calls people,
 but they cannot acknowledge the calls anymore. Very annoying but at least safe.
+
+# Future plans
+
+ * Check if shifthelper is running (couner checker)
+ * Introducing 'Starter' and 'Parker' shift mode (needs mayor changes)
+ 
