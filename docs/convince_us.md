@@ -131,7 +131,7 @@ In fact **No critical issue was reported to us in 2017** but these issues here c
 
 We think the shifthelper v1.1.4 is very stable. So we want to avoid any changes to the code, apart form the necessary bug fixes, that might turn up.
 
-However already now 2 future changes are foreseen:
+However already now a future change is foreseen, that will need changes in the code base.
 
 ## Mutual Cross Check
 
