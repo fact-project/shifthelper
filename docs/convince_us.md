@@ -89,4 +89,44 @@ but they cannot acknowledge the calls anymore. Very annoying but at least safe.
 
  * Check if shifthelper is running (couner checker)
  * Introducing 'Starter' and 'Parker' shift mode (needs mayor changes)
- 
+
+# Reported Safety issues?
+
+In order to see if we can really trust the shifthelper v1.1.4, I listed below
+the issues which were reported.
+
+The plot below and the link list gives an overview about "Safety" issues.
+
+As one can see from the Titles, even in these cases, still **sombody was called**, just not the right person.
+So often fallback instead of shifter.
+Or there was really no call, but it was realized during startup.
+
+In fact **No critical issue was reported to us in 2017** but these issues here come closest to what might have been ciritcal.
+
+
+
+![fact-project-shifthelper-issues.png](fact-project-shifthelper-issues.png)
+
+ * 2016-10-22 - [no call - during test 21.10.16](https://github.com/fact-project/shifthelper/issues/118)
+
+---
+
+ * 2016-12-05 - [Calling fails comlpetely if shifter has not a valid phonenumber](https://github.com/fact-project/shifthelper/issues/168)
+ * 2016-12-05 - [shifthelper does not call shifter - directly fallback shifter. tescall insufficient?](https://github.com/fact-project/shifthelper/issues/166)
+ * 2016-12-10 - [no call, when smartfact dies](https://github.com/fact-project/shifthelper/issues/169)
+ * 2016-12-16 - [shifters were not called](https://github.com/fact-project/shifthelper/issues/175)
+ * 2016-12-29 - [shifter was not called - fallback was called instead](https://github.com/fact-project/shifthelper/issues/193)
+
+ ---
+
+ * 2017-02-04 - [Shifthelper kept calling and sending me Telegram messages every 5 minutes and informed me about FlareAlert](https://github.com/fact-project/shifthelper/issues/207)
+ * 2017-02-04 - [Shifthelper does not call fallback shifter in case of FlareAlerts](https://github.com/fact-project/shifthelper/issues/209)
+
+ ---
+
+ * 2017-03-25 - [Test call does not work on first try](https://github.com/fact-project/shifthelper/issues/228)
+
+---
+
+ * 2017-05-24 - [FAD Loss results in call to Developer, not the shifter](https://github.com/fact-project/shifthelper/issues/238)
+
