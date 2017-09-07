@@ -1,8 +1,41 @@
-# Shifthelper report 05.09.2017
+# Shifthelper (v1.1.4) overview Sept. 2017
 
-D.Neise
+Glossary:
 
-# What's checked?
+ * Shifter: The single person responsible for a night of FACT operation. 
+     The shifthelper(SH) defines the "Shifter" as the person entered in the [shift schedule](https://www.fact-project.org/shift/).
+ * Shift: The time between Startup and Shutdown. 
+     The SH defines the "Shift" as the time between "Startup" and "Shutdown" task in the [observation  schedule](https://www.fact-project.org/schedule/)
+    
+# General Description
+
+The shifthelper(SH) continously monitors the state of the FACT telescope via the publicly available status [smartfact website](http://fact-project.org/smartfact/index.html?sound#fact). In case human attention is needed (details below) the current *Shifter* is alerted per phone call and optionally [Telegram](https://telegram.org/) instant message.
+In case the shifter does not acknowledge the issue on the SH-webinterface in time, automatically a (hardcoded) fallback person is alerted. In case a function inside the shifthelper throws an exception a hardcoded developer is alerted. 
+
+## How does it work?
+
+FACT serves a public status websites called [smartfact](http://fact-project.org/smartfact/index.html?sound#fact).
+The dynamic content of the wesite is provided as text(`*.data`) and binary(`*.bin`) files in this public web-folder: http://fact-project.org/smartfact/data/. 
+For example the textual content of this smratfact frontpage: 
+
+![smartfact_example_frontpage_small.png](smartfact_example_frontpage_small.png) 
+
+is provided as this text file:
+
+```
+1504781095555	1504553178701		0	0
+#ffffff	Idle [single-pe]
+#ffffff	 &#9788; [09:32&darr;] &otimes;
+#f0fff0	6.38
+#f0fff0	15.6	19
+#ffffff
+#ffffff
+```
+A parser named [smart_fact_crawler](https://github.com/fact-project/smart_fact_crawler) has been written for these text-files and can be used or tried out independently from the shifthelper. In order to allow this parser to be further developed extrernally of the SH project, the SH requires the [specific version 0.3.0](https://github.com/fact-project/shifthelper/blob/master/setup.py#L32). 
+
+**NOTE:** For a secure operation the format of the `.data` files must not be changed.
+
+## When is human attention needed?
 
 | Name                           | limit        | Interval[s] | conditions                     |
 |--------------------------------|--------------|-------------|--------------------------------|
@@ -32,7 +65,7 @@ D.Neise
 
 Shifthelper is running unmodified since 23.07.2017
 
-## 24.07. Remove unnecessary fallback calls:
+## 23.07. Remove unnecessary fallback calls:
 
 Under certain conditions acknowledged alerts were not being removed form the alert list
 and thus the fallback was called unnecessaringly.
