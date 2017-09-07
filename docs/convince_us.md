@@ -1,5 +1,6 @@
 # Shifthelper (v1.1.4) overview Sept. 2017
 
+
 Glossary:
 
  * Shifter: The single person responsible for 24 hours of FACT operation. 
@@ -159,6 +160,7 @@ In fact **No critical issue was reported to us in 2017** but these issues here c
 # How often is the Shifthelper touched?
 
 The number of [code changes per week](https://github.com/fact-project/shifthelper/graphs/commit-activity) got less and less over the past year. 
+
 ![commits_per_week.png](commits_per_week.png)
 
 

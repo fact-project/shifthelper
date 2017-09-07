@@ -1,1 +1,2 @@
 pandoc --variable papersize=A4 --variable margin-left=2cm --variable margin-right=2cm --variable margin-top=2cm --variable margin-bottom=2cm rationale.md -o rationale.pdf
+pandoc --variable papersize=A4 --variable margin-left=2cm --variable margin-right=2cm --variable margin-top=2cm --variable margin-bottom=2cm --variable urlcolor=blue convince_us.md -o shifthelper_report_2017.pdf
