@@ -2,9 +2,11 @@
 
 Glossary:
 
- * Shifter: The single person responsible for a night of FACT operation. 
-     The shifthelper(SH) defines the "Shifter" as the person entered in the [shift schedule](https://www.fact-project.org/shift/).
+ * Shifter: The single person responsible for 24 hours of FACT operation. 
+ 
+     The shifthelper(SH) defines the "Shifter" as the person entered in the [shift schedule](https://www.fact-project.org/shift/). A FACT shifter is on shift from noon to noon.
  * Shift: The time between Startup and Shutdown. 
+ 
      The SH defines the "Shift" as the time between "Startup" and "Shutdown" task in the [observation  schedule](https://www.fact-project.org/schedule/)
     
 # General Description
