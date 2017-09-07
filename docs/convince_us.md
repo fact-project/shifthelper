@@ -176,3 +176,26 @@ We plan to solve it by introducing an independent process named maybe "shifthelp
 
 For this, we need to give the heartbeact-check something to check. We propose to show a human readable timestamp on the shifthelper webinterface, that is updates by the shifthelper process, not by the webinterface. This timestamp is the shifthelper heartbeat. 
 So this requires some changes in the webinterface and in the shifthelper.
+
+## Starter-Shifter-Parker Mode
+
+During short summer nights it can happen that between Startup and Shutdown there are only 5 or 6 hours. So even when shifters may sleep during the actual data taking phase, Startup and Shutdown duty still disrupt peoples sleep. So we think it is beneficial to divide the shift duty into 3 parts:
+
+ * Starter: 
+ 
+     The Starter helps the shifter by making sure the observation is started in the evening. She performs the checks mentioned on the [Startup Checklist](http://fact-project.org/Checklist/startup_checklist.html) and starts the observation scripts well in time. 
+     
+     The SH will call the Shifter, not the Starter, if the observation is not started after the Startup was scheduled in the observation schedule. In case the observation schedule is empty, in case of moon shutdown nights but also when no shifter is entered in the shift schedule, the SH will not call the Shifter.
+     
+ * Shifter:
+ 
+     The Shifter is responsible for the observation within the time of her shift. She needs to make sure her availability via phone. Unless in case of problems she will not need to actually operate the telescope.
+     
+ * Parker:
+ 
+     The Parker helps the shifter by making sure the telescope is parked in the morning. The parker notifies the SH that she is awake at 25minutes before the scheduled shutdown. Whe observes the correct shutdown and performs the [Shutdown Checklist](http://fact-project.org/Checklist/shutdown_checklist.html) within 20 minutes after the scheduled shutdown. In case of problems the SH wil call the shifter, not the Parker.
+     
+From a technical point of view, only the Shifter exists. The SH only knows about the Shifter neither the Starter nor the Parker exist for the SH. Thus for this mode to work, no changes in the SH code base are needed nor foreseen.
+We are convinced that shift duty in within the Starter-Shifter-Parker (SSP) shift model is sufficiently easy, that shifters can be on shift for a prolonged time, such as e.g. one month. 
+We further think that being Starter/Parker for a month, is a great opportunity for shifters to learn more about the telescope  or even become experts, as typically problems occur during these phases.
+
