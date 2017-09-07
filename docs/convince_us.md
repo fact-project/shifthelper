@@ -107,12 +107,9 @@ details would require a SH restart.
 
 # How is it running?
 
-Shifthelper is running in one of two places:
+SH is running on host off the island of La Palma. In the past it was running either on a host at ETH or at TU Dortmund. The process was relocated when one of the two locations had to be shut down for maintenance. In the future a high availablity host is planed to be used. 
 
- * Either the Rancher cloud at TU Dortmund (https://shifthelper.app.tu-dortmund.de/)
- * Or on a desktop PC at ETH Zurich (https://ihp-pc41.ethz.ch/)
-
-The shifhelper runs two processes in supervised containers which get restatred when they crash ([Docker container](https://www.docker.com/)):
+The shifhelper runs two processes in supervised containers which get restarted when they crash ([Docker container](https://www.docker.com/)):
 
  * shifthelper
  * webinterface
