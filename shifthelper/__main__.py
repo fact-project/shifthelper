@@ -56,6 +56,14 @@ def main():
             checks=[
                 FlareAlertCheck(category=CATEGORY_SHIFTER, interval=300),
                 FactIntervalCheck(
+                    name='HeartBeat',
+                    interval=120,
+                    checklist=[
+                        conditions.update_heartbeat,
+                    ],
+                    category=CATEGORY_DEVELOPER
+                ),
+                FactIntervalCheck(
                     name='DummyAlert',
                     interval=60,
                     checklist=[

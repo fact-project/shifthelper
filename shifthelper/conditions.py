@@ -17,6 +17,7 @@ from .tools.shift import get_current_shifter
 from .tools import get_last_parking_checklist_entry
 from .tools import fetch_users_awake
 from .tools import fetch_dummy_alerts
+from . import tools
 from . import retry_smart_fact_crawler as sfc
 from .debug_log_wrapper import log_call_and_result
 
@@ -276,6 +277,24 @@ def is_nobody_awake():
     else:
         return get_current_shifter().username not in awake
 
+
+@log_call_and_result
+def update_heartbeat():
+    '''HeartbeatMonitor not ok'''
+    log = logging.getLogger(__name__)
+    heartbeats = tools.update_heartbeat()
+    if "heartbeatMonitor" not in heartbeats:
+        log.debug("HeartbeatMonitor offline?")
+        return True
+    else:
+        heartbeat_monitor_age = (
+            datetime.utcnow() -
+            pd.to_datetime(heartbeats['heartbeatMonitor'])
+        )
+        if heartbeat_monitor_age > timedelta(minutes=10):
+            log.debug('heartbeat_monitor_age > timedelta(minutes=10)')
+            return True
+    return False
 
 @log_call_and_result
 def is_dummy_alert_by_shifter():
