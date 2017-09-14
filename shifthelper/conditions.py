@@ -29,6 +29,13 @@ def is_mainjs_not_running():
 
 
 @log_call_and_result
+def is_main_page_system_status_not_ready(): 
+    '''System Status is NotReady or ResettingCrate'''
+    status = sfc.main_page().system_status
+    return 'NotReady' in status or 'ResettingCrate' in status    
+
+
+@log_call_and_result
 def is_lid_open():
     '''The Lid is Open'''
     lid_status = sfc.status().lid_control
