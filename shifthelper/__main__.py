@@ -96,6 +96,14 @@ def main():
                     category=CATEGORY_SHIFTER
                 ),
                 FactIntervalCheck(
+                    name='SystemStatus',
+                    checklist=[
+                        conditions.is_shift_at_the_moment,
+                        conditions.is_main_page_system_status_not_ready
+                    ],
+                    category=CATEGORY_SHIFTER
+                ),             
+                FactIntervalCheck(
                     name='WindSpeedCheck',
                     checklist=[
                         conditions.is_shift_at_the_moment,
