@@ -44,9 +44,8 @@ class FactTwilioNotifier(TwilioNotifier):
         Also remove calls older than 2 hours, to get out of
         a "call the backup shifter" dead lock
         """
-        try:
-            alerts = {a['uuid']: a for a in get_alerts()}
-        except requests.exceptions.RequestException:
+        alerts = {a['uuid']: a for a in get_alerts()}
+        if not alerts:
             return
 
         for msg in copy(self.not_acknowledged_messages):
