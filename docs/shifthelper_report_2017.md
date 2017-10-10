@@ -64,6 +64,38 @@ A parser named [smart_fact_crawler](https://github.com/fact-project/smart_fact_c
 | TriggerRateLowForTenMinutes    | < 1/sec      | 120         | only during shift              |
 | Flare                          | (individual) | 300         |                                |
 
+## What happens when a Check detects limit is exceeded?
+
+In case one of the checks above turns out to be true, i.e. a limit is exceeded, it triggers a number of actions:
+
+- A telephone call is generated
+- An Alert message is displayed on the web interface.
+- A telegram message is sent (optionally).
+
+This is true for all of these checks, so in case multiple checks come up `True`, there are multiple messages on the web site, multiple telegram messages, but **often only one** telephone call, simply because while the phone is ringing, it cannot ring again and our phone dispatcher does not queue all calls we want to make indefinitly. So when the SH emits 10 Alerts (thus 10 calls) it might be you get a call, reject it .. and get called immediately again ... or not. However your first reaction is to look at the web interface ... and there you see how many and what alerts you have been called for. After two minutes the whole game repeats itself. So you get called again, and you get net messages on telegram and you get a Alert on the website.
+
+Now assume you do not react to the call, because your phone battery is dead. Then the SH could call you all day, but you would not react. So after some time, we want to call somebody else. So when ever we sent out a call (for a certain reason say: "MainJsStatusCheck") we note the time of it. And when ever we need to send out a new call, we first look if we have not already sent out a call for this earlier, if we have ... and that time is longer ago than 15 minutes, we call the fallback shifter **in addition**. 
+
+This would mean, that if "MainJsStatusCheck" fired at the beginning of the night, and again in the end of the night, we would immediately call the fallback shifter as well. So we have to reset. We reset all messages, that have been acknowledged. So if we have sent a call for "MainJsStatusCheck" and you pressed the `Acknowledge` button (for all massages of this type) on the web interface. Then the next time we are about to send a call for "MainJsStatusCheck", we first look have we already sent a call for this in the past? And now the answer turns up negative, because all of these messages have been acknowledged. So we do not call the fallback shifter but you, the shifter.
+
+Now another feature of the `Acknowledge` button is this: If we are about to send an Alert for a certain check, we first look of for this check the has been an **`Acknowledge`ment within the last 10 minutes**. If so, the Alert goes still out, but it does not generate a call. It does only go to the log file and is sent via Telegram as a gentle reminder. It does not show up on the web-interface, so you do not have to re-`Acknowledge` it and it does also not generate another call.
+
+This translates itself into this: If you were just called and have pressed the `Acknowledge` button, then effectively for the next 10 minutes this type of Check is not conducted (unless you use telegram). 
+
+** Implications for the Dummy Alert**:
+
+This is also true for the `Dummy Alert`. If you press the `Dummy Alert` button, the webinterface notes who pressed the button and when. The `Dummy Alert` Check sends an Alert if the `Dummy Alert` was sent by todays shifter within the last 3 minutes. The Check runs every minute (so you do not have to wait for the call too long). So when you press the button once, it will send an Alert, which results in a call, an Alert on the website (and a telegram message). **If you do not press the Acknowledge button** .. you will be called again after a minute .. and again after a minute. You will also see a new Alert message on the website. 
+
+After some time, the calls stop, even when you never pressed acknowledge. Why? Well because the Check condition is not true anymore. The conditions is: 
+
+ - you (he shifter) initiated a dummmy alert
+ - and it happended within the last 3 minutes.
+
+If you, however press the `Acknowledge` button. The same logic as explained above applies. We check if within the last 10 minutes .. all Alerts of the kind "DummyAlert" have been acknowledged. If so, no new call goes out and also no new Alert is displayed on the website. 
+So if you want to test if the DummyTest works .. do not acknowledge it, until you believe it works. Be aware however ... if you press it every 3 minutes (or more often) ... for 15 minutes in total ... the fallback shifter will be called.
+
+
+
 # Experience?
 
 Shifthelper is running unmodified since 23.07.2017
