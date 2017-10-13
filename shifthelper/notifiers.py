@@ -2,7 +2,6 @@ import datetime
 
 from custos import TwilioNotifier
 from .tools.shift import get_current_shifter
-from copy import copy
 from .tools import config, get_alerts
 from .categories import CATEGORY_DEVELOPER
 
