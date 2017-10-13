@@ -95,10 +95,11 @@ class FactTwilioNotifier(TwilioNotifier):
         remove messages older than a certain limit, to avoid calling the
         fallback forever.
         """
-        for msg in copy(self.not_acknowledged_messages):
-            age = datetime.datetime.utcnow() - msg.timestamp
-            if age > (self.max_time_for_fallback + self.time_before_fallback):
-                self.not_acknowledged_messages.remove(msg)
+        limit = self.max_time_for_fallback + self.time_before_fallback
+        self.not_acknowledged_messages = [
+            msg for msg in self.not_acknowledged_messages
+            if not is_message_old(msg, limit)
+        ]
 
     def _remove_acknowledged_messages(self):
         ''' from the list of not_acknowledged_messages
@@ -106,9 +107,19 @@ class FactTwilioNotifier(TwilioNotifier):
         '''
         alerts = {a['uuid']: a for a in get_alerts()}
 
-        for msg in copy(self.not_acknowledged_messages):
-            try:
-                if alerts[str(msg.uuid)]['acknowledged'] is True:
-                    self.not_acknowledged_messages.remove(msg)
-            except KeyError:
-                continue
+        self.not_acknowledged_messages = [
+            msg for msg in self.not_acknowledged_messages
+            if not is_message_acknowledged(alerts, msg)
+        ]
+
+
+def is_message_acknowledged(alerts, msg):
+    try:
+        return alerts[str(msg.uuid)]['acknowledged']
+    except KeyError:
+        return False
+
+
+def is_message_old(msg, limit):
+    age = datetime.datetime.utcnow() - msg.timestamp
+    return age > limit
