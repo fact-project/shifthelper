@@ -32,7 +32,7 @@ def test_all_acknowledged():
     )
 
 
-def test_message_level_all_acknowledged():
+def test_message_level_all_acknowledged_1():
     from shifthelper.checks import message_level
 
     alerts = pd.read_json('tests/resources/not_all_acknowledged.json')
@@ -44,7 +44,7 @@ def test_message_level_all_acknowledged():
     assert message_level(checkname='MainJSStatusCheck', alerts=alerts) == levels.WARNING
 
 
-def test_message_level_not_all_acknowledged():
+def test_message_level_not_all_acknowledged_2():
     from shifthelper.checks import message_level
 
     alerts = pd.read_json('tests/resources/not_all_acknowledged.json')
