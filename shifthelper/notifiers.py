@@ -36,7 +36,7 @@ class FactTwilioNotifier(TwilioNotifier):
             )
         self.not_acknowledged_messages.append(msg)
 
-    def _get_oldest_call_age(self):
+    def _get_oldest_message_age(self):
         max_age = datetime.timedelta()
         for msg in self.not_acknowledged_messages:
             age = datetime.datetime.utcnow() - msg.timestamp
@@ -71,15 +71,15 @@ class FactTwilioNotifier(TwilioNotifier):
             log.debug('Getting phone number of primary shifter')
             numbers_to_call.append(self.phone_number_of_normal_shifter())
 
-            if self._get_oldest_call_age() >= self.time_before_fallback:
+            if self._get_oldest_message_age() >= self.time_before_fallback:
                 log.debug('Getting phone number of fallback shifter')
                 numbers_to_call.append(self.phone_number_of_fallback_shifter())
 
         return numbers_to_call
 
     def handle_message(self, msg):
-        self._remove_old_calls()
-        self._remove_acknowledged_calls()
+        self._remove_old_messages()
+        self._remove_acknowledged_messages()
 
         log.debug('Got a message')
         if msg.level >= self.level:
@@ -90,9 +90,9 @@ class FactTwilioNotifier(TwilioNotifier):
                 log.info('Calling {}'.format(phone_number))
                 self.notify(phone_number, msg)
 
-    def _remove_old_calls(self):
-        """ from the list of not acknowledged calls
-        remove calls older than a certain limit, to avoid calling the
+    def _remove_old_messages(self):
+        """ from the list of not_acknowledged_messages
+        remove messages older than a certain limit, to avoid calling the
         fallback forever.
         """
         for msg in copy(self.not_acknowledged_messages):
@@ -100,9 +100,9 @@ class FactTwilioNotifier(TwilioNotifier):
             if age > (self.max_time_for_fallback + self.time_before_fallback):
                 self.not_acknowledged_messages.remove(msg)
 
-    def _remove_acknowledged_calls(self):
-        ''' from the list of not acknowledged calls
-        remove all calls, which have been acknowledged on the web page
+    def _remove_acknowledged_messages(self):
+        ''' from the list of not_acknowledged_messages
+        remove all messages, which have been acknowledged on the web page
         '''
         alerts = {a['uuid']: a for a in get_alerts()}
 
