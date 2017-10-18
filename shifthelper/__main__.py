@@ -9,7 +9,7 @@ from .notifiers import FactTwilioNotifier
 from .tools.shift import get_current_shifter
 from .tools import config
 from .logging import config_logging
-from .checks import FactIntervalCheck, FlareAlertCheck
+from .checks import FactIntervalCheck
 from . import conditions
 from .categories import CATEGORY_SHIFTER, CATEGORY_DEVELOPER
 
