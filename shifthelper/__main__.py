@@ -54,7 +54,6 @@ log = LogNotifier(level=levels.DEBUG, recipients=['all'])
 def main():
     with Custos(
             checks=[
-                FlareAlertCheck(category=CATEGORY_SHIFTER, interval=300),
                 FactIntervalCheck(
                     name='HeartBeat',
                     interval=120,
