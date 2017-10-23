@@ -1,5 +1,4 @@
 from freezegun import freeze_time
-import datetime
 import smart_fact_crawler
 
 

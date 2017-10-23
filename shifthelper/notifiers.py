@@ -1,9 +1,7 @@
 import datetime
-import requests
 
 from custos import TwilioNotifier
 from .tools.shift import get_current_shifter
-from copy import copy
 from .tools import config, get_alerts
 from .categories import CATEGORY_DEVELOPER
 
@@ -37,32 +35,7 @@ class FactTwilioNotifier(TwilioNotifier):
             )
         self.not_acknowledged_messages.append(msg)
 
-    def _remove_acknowledged_and_old_calls(self):
-        """ from the list of not acknowledged calls
-        remove all calls, which have been acknowledged on the web page
-
-        Also remove calls older than 2 hours, to get out of
-        a "call the backup shifter" dead lock
-        """
-        try:
-            alerts = {a['uuid']: a for a in get_alerts()}
-        except requests.exceptions.RequestException:
-            return
-
-        for msg in copy(self.not_acknowledged_messages):
-            age = datetime.datetime.utcnow() - msg.timestamp
-            if age > (self.max_time_for_fallback + self.time_before_fallback):
-                self.not_acknowledged_messages.remove(msg)
-            else:
-                try:
-                    alert = alerts[str(msg.uuid)]
-                except KeyError:
-                    continue
-
-                if alert['acknowledged'] is True:
-                    self.not_acknowledged_messages.remove(msg)
-
-    def _get_oldest_call_age(self):
+    def _get_oldest_message_age(self):
         max_age = datetime.timedelta()
         for msg in self.not_acknowledged_messages:
             age = datetime.datetime.utcnow() - msg.timestamp
@@ -97,14 +70,16 @@ class FactTwilioNotifier(TwilioNotifier):
             log.debug('Getting phone number of primary shifter')
             numbers_to_call.append(self.phone_number_of_normal_shifter())
 
-            if self._get_oldest_call_age() >= self.time_before_fallback:
+            if self._get_oldest_message_age() >= self.time_before_fallback:
                 log.debug('Getting phone number of fallback shifter')
                 numbers_to_call.append(self.phone_number_of_fallback_shifter())
 
         return numbers_to_call
 
     def handle_message(self, msg):
-        self._remove_acknowledged_and_old_calls()
+        self._remove_old_messages()
+        self._remove_acknowledged_messages()
+
         log.debug('Got a message')
         if msg.level >= self.level:
             log.debug('Message is over alert level')
@@ -113,3 +88,37 @@ class FactTwilioNotifier(TwilioNotifier):
             for phone_number in numbers_to_call:
                 log.info('Calling {}'.format(phone_number))
                 self.notify(phone_number, msg)
+
+    def _remove_old_messages(self):
+        """ from the list of not_acknowledged_messages
+        remove messages older than a certain limit, to avoid calling the
+        fallback forever.
+        """
+        limit = self.max_time_for_fallback + self.time_before_fallback
+        self.not_acknowledged_messages = [
+            msg for msg in self.not_acknowledged_messages
+            if not is_message_old(msg, limit)
+        ]
+
+    def _remove_acknowledged_messages(self):
+        ''' from the list of not_acknowledged_messages
+        remove all messages, which have been acknowledged on the web page
+        '''
+        alerts = {a['uuid']: a for a in get_alerts()}
+
+        self.not_acknowledged_messages = [
+            msg for msg in self.not_acknowledged_messages
+            if not is_message_acknowledged(alerts, msg)
+        ]
+
+
+def is_message_acknowledged(alerts, msg):
+    try:
+        return alerts[str(msg.uuid)]['acknowledged']
+    except KeyError:
+        return False
+
+
+def is_message_old(msg, limit):
+    age = datetime.datetime.utcnow() - msg.timestamp
+    return age > limit

@@ -26,13 +26,19 @@ lock = threading.Lock()
 db_engines = {}
 
 
-@retry(stop_max_delay=30000,  # 30 seconds max
-       wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
-       wait_exponential_max=1000,  # but wait 1 second per try maximum
-       )
 def get_alerts():
-    alerts = requests.get(config['webservice']['post-url'])
-    return alerts.json()
+    @retry(stop_max_delay=30000,  # 30 seconds max
+           wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+           wait_exponential_max=1000,  # but wait 1 second per try maximum
+           wrap_exception=True
+           )
+    def retry_fetch_fail_after_30sec():
+        alerts = requests.get(config['webservice']['post-url'])
+        return alerts.json()
+    try:
+        return retry_fetch_fail_after_30sec()
+    except RetryError:
+        return {}
 
 
 def create_db_connection(db_config=None):
@@ -100,6 +106,27 @@ def fetch_dummy_alerts():
     try:
         return retry_fetch_fail_after_30sec()
     except RetryError:
+        return {}
+
+
+def update_heartbeat():
+    @retry(
+        stop_max_delay=30000,  # 30 seconds max
+        wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
+        wait_exponential_max=1000,  # but wait 1 second per try maximum
+        wrap_exception=True
+    )
+    def retry_fetch_fail_after_30sec():
+        return requests.post(
+            config['webservice']['shifthelperHeartbeat'],
+            auth=(
+                config['webservice']['user'],
+                config['webservice']['password']
+            )
+        ).json()
+    try:
+        return retry_fetch_fail_after_30sec()
+    except RetryError as e:
         return {}
 
 

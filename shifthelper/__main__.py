@@ -9,7 +9,7 @@ from .notifiers import FactTwilioNotifier
 from .tools.shift import get_current_shifter
 from .tools import config
 from .logging import config_logging
-from .checks import FactIntervalCheck, FlareAlertCheck
+from .checks import FactIntervalCheck
 from . import conditions
 from .categories import CATEGORY_SHIFTER, CATEGORY_DEVELOPER
 
@@ -54,7 +54,14 @@ log = LogNotifier(level=levels.DEBUG, recipients=['all'])
 def main():
     with Custos(
             checks=[
-                FlareAlertCheck(category=CATEGORY_SHIFTER, interval=300),
+                FactIntervalCheck(
+                    name='HeartBeat',
+                    interval=120,
+                    checklist=[
+                        conditions.update_heartbeat,
+                    ],
+                    category=CATEGORY_DEVELOPER
+                ),
                 FactIntervalCheck(
                     name='DummyAlert',
                     interval=60,
