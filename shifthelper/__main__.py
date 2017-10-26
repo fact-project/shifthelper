@@ -252,3 +252,7 @@ def main():
             custos.run()
         except (KeyboardInterrupt, SystemError):
             sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
