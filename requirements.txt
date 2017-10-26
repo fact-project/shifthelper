@@ -10,7 +10,7 @@ pymongo
 pytz
 twilio
 scikit-image
-http://github.com/fact-project/smart_fact_crawler/archive/v0.3.0.tar.gz
+http://github.com/fact-project/smart_fact_crawler/archive/v0.4.1.tar.gz
 custos==0.0.7
 pyfact==0.8.4
 retrying
