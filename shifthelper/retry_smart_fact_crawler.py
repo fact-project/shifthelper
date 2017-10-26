@@ -74,7 +74,7 @@ def camera_climate(url=None):
 
 @retry(**kwargs)
 def main_page(url=None):
-    return sfc.main_page(url=url, timeout=timeout)
+    return sfc.main_page(url=url, timeout=timeout, fallback=True)
 
 
 @retry(**kwargs)
