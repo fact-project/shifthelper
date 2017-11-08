@@ -1,6 +1,7 @@
 import logging
 import pandas as pd
 import numpy as np
+import json
 from operator import attrgetter
 from datetime import datetime, timedelta
 from requests.exceptions import RequestException
@@ -11,9 +12,11 @@ from collections import defaultdict
 from custos import IntervalCheck
 from custos import levels
 
-from .tools import create_db_connection, NightlyResettingDefaultdict, get_alerts
 from fact.qla import get_qla_data, bin_qla_data, plot_qla
 from fact import night_integer
+
+from .tools import create_db_connection, NightlyResettingDefaultdict, get_alerts, config
+from .tools.shift import get_current_shifter
 
 log = logging.getLogger(__name__)
 
@@ -26,6 +29,20 @@ FLARE_ALERT_LIMITS['Mrk 421'] = 60.0
 # we won't issue flare alerts for crab without thorough investigation
 FLARE_ALERT_LIMITS['Crab'] = np.inf
 nightly_max_rate = NightlyResettingDefaultdict(lambda: -np.inf)
+
+
+class CurrentShifterCheck(IntervalCheck):
+    def check(self):
+        shifters = dict(
+            shifter=get_current_shifter()['username'],
+            fallback=config['fallback_shifter']['name'],
+            developer=config['developer']['name'],
+        )
+        self.message(
+            text=json.dumps(shifters),
+            level=levels.WARNING,
+            category='shifter_update',
+        )
 
 
 class FactIntervalCheck(IntervalCheck):

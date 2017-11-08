@@ -9,7 +9,7 @@ from .notifiers import FactTwilioNotifier
 from .tools.shift import get_current_shifter
 from .tools import config
 from .logging import config_logging
-from .checks import FactIntervalCheck
+from .checks import FactIntervalCheck, CurrentShifterCheck
 from . import conditions
 from .categories import CATEGORY_SHIFTER, CATEGORY_DEVELOPER
 
@@ -41,7 +41,12 @@ telegram = TelegramNotifier(
 )
 http = HTTPNotifier(
     level=levels.WARNING,
-    recipients=[config['webservice']['post-url']],
+    recipients={
+        CATEGORY_SHIFTER: config['webservice']['post-url'],
+        CATEGORY_DEVELOPER: config['webservice']['post-url'],
+        'check_error': config['webservice']['post-url'],
+        'shifter_update': config['webservice']['shifter-update-url'],
+    },
     auth=(
         config['webservice']['user'],
         config['webservice']['password']
@@ -54,6 +59,7 @@ log = LogNotifier(level=levels.DEBUG, recipients=['all'])
 def main():
     with Custos(
             checks=[
+                CurrentShifterCheck(interval=60),
                 FactIntervalCheck(
                     name='HeartBeat',
                     interval=120,
