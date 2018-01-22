@@ -274,8 +274,8 @@ def is_no_shift_at_the_moment():
 
 
 @log_call_and_result
-def is_nobody_awake():
-    '''Parker not Awake'''
+def is_nobody_ready_for_shutdown():
+    '''Nobody is ready for shutdown'''
     awake = {}
     for username, since in fetch_users_awake().items():
         since = to_datetime(since)
