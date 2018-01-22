@@ -84,7 +84,10 @@ def main():
                     table = pd.read_sql_query(query_func(), conn)
                 # we save the table to a temporary placeholder to make the
                 # change atomic
-                table.to_sql('t1', db_out, if_exists="replace")
+                if table_name == 'calendar_data':
+                    table.to_sql('t1', db_out, if_exists="replace", index=False)
+                else:
+                    table.to_sql('t1', db_out, if_exists="replace")
                 db_out.execute('DROP TABLE IF EXISTS t2')
                 if db_out.dialect.has_table(db_out, table_name):
                     db_out.execute('RENAME TABLE {t} to t2, t1 to {t}'.format(
