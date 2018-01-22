@@ -281,10 +281,7 @@ def is_nobody_awake():
         since = to_datetime(since)
         if since > get_next_shutdown() - timedelta(minutes=30):
             awake[username] = since
-    if not awake:
-        return True
-    else:
-        return get_current_shifter().username not in awake
+    return not awake
 
 
 @log_call_and_result
