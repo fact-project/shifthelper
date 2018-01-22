@@ -274,17 +274,14 @@ def is_no_shift_at_the_moment():
 
 
 @log_call_and_result
-def is_nobody_awake():
-    '''Parker not Awake'''
-    awake = {}
+def is_nobody_ready_for_shutdown():
+    '''Nobody is ready for shutdown'''
+    ready_for_shutdown = {}
     for username, since in fetch_users_awake().items():
         since = to_datetime(since)
         if since > get_next_shutdown() - timedelta(minutes=30):
-            awake[username] = since
-    if not awake:
-        return True
-    else:
-        return get_current_shifter().username not in awake
+            ready_for_shutdown[username] = since
+    return not ready_for_shutdown
 
 
 @log_call_and_result

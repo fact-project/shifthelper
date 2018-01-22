@@ -218,7 +218,7 @@ def main():
                     checklist=[
                         conditions.is_shift_at_the_moment,
                         conditions.is_20minutes_or_less_before_shutdown,
-                        conditions.is_nobody_awake,
+                        conditions.is_nobody_ready_for_shutdown,
                     ],
                     category=CATEGORY_SHIFTER
                 ),
