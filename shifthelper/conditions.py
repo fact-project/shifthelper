@@ -93,7 +93,7 @@ def is_data_run():
     # inside sfc.main_page().system_status, but I'm not sure yet.
     # yes it does: example:
     # sfc.main_page().system_status --> 'Idle [single-pe]'
-    result = sfc.main_page(fallback=True).system_status
+    result = sfc.main_page().system_status
     if result is None:
         raise ValueError('Could not get system status')
     search_result = regex.search(
@@ -180,7 +180,7 @@ def is_magic_weather_outdatet():
 @log_call_and_result
 def is_smartfact_outdatet():
     ''' SMARTFACT not updated in the last 10 minutes '''
-    timestamp = sfc.main_page(fallback=True).timestamp_1
+    timestamp = sfc.main_page().timestamp_1
     if timestamp is None:
         raise ValueError('Could not get smartfact timestamp')
     return timestamp <= (datetime.utcnow() - timedelta(minutes=10))
@@ -213,9 +213,7 @@ def is_maximum_current_high():
 @log_call_and_result
 def is_rel_camera_temperature_high():
     '''relative camera temperature > 15°C'''
-    relative_temperature = sfc.main_page(
-        fallback=True
-    ).relative_camera_temperature.value
+    relative_temperature = sfc.main_page().relative_camera_temperature.value
     if np.isnan(relative_temperature):
         raise ValueError('Could not get relative camera temperature')
     return relative_temperature >= 15.0
