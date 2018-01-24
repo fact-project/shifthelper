@@ -76,6 +76,22 @@ def atomic_write(table, table_name, db_out):
         db_out.execute('RENAME TABLE t1 to {t}'.format(t=table_name))
 
 
+def do_clone(db_in, db_out, log):
+    log.info("cloning ...")
+
+    for query_func in query_funcs:
+        table_name = query_func.__name__
+
+        with db_in.connect() as conn:
+            table = pd.read_sql_query(query_func(), conn)
+        atomic_write(table, table_name, db_out)
+
+    table = park_checklist_filled()
+    atomic_write(table, 'park_checklist_filled', db_out)
+
+    log.info("...done")
+
+
 def main():
     log = logging.getLogger()
     log.setLevel('INFO')
@@ -97,19 +113,7 @@ def main():
 
     while True:
         try:
-            log.info("cloning ...")
-
-            for query_func in query_funcs:
-                table_name = query_func.__name__
-
-                with db_in.connect() as conn:
-                    table = pd.read_sql_query(query_func(), conn)
-                atomic_write(table, table_name, db_out)
-
-            table = park_checklist_filled()
-            atomic_write(table, 'park_checklist_filled', db_out)
-
-            log.info("...done")
+            do_clone(db_in, db_out, log)
             time.sleep(5 * 60)  # 5 minutes
         except (SystemExit, KeyboardInterrupt):
             break
