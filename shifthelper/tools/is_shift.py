@@ -67,14 +67,18 @@ def is_shift_at_the_moment(time=None, db=None):
         now = datetime.utcnow().replace(microsecond=0)
     else:
         now = time.replace(microsecond=0)
-    last_entry = get_last_startup_or_shutdown(current_time_rounded_to_seconds=now, db=db)
+    last_entry = get_last_startup_or_shutdown(
+        current_time_rounded_to_seconds=now,
+        db=db
+    )
     name = last_entry.iloc[0].fMeasurementTypeName
     return name == "Startup"
 
 
 def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
     if current_time_rounded_to_seconds is None:
-        current_time_rounded_to_seconds = datetime.utcnow().replace(microsecond=0)
+        current_time_rounded_to_seconds = datetime.utcnow(
+            ).replace(microsecond=0)
     if db is None:
         db = tools.create_db_connection()
 
@@ -108,7 +112,8 @@ def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
 def get_last_shutdown(current_time_rounded_to_seconds=None, db=None):
     try:
         if current_time_rounded_to_seconds is None:
-            current_time_rounded_to_seconds = datetime.utcnow().replace(microsecond=0)
+            current_time_rounded_to_seconds = datetime.utcnow(
+                ).replace(microsecond=0)
         if db is None:
             db = tools.create_db_connection()
 
