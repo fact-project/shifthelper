@@ -44,7 +44,7 @@ def get_alerts():
 def create_db_connection(db_config=None):
     with lock:
         if db_config is None:
-            db_config = config['database']
+            db_config = config['cloned_db']
 
         frozen_config = frozenset(db_config.items())
 
