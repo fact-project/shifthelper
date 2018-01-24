@@ -66,7 +66,7 @@ def create_db_connection(db_config=None):
 
 def get_last_parking_checklist_entry():
     try:
-        db = create_db_connection(config['cloned_db'])
+        db = create_db_connection()
         with db.connect() as conn:
             table = pd.read_sql_query(
                 'select * from park_checklist_filled',

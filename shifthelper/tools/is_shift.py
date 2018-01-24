@@ -14,7 +14,7 @@ from ..debug_log_wrapper import log_call_and_result
 )
 def get_MeasurementType(db=None):
     if db is None:
-        db = tools.create_db_connection(tools.config['cloned_db'])
+        db = tools.create_db_connection()
 
     with db.connect() as conn:
         df = pd.read_sql_query("select * from factdata_MeasurementType", conn)
@@ -26,7 +26,7 @@ def get_last_startup_or_shutdown(current_time_rounded_to_seconds=None, db=None):
     if current_time_rounded_to_seconds is None:
         current_time_rounded_to_seconds = datetime.utcnow().replace(microsecond=0)
     if db is None:
-        db = tools.create_db_connection(tools.config['cloned_db'])
+        db = tools.create_db_connection()
 
     types = get_MeasurementType(db)
     query = """
@@ -72,7 +72,7 @@ def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
     if current_time_rounded_to_seconds is None:
         current_time_rounded_to_seconds = datetime.utcnow().replace(microsecond=0)
     if db is None:
-        db = tools.create_db_connection(tools.config['cloned_db'])
+        db = tools.create_db_connection()
 
     types = get_MeasurementType(db)
     query = """
@@ -106,7 +106,7 @@ def get_last_shutdown(current_time_rounded_to_seconds=None, db=None):
         if current_time_rounded_to_seconds is None:
             current_time_rounded_to_seconds = datetime.utcnow().replace(microsecond=0)
         if db is None:
-            db = tools.create_db_connection(tools.config['cloned_db'])
+            db = tools.create_db_connection()
 
         types = get_MeasurementType(db)
         query = """
