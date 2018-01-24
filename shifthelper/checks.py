@@ -11,7 +11,12 @@ from collections import defaultdict
 from custos import IntervalCheck
 from custos import levels
 
-from .tools import create_db_connection, NightlyResettingDefaultdict, get_alerts
+from .tools import (
+    create_db_connection,
+    NightlyResettingDefaultdict,
+    get_alerts,
+    config,
+)
 from fact.qla import get_qla_data, bin_qla_data, plot_qla
 from fact import night_integer
 
@@ -108,7 +113,7 @@ class FlareAlertCheck(IntervalCheck):
         wait_exponential_max=1000,  # but wait 1 second per try maximum
         )
 def retry_get_qla_data_fail_after_30sec(database=None):
-    database = database or create_db_connection()
+    database = database or create_db_connection(config['database'])
     return get_qla_data(night_integer(datetime.utcnow()), database)
 
 
