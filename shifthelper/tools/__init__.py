@@ -152,4 +152,3 @@ class NightlyResettingDefaultdict(defaultdict):
         if current_night != self.night:
             self.night = current_night
             self.clear()
-
