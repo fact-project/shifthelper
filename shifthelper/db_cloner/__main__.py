@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 from ..tools import config
 from ..tools import create_db_connection
+from . import TIME_BETWEEN_CLONES
 import time
 
 import logging
@@ -111,14 +112,18 @@ def main():
     db_in = create_db_connection(config["database"])
     db_out = create_db_connection(config["cloned_db"])
 
+    time_for_next_clone = datetime.utcnow()
     while True:
         try:
-            do_clone(db_in, db_out, log)
-            time.sleep(5 * 60)  # 5 minutes
+            now = datetime.utcnow()
+            if time_for_next_clone <= now:
+                time_for_next_clone += TIME_BETWEEN_CLONES
+                do_clone(db_in, db_out, log)
         except (SystemExit, KeyboardInterrupt):
             break
         except:
             log.exception("error")
+        time.sleep(10)  # 10 seconds
 
 if __name__ == '__main__':
     main()
