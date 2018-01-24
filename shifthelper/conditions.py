@@ -13,7 +13,11 @@ import pandas as pd
 import numpy as np
 import logging
 
-from .tools.is_shift import is_shift_at_the_moment, get_next_shutdown, get_last_shutdown
+from .tools.is_shift import (
+    is_shift_at_the_moment,
+    get_next_shutdown,
+    get_last_shutdown,
+)
 from .tools.shift import get_current_shifter
 from .tools import get_last_parking_checklist_entry
 from .tools import fetch_users_awake
