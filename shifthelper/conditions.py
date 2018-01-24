@@ -21,6 +21,7 @@ from .tools import fetch_dummy_alerts
 from . import tools
 from . import retry_smart_fact_crawler as sfc
 from .debug_log_wrapper import log_call_and_result
+from .db_cloner import TIME_BETWEEN_CLONES
 
 
 @log_call_and_result
@@ -345,7 +346,10 @@ def is_nobody_on_shift():
 @log_call_and_result
 def is_last_shutdown_already_10min_past():
     '''Last Shutdown is already 10min past'''
-    return get_last_shutdown() + timedelta(minutes=10) < datetime.utcnow()
+    return (
+        get_last_shutdown() + timedelta(minutes=10) + TIME_BETWEEN_CLONES <
+        datetime.utcnow()
+    )
 
 
 @log_call_and_result
