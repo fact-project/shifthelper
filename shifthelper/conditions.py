@@ -10,6 +10,7 @@ import re as regex
 from datetime import datetime, timedelta
 from pandas import to_datetime
 import pandas as pd
+import numpy as np
 import logging
 
 from .tools.is_shift import is_shift_at_the_moment, get_next_shutdown, get_last_shutdown
@@ -92,10 +93,13 @@ def is_data_run():
     # inside sfc.main_page().system_status, but I'm not sure yet.
     # yes it does: example:
     # sfc.main_page().system_status --> 'Idle [single-pe]'
+    result = sfc.main_page().system_status
+    if result is None:
+        raise ValueError('Could not get system status')
     search_result = regex.search(
         r'\[(.*)\]',
-        sfc.main_page().system_status
-        )
+        result,
+    )
     if search_result is None:
         # regex did not match
         return False
@@ -176,7 +180,10 @@ def is_magic_weather_outdatet():
 @log_call_and_result
 def is_smartfact_outdatet():
     ''' SMARTFACT not updated in the last 10 minutes '''
-    return sfc.main_page().timestamp_1 <= (datetime.utcnow() - timedelta(minutes=10))
+    timestamp = sfc.main_page().timestamp_1
+    if timestamp is None:
+        raise ValueError('Could not get smartfact timestamp')
+    return timestamp <= (datetime.utcnow() - timedelta(minutes=10))
 
 
 @log_call_and_result
@@ -207,6 +214,8 @@ def is_maximum_current_high():
 def is_rel_camera_temperature_high():
     '''relative camera temperature > 15°C'''
     relative_temperature = sfc.main_page().relative_camera_temperature.value
+    if np.isnan(relative_temperature):
+        raise ValueError('Could not get relative camera temperature')
     return relative_temperature >= 15.0
 
 
@@ -265,17 +274,14 @@ def is_no_shift_at_the_moment():
 
 
 @log_call_and_result
-def is_nobody_awake():
-    '''Parker not Awake'''
-    awake = {}
+def is_nobody_ready_for_shutdown():
+    '''Nobody is ready for shutdown'''
+    ready_for_shutdown = {}
     for username, since in fetch_users_awake().items():
         since = to_datetime(since)
         if since > get_next_shutdown() - timedelta(minutes=30):
-            awake[username] = since
-    if not awake:
-        return True
-    else:
-        return get_current_shifter().username not in awake
+            ready_for_shutdown[username] = since
+    return not ready_for_shutdown
 
 
 @log_call_and_result

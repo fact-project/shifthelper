@@ -46,16 +46,20 @@ def create_db_connection(db_config=None):
         if db_config is None:
             db_config = config['database']
 
-        if not frozenset(db_config.items()) in db_engines:
-            db_engines[frozenset(db_config.items())] = sqlalchemy.create_engine(
-                "mysql+pymysql://{user}:{pw}@{host}:{port}/{db}".format(
+        frozen_config = frozenset(db_config.items())
+
+        if frozen_config not in db_engines:
+            schema = "mysql+pymysql://{user}:{pw}@{host}:{port}/{db}".format(
                     user=db_config['user'],
                     pw=db_config['password'],
                     host=db_config['host'],
                     db=db_config['database'],
                     port=db_config.get('port', 3306)
-                ),
+                )
+            db_engines[frozen_config] = sqlalchemy.create_engine(
+                schema,
                 pool_recycle=3600,
+                connect_args={'ssl': {'ssl-mode': 'preferred'}},
             )
     return db_engines[frozenset(db_config.items())]
 
@@ -148,4 +152,3 @@ class NightlyResettingDefaultdict(defaultdict):
         if current_night != self.night:
             self.night = current_night
             self.clear()
-
