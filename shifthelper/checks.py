@@ -154,7 +154,7 @@ def all_recent_alerts_acknowledged(
     If there are no alerts matching the specified criteria, the result
     is dependent on the `result_if_no_alerts` option, which defaults to `False`
     '''
-    now = datetime.utcnow()
+    now = pd.to_datetime(datetime.utcnow(), utc=True)
 
     if alerts is None:
         alerts = get_alerts()
