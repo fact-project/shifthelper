@@ -23,8 +23,7 @@ RUN /opt/miniconda/bin/pip install -r /opt/shifthelper/requirements.txt \
 # start again and copy only the needed stuff (no gcc and so on)
 FROM ubuntu:16.04
 
-COPY --from=builder  /opt/miniconda /opt/miniconda
-COPY --from=builder  /opt/shifthelper /opt/shifthelper
+COPY --from=builder  /opt/ /opt/
 
 RUN useradd --create-home --uid 1064 --user-group factshifthelper
 COPY run.sh /home/factshifthelper
