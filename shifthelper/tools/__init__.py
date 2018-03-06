@@ -5,9 +5,7 @@ import json
 import pandas as pd
 import requests
 from retrying import retry, RetryError
-from fact import night_integer
 from datetime import datetime
-from collections import defaultdict
 
 __all__ = ['create_db_connection', 'config']
 
@@ -132,23 +130,3 @@ def update_heartbeat():
         return retry_fetch_fail_after_30sec()
     except RetryError as e:
         return {}
-
-
-class NightlyResettingDefaultdict(defaultdict):
-    def __init__(self, *args, **kwargs):
-        self.night = night_integer(datetime.utcnow())
-        super().__init__(*args, **kwargs)
-
-    def __setitem__(self, key, value):
-        self.reset_if_night_change()
-        super().__setitem__(key, value)
-
-    def __getitem__(self, key):
-        self.reset_if_night_change()
-        return super().__getitem__(key)
-
-    def reset_if_night_change(self):
-        current_night = night_integer(datetime.utcnow())
-        if current_night != self.night:
-            self.night = current_night
-            self.clear()
