@@ -6,9 +6,9 @@ RUN apt update && apt install build-essential curl --yes \
 RUN curl -Lo miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-4.4.10-Linux-x86_64.sh \
   && bash miniconda.sh -b -p /opt/miniconda \
   && /opt/miniconda/bin/conda install \
-  	nomkl 'python=3.6' pandas='0.22.0' 'numpy=1.14.1' 'matplotlib=2.1' 'astropy=3.0' \
-	scikit-image python-dateutil sqlalchemy PyMySQL requests \
-	docopt pytz numexpr scipy pymongo \
+  	nomkl 'python=3.6' pandas='0.22.0' 'numpy=1.14.1' 'matplotlib=2.1' \
+	python-dateutil sqlalchemy PyMySQL requests \
+	docopt pytz numexpr scipy \
 	&& /opt/miniconda/bin/conda clean --all --yes \
 	&& rm miniconda.sh \
 	&& ln -s /opt/miniconda/etc/profile.d/conda.sh /etc/profile.d/conda.sh

@@ -1,29 +1,15 @@
 import logging
 import pandas as pd
-import numpy as np
 from operator import attrgetter
-from datetime import datetime, timedelta
+from datetime import timedelta
 from requests.exceptions import RequestException
-from retrying import retry
-from collections import defaultdict
 
 from custos import IntervalCheck
 from custos import levels
 
-from .tools import create_db_connection, NightlyResettingDefaultdict, get_alerts
-from fact import night_integer
+from .tools import get_alerts
 
 log = logging.getLogger(__name__)
-
-
-ALERT_SIGNIFICANCE = 3
-# for all sources but the mrks and crab the alert rate is 15 Evts / h
-FLARE_ALERT_LIMITS = defaultdict(lambda: 15.0)
-FLARE_ALERT_LIMITS['Mrk 501'] = 60.0
-FLARE_ALERT_LIMITS['Mrk 421'] = 60.0
-# we won't issue flare alerts for crab without thorough investigation
-FLARE_ALERT_LIMITS['Crab'] = np.inf
-nightly_max_rate = NightlyResettingDefaultdict(lambda: -np.inf)
 
 
 class FactIntervalCheck(IntervalCheck):
@@ -42,16 +28,6 @@ class FactIntervalCheck(IntervalCheck):
             level=message_level(self.name),
             category=self.category,
         )
-
-
-@retry(
-        stop_max_delay=30000,  # 30 seconds max
-        wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
-        wait_exponential_max=1000,  # but wait 1 second per try maximum
-        )
-def retry_get_qla_data_fail_after_30sec(database=None):
-    database = database or create_db_connection()
-    return get_qla_data(night_integer(datetime.utcnow()), database)
 
 
 def message_level(checkname, check_time=timedelta(minutes=10), alerts=None):

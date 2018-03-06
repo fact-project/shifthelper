@@ -21,7 +21,6 @@ setup(
     install_requires=[
         'pandas==0.22.0',
         'numpy==1.14.1',
-        'matplotlib==2.1.2',
         'twilio==5.7.0',
         'requests',
         'python-dateutil',
@@ -31,7 +30,6 @@ setup(
         'numexpr',
         'smart_fact_crawler==0.5.0',
         'custos==0.0.7',
-        'pyfact==0.18.0',
         'retrying',
         'wrapt',
         'python-json-logger',
