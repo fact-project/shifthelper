@@ -25,6 +25,9 @@ FROM ubuntu:16.04
 
 COPY --from=builder  /opt/ /opt/
 
+RUN apt clean && apt update && apt install -y --no-install-recommends locales && rm -rf /var/lib/apt/lists/*
+RUN locale-gen en_US.UTF-8
+ENV LC_ALL='en_US.UTF-8'
 RUN useradd --create-home --uid 1064 --user-group factshifthelper
 COPY run.sh /home/factshifthelper
 USER factshifthelper
