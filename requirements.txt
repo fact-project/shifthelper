@@ -1,15 +1,12 @@
 requests
 numpy
 scipy
-matplotlib
 python-dateutil
 pandas
 sqlalchemy
 PyMySQL
-pymongo
 pytz
 twilio==5.7.0
-scikit-image
 http://github.com/fact-project/smart_fact_crawler/archive/v0.5.0.tar.gz
 custos==0.0.7
 retrying
