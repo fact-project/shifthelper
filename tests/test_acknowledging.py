@@ -1,5 +1,4 @@
 import pandas as pd
-from datetime import datetime
 from custos.notify import levels
 
 
@@ -8,7 +7,7 @@ def test_message_level_all_acknowledged():
 
     alerts = pd.read_json('tests/resources/all_acknowledged.json')
     # shift time of the alerts so that they happend recently
-    alerts['timestamp'] = datetime.utcnow()
+    alerts['timestamp'] = pd.Timestamp.utcnow()
 
     assert message_level(checkname='WindGustCheck', alerts=alerts) == levels.INFO
 
@@ -16,6 +15,7 @@ def test_message_level_all_acknowledged():
 def test_message_level_all_acknowledged_but_old():
     from shifthelper.checks import message_level
     alerts = pd.read_json('tests/resources/all_acknowledged.json')
+    alerts['timestamp'] = pd.to_datetime(alerts['timestamp'], utc=True)
 
     assert message_level(checkname='WindGustCheck', alerts=alerts) == levels.WARNING
 
@@ -23,6 +23,7 @@ def test_message_level_all_acknowledged_but_old():
 def test_all_acknowledged():
     from shifthelper.checks import all_recent_alerts_acknowledged
     alerts = pd.read_json('tests/resources/all_acknowledged.json')
+    alerts['timestamp'] = pd.to_datetime(alerts['timestamp'], utc=True)
 
     assert not all_recent_alerts_acknowledged(
         checkname='WindGustCheck', alerts=alerts, result_if_no_alerts=False
@@ -37,7 +38,7 @@ def test_message_level_all_acknowledged_1():
 
     alerts = pd.read_json('tests/resources/not_all_acknowledged.json')
     # shift time of the alerts so that they happend recently
-    alerts.timestamp = pd.date_range(datetime.utcnow(), periods=len(alerts), freq='-1min')
+    alerts.timestamp = pd.date_range(pd.Timestamp.utcnow(), periods=len(alerts), freq='-1min')
     print(alerts)
 
     assert message_level(checkname='WindGustCheck', alerts=alerts) == levels.WARNING
@@ -49,7 +50,7 @@ def test_message_level_not_all_acknowledged_2():
 
     alerts = pd.read_json('tests/resources/not_all_acknowledged.json')
     # shift time of the alerts so that they happend recently
-    alerts['timestamp'] = datetime.utcnow()
+    alerts['timestamp'] = pd.Timestamp.utcnow()
     print(alerts)
 
     assert message_level(checkname='WindGustCheck', alerts=alerts) == levels.WARNING
