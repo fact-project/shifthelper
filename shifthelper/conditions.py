@@ -392,9 +392,9 @@ def is_more_than_2_wind_gusts_in_last_20_min():
         }]
     )
 
-    # we throw away everything older than 20 min
+    # we throw away everything older than 25 min
     self.history = self.history[
-        (datetime.utcnow() - self.history.timestamp) < timedelta(minutes=20)
+        (datetime.utcnow() - self.history.timestamp) < timedelta(minutes=25)
     ]
 
     return (
