@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='shifthelper',
-    version='1.3.2',
+    version='1.4.3',
     description='a tool for helping people with a FACT night shift',
     url='https://github.com/fact-project/shifthelper',
     author='Dominik Neise, Maximilian Noethe, Sebastian Mueller',
@@ -19,19 +19,17 @@ setup(
     setup_requires=['pytest-runner'],
     tests_require=['pytest>=3.0.0', 'freezegun'],
     install_requires=[
-        'pandas',           # in anaconda
-        'requests',         # in anaconda
-        'numpy',            # in anaconda
-        'matplotlib>=1.5',  # in anaconda
-        'python-dateutil',  # in anaconda
-        'sqlalchemy',       # in anaconda
-        'PyMySQL',          # in anaconda
-        'pytz',             # in anaconda
+        'pandas==0.22.0',
+        'numpy==1.14.1',
         'twilio==5.7.0',
+        'requests',
+        'python-dateutil',
+        'sqlalchemy',
+        'PyMySQL',
+        'pytz',
         'numexpr',
-        'smart_fact_crawler==0.4.1',
+        'smart_fact_crawler==0.5.0',
         'custos==0.0.7',
-        'pyfact==0.8.4',
         'retrying',
         'wrapt',
         'python-json-logger',

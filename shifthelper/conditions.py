@@ -100,7 +100,7 @@ def is_data_run():
     # sfc.main_page().system_status --> 'Idle [single-pe]'
     result = sfc.main_page().system_status
     if result is None:
-        raise ValueError('Could not get system status')
+        return False
     search_result = regex.search(
         r'\[(.*)\]',
         result,
