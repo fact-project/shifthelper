@@ -397,7 +397,17 @@ def is_more_than_2_wind_gusts_in_last_20_min():
         (datetime.utcnow() - self.history.timestamp) < timedelta(minutes=25)
     ]
 
+    # prepare a piece of history, which is 20 minutes long,
+    # but 5 min in the past
+    df = self.history.set_index('timestamp')
+    df = df[
+        datetime.utcnow() - timedelta(minutes=25):
+        datetime.utcnow() - timedelta(minutes=5)
+    ]
+
+    # look at this 5min-delayed, 20min-long history to give ASR some time
+    # to react.
     return (
-        not self.history.empty and
-        self.history.wind_gusts_over_limit.sum() > 2
+        not df.empty and
+        df.wind_gusts_over_limit.sum() > 2
     )
