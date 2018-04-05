@@ -375,3 +375,28 @@ def is_trigger_rate_low_for_ten_minutes():
     ]
     df = pd.DataFrame(self.history)
     return not df.empty and (df.rate < 1).all()
+
+
+@log_call_and_result
+def is_more_than_2_wind_gusts_in_last_20_min():
+    '''is_more_than_2_wind_gusts_in_last_20_min'''
+    self = is_more_than_2_wind_gusts_in_last_20_min
+
+    if not hasattr(self, 'history'):
+        self.history = pd.DataFrame()
+
+    self.history = self.history.append(
+        [{
+            'timestamp': datetime.utcnow(),
+            'wind_gusts_over_limit': sfc.weather().wind_gusts.value >= 50,
+        }]
+    )
+    now = datetime.utcnow()
+    self.history = self.history[
+        (now - self.history.timestamp) < timedelta(minutes=20)
+    ]
+
+    return (
+        not self.history.empty and
+        self.history.wind_gusts_over_limit.sum() > 2
+    )

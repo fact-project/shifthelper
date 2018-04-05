@@ -103,19 +103,11 @@ def main():
                     category=CATEGORY_SHIFTER
                 ),
                 FactIntervalCheck(
-                    name='WindSpeedCheck',
+                    name='WindCheckLikeASR',
+                    interval=30,
                     checklist=[
                         conditions.is_shift_at_the_moment,
-                        conditions.is_high_windspeed,
-                        conditions.is_not_parked,
-                    ],
-                    category=CATEGORY_SHIFTER
-                ),
-                FactIntervalCheck(
-                    name='WindGustCheck',
-                    checklist=[
-                        conditions.is_shift_at_the_moment,
-                        conditions.is_high_windgusts,
+                        conditions.is_more_than_2_wind_gusts_in_last_20_min,
                         conditions.is_not_parked,
                     ],
                     category=CATEGORY_SHIFTER
