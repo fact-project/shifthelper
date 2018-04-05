@@ -391,9 +391,10 @@ def is_more_than_2_wind_gusts_in_last_20_min():
             'wind_gusts_over_limit': sfc.weather().wind_gusts.value >= 50,
         }]
     )
-    now = datetime.utcnow()
+
+    # we throw away everything older than 20 min
     self.history = self.history[
-        (now - self.history.timestamp) < timedelta(minutes=20)
+        (datetime.utcnow() - self.history.timestamp) < timedelta(minutes=20)
     ]
 
     return (
