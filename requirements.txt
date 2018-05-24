@@ -7,7 +7,7 @@ sqlalchemy
 PyMySQL
 pytz
 twilio==5.7.0
-http://github.com/fact-project/smart_fact_crawler/archive/v0.5.0.tar.gz
+http://github.com/fact-project/smart_fact_crawler/archive/v0.6.0.tar.gz
 custos==0.0.7
 retrying
 wrapt
