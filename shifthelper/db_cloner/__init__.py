@@ -1,2 +1,2 @@
 from datetime import timedelta
-TIME_BETWEEN_CLONES = timedelta(minutes=5)
+TIME_BETWEEN_CLONES = timedelta(minutes=1)
