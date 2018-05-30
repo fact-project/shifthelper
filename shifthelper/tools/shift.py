@@ -59,7 +59,7 @@ def retrieve_shifters_from_calendar(
 )
 def retrieve_calendar_entries(dt_date, db=None):
     if db is None:
-        db = tools.create_db_connection(tools.config['cloned_db'])
+        db = tools.create_db_connection()
 
     yesterday_night = (dt_date - timedelta(hours=12)).date()
 
@@ -79,7 +79,7 @@ def retrieve_calendar_entries(dt_date, db=None):
 )
 def retrieve_valid_usernames_from_logbook(db=None):
     if db is None:
-        db = tools.create_db_connection(tools.config['cloned_db'])
+        db = tools.create_db_connection()
 
     with db.connect() as conn:
         memberlist = pd.read_sql_query("SELECT * from users", conn)

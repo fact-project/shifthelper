@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 from ..tools import config
 from ..tools import create_db_connection
+from . import TIME_BETWEEN_CLONES
 import time
 
 import logging
@@ -45,13 +46,51 @@ def users():
             logbook.users.uid=logbook.userfields.ufid
         """
 
-
 query_funcs = [
     factdata_MeasurementType,
     calendar_data,
     factdata_Schedule,
     users,
 ]
+
+
+def park_checklist_filled():
+    sandbox_db = create_db_connection(config['sandbox_db'])
+    query = 'select * from park_checklist_filled'
+    table = pd.read_sql(query, sandbox_db)
+    return table, 'park_checklist_filled'
+
+
+def atomic_write(table, table_name, db_out):
+    # we save the table to a temporary placeholder to make the
+    # change atomic
+    if table_name == 'calendar_data':
+        table.to_sql('t1', db_out, if_exists="replace", index=False)
+    else:
+        table.to_sql('t1', db_out, if_exists="replace")
+    db_out.execute('DROP TABLE IF EXISTS t2')
+    if db_out.dialect.has_table(db_out, table_name):
+        db_out.execute('RENAME TABLE {t} to t2, t1 to {t}'.format(
+            t=table_name)
+        )
+    else:
+        db_out.execute('RENAME TABLE t1 to {t}'.format(t=table_name))
+
+
+def do_clone(db_in, db_out, log):
+    log.info("cloning ...")
+
+    for query_func in query_funcs:
+        table_name = query_func.__name__
+
+        with db_in.connect() as conn:
+            table = pd.read_sql_query(query_func(), conn)
+        atomic_write(table, table_name, db_out)
+
+    table = park_checklist_filled()
+    atomic_write(table, 'park_checklist_filled', db_out)
+
+    log.info("...done")
 
 
 def main():
@@ -73,35 +112,18 @@ def main():
     db_in = create_db_connection(config["database"])
     db_out = create_db_connection(config["cloned_db"])
 
+    time_for_next_clone = datetime.utcnow()
     while True:
         try:
-            log.info("cloning ...")
-
-            for query_func in query_funcs:
-                table_name = query_func.__name__
-
-                with db_in.connect() as conn:
-                    table = pd.read_sql_query(query_func(), conn)
-                # we save the table to a temporary placeholder to make the
-                # change atomic
-                if table_name == 'calendar_data':
-                    table.to_sql('t1', db_out, if_exists="replace", index=False)
-                else:
-                    table.to_sql('t1', db_out, if_exists="replace")
-                db_out.execute('DROP TABLE IF EXISTS t2')
-                if db_out.dialect.has_table(db_out, table_name):
-                    db_out.execute('RENAME TABLE {t} to t2, t1 to {t}'.format(
-                        t=table_name)
-                    )
-                else:
-                    db_out.execute('RENAME TABLE t1 to {t}'.format(t=table_name))
-
-            log.info("...done")
-            time.sleep(5 * 60)  # 5 minutes
+            now = datetime.utcnow()
+            if time_for_next_clone <= now:
+                time_for_next_clone += TIME_BETWEEN_CLONES
+                do_clone(db_in, db_out, log)
         except (SystemExit, KeyboardInterrupt):
             break
         except:
             log.exception("error")
+        time.sleep(10)  # 10 seconds
 
 if __name__ == '__main__':
     main()

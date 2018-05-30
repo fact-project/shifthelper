@@ -42,7 +42,7 @@ def get_alerts():
 def create_db_connection(db_config=None):
     with lock:
         if db_config is None:
-            db_config = config['database']
+            db_config = config['cloned_db']
 
         frozen_config = frozenset(db_config.items())
 
@@ -64,7 +64,7 @@ def create_db_connection(db_config=None):
 
 def get_last_parking_checklist_entry():
     try:
-        db = create_db_connection(config['sandbox_db'])
+        db = create_db_connection()
         with db.connect() as conn:
             table = pd.read_sql_query(
                 'select * from park_checklist_filled',
