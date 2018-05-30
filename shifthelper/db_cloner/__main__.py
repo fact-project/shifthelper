@@ -87,8 +87,8 @@ def do_clone(db_in, db_out, log):
             table = pd.read_sql_query(query_func(), conn)
         atomic_write(table, table_name, db_out)
 
-    table = park_checklist_filled()
-    atomic_write(table, 'park_checklist_filled', db_out)
+    table, name = park_checklist_filled()
+    atomic_write(table, name, db_out)
 
     log.info("...done")
 
