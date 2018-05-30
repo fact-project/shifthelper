@@ -351,7 +351,7 @@ def is_nobody_on_shift():
 def is_last_shutdown_already_10min_past():
     '''Last Shutdown is already 10min past'''
     return (
-        get_last_shutdown() + timedelta(minutes=10) + TIME_BETWEEN_CLONES <
+        get_last_shutdown() + timedelta(minutes=10) < 
         datetime.utcnow()
     )
 
