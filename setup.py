@@ -28,7 +28,7 @@ setup(
         'PyMySQL',
         'pytz',
         'numexpr',
-        'smart_fact_crawler==0.6.0',
+        'smart_fact_crawler==0.6.1',
         'custos==0.0.7',
         'retrying',
         'wrapt',
