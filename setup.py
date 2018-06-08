@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='shifthelper',
-    version='1.5.2',
+    version='1.5.3',
     description='a tool for helping people with a FACT night shift',
     url='https://github.com/fact-project/shifthelper',
     author='Dominik Neise, Maximilian Noethe, Sebastian Mueller',
