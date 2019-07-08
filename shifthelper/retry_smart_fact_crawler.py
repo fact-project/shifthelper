@@ -43,8 +43,13 @@ def sun(url=None):
 
 
 @retry(**kwargs)
-def weather(url=None):
-    return sfc.weather(url=url, timeout=timeout)
+def weather(url=None, fallback=False):
+    return sfc.weather(url=url, timeout=timeout, fallback=fallback)
+
+
+@retry(**kwargs)
+def tng_weather(url=None, fallback=False):
+    return sfc.tng_weather(url=url, timeout=timeout, fallback=fallback)
 
 
 @retry(**kwargs)
