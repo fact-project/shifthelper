@@ -27,7 +27,7 @@ from . import retry_smart_fact_crawler as sfc
 from .debug_log_wrapper import log_call_and_result
 
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 @log_call_and_result
