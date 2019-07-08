@@ -13,7 +13,6 @@ before_install:
 
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib pip pymongo flake8 pandas astropy pygments pyflakes
-  - pip install -r requirements.txt
   - pip install .
 
 script:
