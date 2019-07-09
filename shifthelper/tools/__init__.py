@@ -128,5 +128,5 @@ def update_heartbeat():
         ).json()
     try:
         return retry_fetch_fail_after_30sec()
-    except RetryError as e:
+    except RetryError:
         return {}
