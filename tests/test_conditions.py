@@ -40,13 +40,14 @@ def test_outdatet():
 def test_wind():
     from shifthelper.conditions import is_high_windgusts, is_high_windspeed
 
-    with fake_smartfact('all_good'):
-        assert not is_high_windgusts()
-        assert not is_high_windspeed()
+    with freeze_time('2016-09-28 03:11:03'):
+        with fake_smartfact('all_good'):
+            assert not is_high_windgusts()
+            assert not is_high_windspeed()
 
-    with fake_smartfact('strong_wind'):
-        assert is_high_windgusts()
-        assert is_high_windspeed()
+        with fake_smartfact('strong_wind'):
+            assert is_high_windgusts()
+            assert is_high_windspeed()
 
 
 def test_currents():
