@@ -174,7 +174,7 @@ def is_feedback_not_calibrated():
 
 @log_call_and_result
 def is_high_windspeed():
-    '''Wind speed > 50 km/h or MAGIC weather not available and TNG wind > 30 km/h'''
+    '''Wind speed > 50 km/h'''
     magic_weather = sfc.weather(fallback=True)
     now = datetime.utcnow()
     max_age = timedelta(minutes=10)
@@ -185,12 +185,12 @@ def is_high_windspeed():
     else:
         log.warning('MAGIC weather outdated, using TNG weather info')
         tng_weather = sfc.tng_weather()
-        return tng_weather.wind_speed.value >= 30
+        return tng_weather.wind_speed.value >= 50
 
 
 @log_call_and_result
 def is_weather_outdatet():
-    ''' MAGIC weather not updated in the last 10 minutes '''
+    ''' MAGIC and TNG weather not updated in the last 10 minutes '''
     magic_weather = sfc.weather(fallback=True)
     now = datetime.utcnow()
     max_age = timedelta(minutes=10)
@@ -214,7 +214,7 @@ def is_smartfact_outdatet():
 
 @log_call_and_result
 def is_high_windgusts():
-    '''Wind gusts > 50 km/h or MAGIC weather not available and TNG wind > 30 km/h'''
+    '''Wind gusts > 50 km/h or MAGIC weather not available and TNG wind > 50 km/h'''
     magic_weather = sfc.weather(fallback=True)
     now = datetime.utcnow()
     max_age = timedelta(minutes=10)
@@ -225,7 +225,7 @@ def is_high_windgusts():
     else:
         log.warning('MAGIC weather outdated, using TNG weather info')
         tng_weather = sfc.tng_weather()
-        return tng_weather.wind_speed.value >= 30
+        return tng_weather.wind_speed.value >= 50
 
 
 @log_call_and_result
