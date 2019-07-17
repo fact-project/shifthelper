@@ -26,27 +26,28 @@ def test_is_main_js_not_running():
 
 
 def test_outdatet():
-    from shifthelper.conditions import is_smartfact_outdatet, is_magic_weather_outdatet
+    from shifthelper.conditions import is_smartfact_outdatet, is_weather_outdatet
 
     with fake_smartfact('all_good'):
         assert is_smartfact_outdatet()
-        assert is_magic_weather_outdatet()
+        assert is_weather_outdatet()
 
         with freeze_time('2016-09-28 03:11:03'):
             assert not is_smartfact_outdatet()
-            assert not is_magic_weather_outdatet()
+            assert not is_weather_outdatet()
 
 
 def test_wind():
     from shifthelper.conditions import is_high_windgusts, is_high_windspeed
 
-    with fake_smartfact('all_good'):
-        assert not is_high_windgusts()
-        assert not is_high_windspeed()
+    with freeze_time('2016-09-28 03:11:03'):
+        with fake_smartfact('all_good'):
+            assert not is_high_windgusts()
+            assert not is_high_windspeed()
 
-    with fake_smartfact('strong_wind'):
-        assert is_high_windgusts()
-        assert is_high_windspeed()
+        with fake_smartfact('strong_wind'):
+            assert is_high_windgusts()
+            assert is_high_windspeed()
 
 
 def test_currents():

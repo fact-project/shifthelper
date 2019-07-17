@@ -82,7 +82,7 @@ def main():
                     name='MAGICWeatherUpToDate',
                     checklist=[
                         conditions.is_shift_at_the_moment,
-                        conditions.is_magic_weather_outdatet,
+                        conditions.is_weather_outdatet,
                     ],
                     category=CATEGORY_SHIFTER
                 ),

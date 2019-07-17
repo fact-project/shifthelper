@@ -6,6 +6,7 @@ RUN apt update && apt install build-essential curl --yes \
 RUN curl -Lo miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-4.4.10-Linux-x86_64.sh \
   && bash miniconda.sh -b -p /opt/miniconda \
   && /opt/miniconda/bin/conda install \
+  	pip \
   	nomkl \
 	python=3.6 \
 	pandas=0.22.0 \
@@ -24,10 +25,9 @@ RUN curl -Lo miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-4.4.10-
 	&& ln -s /opt/miniconda/etc/profile.d/conda.sh /etc/profile.d/conda.sh
 
 RUN mkdir /opt/shifthelper
-COPY setup.py requirements.txt /opt/shifthelper/
+COPY setup.py /opt/shifthelper/
 COPY shifthelper /opt/shifthelper/shifthelper
-RUN /opt/miniconda/bin/pip install -r /opt/shifthelper/requirements.txt \
-	&& /opt/miniconda/bin/pip install /opt/shifthelper \
+RUN /opt/miniconda/bin/pip install /opt/shifthelper \
 	&& rm -rf ~/.cache/pip
 
 # start again and copy only the needed stuff (no gcc and so on)

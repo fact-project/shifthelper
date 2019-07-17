@@ -27,6 +27,9 @@ from . import retry_smart_fact_crawler as sfc
 from .debug_log_wrapper import log_call_and_result
 
 
+log = logging.getLogger(__name__)
+
+
 @log_call_and_result
 def is_mainjs_not_running():
     '''Main.js is not running'''
@@ -171,14 +174,33 @@ def is_feedback_not_calibrated():
 
 @log_call_and_result
 def is_high_windspeed():
-    '''windspeed > 50km/h'''
-    return sfc.weather().wind_speed.value >= 50
+    '''Wind speed > 50 km/h'''
+    magic_weather = sfc.weather(fallback=True)
+    now = datetime.utcnow()
+    max_age = timedelta(minutes=10)
+
+    if magic_weather.timestamp is not None and (now - magic_weather.timestamp) <= max_age:
+        wind_speed = magic_weather.wind_speed.value
+        return np.isnan(wind_speed) or wind_speed >= 50
+    else:
+        log.warning('MAGIC weather outdated, using TNG weather info')
+        tng_weather = sfc.tng_weather()
+        return tng_weather.wind_speed.value >= 50
 
 
 @log_call_and_result
-def is_magic_weather_outdatet():
-    ''' MAGIC weather not updated in the last 10 minutes '''
-    return sfc.weather().timestamp <= (datetime.utcnow() - timedelta(minutes=10))
+def is_weather_outdatet():
+    ''' MAGIC and TNG weather not updated in the last 10 minutes '''
+    magic_weather = sfc.weather(fallback=True)
+    now = datetime.utcnow()
+    max_age = timedelta(minutes=10)
+
+    if magic_weather.timestamp is not None and (now - magic_weather.timestamp) <= max_age:
+        return False
+    else:
+        log.warning('MAGIC Weather outdated, falling back to TNG')
+        tng_weather = sfc.tng_weather()
+        return (now - tng_weather.timestamp) >= max_age
 
 
 @log_call_and_result
@@ -192,8 +214,18 @@ def is_smartfact_outdatet():
 
 @log_call_and_result
 def is_high_windgusts():
-    '''Wind gusts > 50 km/h'''
-    return sfc.weather().wind_gusts.value >= 50
+    '''Wind gusts > 50 km/h or MAGIC weather not available and TNG wind > 50 km/h'''
+    magic_weather = sfc.weather(fallback=True)
+    now = datetime.utcnow()
+    max_age = timedelta(minutes=10)
+
+    if magic_weather.timestamp is not None and (now - magic_weather.timestamp) <= max_age:
+        wind_gusts = magic_weather.wind_gusts.value
+        return np.isnan(wind_gusts) or wind_gusts >= 50
+    else:
+        log.warning('MAGIC weather outdated, using TNG weather info')
+        tng_weather = sfc.tng_weather()
+        return tng_weather.wind_speed.value >= 50
 
 
 @log_call_and_result
