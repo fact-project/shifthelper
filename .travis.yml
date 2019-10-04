@@ -9,7 +9,7 @@ before_install:
   - export PATH=/home/travis/miniconda/bin:$PATH
 
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib pip pymongo flake8 pandas astropy pygments pyflakes
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib pip pymongo flake8 pandas astropy pygments pyflakes
   - pip install .
 
 script:
