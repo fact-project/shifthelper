@@ -7,12 +7,9 @@ before_install:
   - chmod +x miniconda.sh
   - ./miniconda.sh -b -p /home/travis/miniconda 
   - export PATH=/home/travis/miniconda/bin:$PATH
-  # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
-  - sudo rm -rf /dev/shm
-  - sudo ln -s /run/shm /dev/shm
 
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib pip pymongo flake8 pandas astropy pygments pyflakes
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib pip pymongo flake8 pandas astropy pygments pyflakes
   - pip install .
 
 script:
