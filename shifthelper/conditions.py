@@ -205,10 +205,10 @@ def is_weather_outdatet():
 
 @log_call_and_result
 def is_smartfact_outdatet():
-    ''' SMARTFACT not updated in the last 10 minutes '''
+    ''' SMARTFACT not updated in the last 10 minutes or timestamp missing.'''
     timestamp = sfc.main_page().timestamp_1
     if timestamp is None:
-        raise ValueError('Could not get smartfact timestamp')
+        return True
     return timestamp <= (datetime.utcnow() - timedelta(minutes=10))
 
 
@@ -248,11 +248,9 @@ def is_maximum_current_high():
 
 @log_call_and_result
 def is_rel_camera_temperature_high():
-    '''relative camera temperature > 15°C'''
+    '''relative camera temperature > 15°C or not available. Camera off?'''
     relative_temperature = sfc.main_page().relative_camera_temperature.value
-    if np.isnan(relative_temperature):
-        raise ValueError('Could not get relative camera temperature')
-    return relative_temperature >= 15.0
+    return np.isnan(relative_temperature) or relative_temperature >= 15.0
 
 
 @log_call_and_result
