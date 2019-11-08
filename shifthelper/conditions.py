@@ -348,7 +348,7 @@ def is_dummy_alert_by_shifter():
     for username, since in fetch_dummy_alerts().items():
         since = pd.to_datetime(since)
 
-        if is_older(since, timedelta(minutes=3)):
+        if not is_older(since, timedelta(minutes=3)):
             log.debug('%s issued a dummy alert at: %s', username, since)
             try:
                 current_shifter = get_current_shifter().username
