@@ -29,7 +29,7 @@ setup(
         'PyMySQL',
         'pytz',
         'numexpr',
-        'smart_fact_crawler @ https://github.com/fact-project/smart_fact_crawler/archive/v0.6.4.tar.gz',
+        'smart_fact_crawler @ https://github.com/fact-project/smart_fact_crawler/archive/v0.7.0.tar.gz',
         'custos==0.0.7',
         'retrying',
         'wrapt',
