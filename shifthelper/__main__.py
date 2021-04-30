@@ -137,14 +137,6 @@ def main():
                     category=CATEGORY_SHIFTER
                 ),
                 FactIntervalCheck(
-                    name='RelativeCameraTemperatureCheck',
-                    checklist=[
-                        conditions.is_shift_at_the_moment,
-                        conditions.is_rel_camera_temperature_high,
-                    ],
-                    category=CATEGORY_SHIFTER
-                ),
-                FactIntervalCheck(
                     name='BiasNotOperatingDuringDataRun',
                     checklist=[
                         conditions.is_shift_at_the_moment,
