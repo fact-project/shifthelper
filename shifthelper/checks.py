@@ -1,5 +1,4 @@
 import logging
-import pandas as pd
 from operator import attrgetter
 from datetime import timedelta, datetime, timezone
 from requests.exceptions import RequestException
