@@ -346,7 +346,9 @@ def is_dummy_alert_by_shifter():
     '''Dummy Alert'''
     log = logging.getLogger(__name__)
     for username, since in fetch_dummy_alerts().items():
-        since = pd.to_datetime(since)
+
+        # we get a string without timezone here, add utc timezone
+        since = datetime.fromisoformat(since).replace(tzinfo=timezone.utc)
 
         if not is_older(since, timedelta(minutes=3)):
             log.debug('%s issued a dummy alert at: %s', username, since)
