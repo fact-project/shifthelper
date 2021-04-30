@@ -112,11 +112,11 @@ def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
                 pd.read_sql_query(query, conn),
                 types.reset_index(),
                 on="fMeasurementTypeKey"
-            ).iloc[0].fStart
+            ).iloc[0].fStart.tz_localize(UTC)
     except IndexError:
         # in case we cannot find the next shutdown,
         # we simply say the next shutdown is waaaay far in the future.
-        return datetime.max
+        return datetime.max.replace(tzinfo=timezone.utc)
 
 
 def get_last_shutdown(current_time_rounded_to_seconds=None, db=None):
@@ -145,8 +145,8 @@ def get_last_shutdown(current_time_rounded_to_seconds=None, db=None):
                 pd.read_sql_query(query, conn),
                 types.reset_index(),
                 on="fMeasurementTypeKey"
-            ).iloc[0].fStart
+            ).iloc[0].fStart.tz_localize(UTC)
     except IndexError:
         # in case we cannot find the last shutdown,
         # we simply say the last shutdown was waaay in the past
-        return datetime.min
+        return datetime.min.replace(tzinfo=timezone.utc)

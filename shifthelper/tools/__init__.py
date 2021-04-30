@@ -5,7 +5,7 @@ import json
 import pandas as pd
 import requests
 from retrying import retry, RetryError
-from datetime import datetime
+from datetime import datetime, timezone
 
 __all__ = ['create_db_connection', 'config']
 
@@ -70,13 +70,13 @@ def get_last_parking_checklist_entry():
                 'select * from park_checklist_filled',
                 conn
             )
-        return table.sort_values('created').iloc[-1].created
+        return table.sort_values('created').iloc[-1].created.tz_localize(timezone.utc)
     except IndexError:
         # In case we can not find out when the checklist was filled
         # we pretend it was only filled waaaay in the future.
         # In all checks, which check if it was *already* filled
         # this future timestamp will result as False
-        return datetime.max
+        return datetime.max.replace(tzinfo=timezone.utc)
 
 
 def fetch_users_awake():
