@@ -20,8 +20,8 @@ setup(
     setup_requires=['pytest-runner'],
     tests_require=['pytest>=3.0.0', 'freezegun'],
     install_requires=[
-        'pandas~=0.22.0',
-        'numpy==1.14.1',
+        'pandas',
+        'numpy',
         'requests',
         'python-dateutil',
         'sqlalchemy',
