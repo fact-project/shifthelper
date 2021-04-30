@@ -109,8 +109,8 @@ def main():
         handler.setFormatter(formatter)
         log.addHandler(handler)
 
-    db_in = create_db_connection(config["database"])
-    db_out = create_db_connection(config["cloned_db"])
+    engine_in = create_db_connection(config["database"])
+    engine_out = create_db_connection(config["cloned_db"])
 
     time_for_next_clone = datetime.utcnow()
     while True:
@@ -118,7 +118,8 @@ def main():
             now = datetime.utcnow()
             if time_for_next_clone <= now:
                 time_for_next_clone += TIME_BETWEEN_CLONES
-                do_clone(db_in, db_out, log)
+                with engine_in.begin() as con_in, engine_out.begin() as con_out:
+                    do_clone(con_in, con_out, log)
         except (SystemExit, KeyboardInterrupt):
             break
         except:

@@ -84,9 +84,8 @@ def all_recent_alerts_acknowledged(
         return result_if_no_alerts
 
     for alert in alerts:
-
         # ignore alerts that don't have the asked checkname
-        if checkname is not None and alerts["check"] != checkname:
+        if checkname is not None and alert["check"] != checkname:
             continue
 
         # ignore old alerts if time limit is specified
