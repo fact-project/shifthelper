@@ -1,11 +1,19 @@
 import pandas as pd
 from .. import tools
-from datetime import datetime
+from datetime import datetime, timezone
 from retrying import retry
 from cachetools import TTLCache, cached
 from cachetools.keys import hashkey
 
 from ..debug_log_wrapper import log_call_and_result
+
+
+UTC = timezone.utc
+
+
+def now_seconds(tz=UTC):
+    '''Current time rounded to full seconds, by default with tz UTC'''
+    return datetime.now(tz=tz).replace(microsecond=0)
 
 
 @cached(
@@ -27,8 +35,8 @@ def get_last_startup_or_shutdown(
     db=None
 ):
     if current_time_rounded_to_seconds is None:
-        current_time_rounded_to_seconds = datetime.utcnow(
-            ).replace(microsecond=0)
+        current_time_rounded_to_seconds = now_seconds()
+
     if db is None:
         db = tools.create_db_connection()
 
@@ -44,9 +52,10 @@ def get_last_startup_or_shutdown(
     """.format(
         keys=(
             types.loc["Startup"].fMeasurementTypeKey,
-            types.loc["Shutdown"].fMeasurementTypeKey),
+            types.loc["Shutdown"].fMeasurementTypeKey
+        ),
         now=current_time_rounded_to_seconds
-        )
+    )
 
     with db.connect() as conn:
         return pd.merge(
@@ -64,9 +73,10 @@ def get_last_startup_or_shutdown(
 def is_shift_at_the_moment(time=None, db=None):
     '''There is a shift at the moment'''
     if time is None:
-        now = datetime.utcnow().replace(microsecond=0)
+        now = now_seconds()
     else:
         now = time.replace(microsecond=0)
+
     last_entry = get_last_startup_or_shutdown(
         current_time_rounded_to_seconds=now,
         db=db
@@ -77,8 +87,8 @@ def is_shift_at_the_moment(time=None, db=None):
 
 def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
     if current_time_rounded_to_seconds is None:
-        current_time_rounded_to_seconds = datetime.utcnow(
-            ).replace(microsecond=0)
+        current_time_rounded_to_seconds = now_seconds()
+
     if db is None:
         db = tools.create_db_connection()
 
@@ -94,7 +104,7 @@ def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
     """.format(
         key=(types.loc["Shutdown"].fMeasurementTypeKey),
         now=current_time_rounded_to_seconds
-        )
+    )
 
     try:
         with db.connect() as conn:
@@ -102,18 +112,17 @@ def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
                 pd.read_sql_query(query, conn),
                 types.reset_index(),
                 on="fMeasurementTypeKey"
-            ).iloc[0].fStart
+            ).iloc[0].fStart.tz_localize(UTC)
     except IndexError:
         # in case we cannot find the next shutdown,
         # we simply say the next shutdown is waaaay far in the future.
-        return datetime.max
+        return datetime.max.replace(tzinfo=timezone.utc)
 
 
 def get_last_shutdown(current_time_rounded_to_seconds=None, db=None):
     try:
         if current_time_rounded_to_seconds is None:
-            current_time_rounded_to_seconds = datetime.utcnow(
-                ).replace(microsecond=0)
+            current_time_rounded_to_seconds = now_seconds()
         if db is None:
             db = tools.create_db_connection()
 
@@ -129,15 +138,15 @@ def get_last_shutdown(current_time_rounded_to_seconds=None, db=None):
         """.format(
             key=(types.loc["Shutdown"].fMeasurementTypeKey),
             now=current_time_rounded_to_seconds
-            )
+        )
 
         with db.connect() as conn:
             return pd.merge(
                 pd.read_sql_query(query, conn),
                 types.reset_index(),
                 on="fMeasurementTypeKey"
-            ).iloc[0].fStart
+            ).iloc[0].fStart.tz_localize(UTC)
     except IndexError:
         # in case we cannot find the last shutdown,
         # we simply say the last shutdown was waaay in the past
-        return datetime.min
+        return datetime.min.replace(tzinfo=timezone.utc)

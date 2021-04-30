@@ -7,8 +7,7 @@ So keep them one-liners please.
 conditions are used by the Check-classes inside checks.py
 '''
 import re as regex
-from datetime import datetime, timedelta
-from pandas import to_datetime
+from datetime import datetime, timedelta, timezone
 import pandas as pd
 import numpy as np
 import logging
@@ -28,6 +27,12 @@ from .debug_log_wrapper import log_call_and_result
 
 
 log = logging.getLogger(__name__)
+UTC = timezone.utc
+
+
+def is_older(timestamp, delta):
+    ''' Test if a timestamp is older than a certain amount of time'''
+    return (datetime.now(tz=UTC) - timestamp) > delta
 
 
 @log_call_and_result
@@ -176,10 +181,10 @@ def is_feedback_not_calibrated():
 def is_high_windspeed():
     '''Wind speed > 50 km/h'''
     magic_weather = sfc.weather(fallback=True)
-    now = datetime.utcnow()
     max_age = timedelta(minutes=10)
+    timestamp = magic_weather.timestamp
 
-    if magic_weather.timestamp is not None and (now - magic_weather.timestamp) <= max_age:
+    if magic_weather.timestamp is not None and not is_older(timestamp, max_age):
         wind_speed = magic_weather.wind_speed.value
         return np.isnan(wind_speed) or wind_speed >= 50
     else:
@@ -192,15 +197,15 @@ def is_high_windspeed():
 def is_weather_outdatet():
     ''' MAGIC and TNG weather not updated in the last 10 minutes '''
     magic_weather = sfc.weather(fallback=True)
-    now = datetime.utcnow()
     max_age = timedelta(minutes=10)
+    timestamp = magic_weather.timestamp
 
-    if magic_weather.timestamp is not None and (now - magic_weather.timestamp) <= max_age:
+    if magic_weather.timestamp is not None and not is_older(timestamp, max_age):
         return False
     else:
         log.warning('MAGIC Weather outdated, falling back to TNG')
         tng_weather = sfc.tng_weather()
-        return (now - tng_weather.timestamp) >= max_age
+        return is_older(tng_weather.timestamp, max_age)
 
 
 @log_call_and_result
@@ -209,17 +214,17 @@ def is_smartfact_outdatet():
     timestamp = sfc.main_page().timestamp_1
     if timestamp is None:
         raise ValueError('Could not get smartfact timestamp')
-    return timestamp <= (datetime.utcnow() - timedelta(minutes=10))
+    return is_older(timestamp, timedelta(minutes=10))
 
 
 @log_call_and_result
 def is_high_windgusts():
     '''Wind gusts > 50 km/h or MAGIC weather not available and TNG wind > 50 km/h'''
     magic_weather = sfc.weather(fallback=True)
-    now = datetime.utcnow()
     max_age = timedelta(minutes=10)
+    timestamp = magic_weather.timestamp
 
-    if magic_weather.timestamp is not None and (now - magic_weather.timestamp) <= max_age:
+    if magic_weather.timestamp is not None and not is_older(timestamp, max_age):
         wind_gusts = magic_weather.wind_gusts.value
         return np.isnan(wind_gusts) or wind_gusts >= 50
     else:
@@ -314,7 +319,7 @@ def is_nobody_ready_for_shutdown():
     '''Nobody is ready for shutdown'''
     ready_for_shutdown = {}
     for username, since in fetch_users_awake().items():
-        since = to_datetime(since)
+        since = pd.to_datetime(since).tz_localize(UTC)
         if since > get_next_shutdown() - timedelta(minutes=30):
             ready_for_shutdown[username] = since
     return not ready_for_shutdown
@@ -329,23 +334,21 @@ def update_heartbeat():
         log.debug("HeartbeatMonitor offline?")
         return True
     else:
-        heartbeat_monitor_age = (
-            datetime.utcnow() -
-            pd.to_datetime(heartbeats['heartbeatMonitor'])
-        )
-        if heartbeat_monitor_age > timedelta(minutes=10):
+        timestamp = pd.to_datetime(heartbeats['heartbeatMonitor']).tz_convert(UTC)
+        if is_older(timestamp, timedelta(minutes=10)):
             log.debug('heartbeat_monitor_age > timedelta(minutes=10)')
             return True
     return False
+
 
 @log_call_and_result
 def is_dummy_alert_by_shifter():
     '''Dummy Alert'''
     log = logging.getLogger(__name__)
     for username, since in fetch_dummy_alerts().items():
-        since = to_datetime(since)
+        since = pd.to_datetime(since)
 
-        if since > datetime.utcnow() - timedelta(minutes=3):
+        if not is_older(since, timedelta(minutes=3)):
             log.debug('%s issued a dummy alert at: %s', username, since)
             try:
                 current_shifter = get_current_shifter().username
@@ -364,7 +367,7 @@ def is_dummy_alert_by_shifter():
 @log_call_and_result
 def is_20minutes_or_less_before_shutdown():
     '''20min before shutdown'''
-    return datetime.utcnow() > get_next_shutdown() - timedelta(minutes=20)
+    return (get_next_shutdown() - datetime.now(tz=UTC)) < timedelta(minutes=20)
 
 
 @log_call_and_result
@@ -381,7 +384,7 @@ def is_nobody_on_shift():
 @log_call_and_result
 def is_last_shutdown_already_10min_past():
     '''Last Shutdown is already 10min past'''
-    return get_last_shutdown() + timedelta(minutes=10) < datetime.utcnow()
+    return is_older(get_last_shutdown(), timedelta(minutes=10))
 
 
 @log_call_and_result
@@ -401,11 +404,11 @@ def is_trigger_rate_low_for_ten_minutes():
     current_trigger_rate = sfc.trigger_rate().trigger_rate.value
     self.history = self.history.append(
         [{
-            'timestamp': datetime.utcnow(),
+            'timestamp': datetime.now(tz=UTC),
             'rate': current_trigger_rate,
         }]
     )
-    now = datetime.utcnow()
+    now = datetime.now(tz=UTC)
     self.history = self.history[
         (now - self.history.timestamp) < timedelta(minutes=10)
     ]
