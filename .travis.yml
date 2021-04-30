@@ -6,7 +6,7 @@ before_install:
 
 
 install:
-  - pip install -u pip wheel poetry
+  - pip install -U pip poetry
   - poetry install
 
 script:
