@@ -24,6 +24,10 @@ lock = threading.Lock()
 db_engines = {}
 
 
+def local_isoformat_to_datetime(s, tzinfo=timezone.utc):
+    return datetime.fromisoformat(s).replace(tzinfo=tzinfo)
+
+
 def get_alerts():
     @retry(stop_max_delay=30000,  # 30 seconds max
            wait_exponential_multiplier=100,  # wait 2^i * 100 ms, on the i-th retry
@@ -31,7 +35,14 @@ def get_alerts():
            wrap_exception=True
            )
     def retry_fetch_fail_after_30sec():
-        alerts = requests.get(config['webservice']['post-url'])
+        ret = requests.get(config['webservice']['post-url'])
+        ret.raise_for_status()
+
+        # parse times
+        alerts = ret.json()
+        for alert in alerts:
+            alert["timestamp"] = local_isoformat_to_datetime(alert["timestamp"])
+
         return alerts.json()
     try:
         return retry_fetch_fail_after_30sec()

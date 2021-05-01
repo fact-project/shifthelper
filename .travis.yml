@@ -1,9 +1,10 @@
 language: python
+
 python:
   - "3.8"
-before_install:
-  - export MPLBACKEND=Agg
 
+env:
+  - SHIFTHELPER_CONFIG=tests/resources/test_config.json
 
 install:
   - pip install -U pip poetry
@@ -12,6 +13,3 @@ install:
 script:
   - poetry run pyflakes shifthelper
   - poetry run python -m pytest
-
-env:
-  - SHIFTHELPER_CONFIG=tests/resources/test_config.json

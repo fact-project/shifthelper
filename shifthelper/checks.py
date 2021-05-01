@@ -82,6 +82,7 @@ def all_recent_alerts_acknowledged(
     if len(alerts) == 0:
         return result_if_no_alerts
 
+    acknowledged_alerts = 0
     for alert in alerts:
         # ignore alerts that don't have the asked checkname
         if checkname is not None and alert["check"] != checkname:
@@ -89,14 +90,18 @@ def all_recent_alerts_acknowledged(
 
         # ignore old alerts if time limit is specified
         if check_time is not None:
-            timestamp = datetime.fromisoformat(alert['timestamp'])
-            age = now - timestamp.replace(tzinfo=timezone.utc)
+            age = now - alert['timestamp'].astimezone(now.tzinfo)
 
             if age > check_time:
                 continue
 
         if not alert["acknowledged"]:
             return False
+
+        acknowledged_alerts += 1
+
+    if acknowledged_alerts == 0:
+        return result_if_no_alerts
 
     return True
 
