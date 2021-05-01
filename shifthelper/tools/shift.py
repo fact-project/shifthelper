@@ -1,17 +1,17 @@
-import pandas as pd
-from .. import tools
-from datetime import datetime
-from datetime import timedelta
+import logging
+from datetime import datetime, timedelta
 from cachetools import TTLCache, cached
 from cachetools.keys import hashkey
+from sqlalchemy import text
+import pandas as pd
 
-import logging
+from .. import tools
 
 log = logging.getLogger(__name__)
 
 
 calendar_query = '''
-SELECT u
+SELECT u AS username
 FROM calendar_data
 WHERE
     y={y}
@@ -42,7 +42,6 @@ def retrieve_shifters_from_calendar(
     time = time.replace(second=0, microsecond=0)
 
     calendar_entries = retrieve_calendar_entries(time, db=db)
-    calendar_entries["username"] = calendar_entries["u"]
 
     all_shifters = retrieve_valid_usernames_from_logbook(db=db)
     tonights_shifters = pd.merge(
@@ -70,7 +69,7 @@ def retrieve_calendar_entries(dt_date, db=None):
     )
 
     with db.connect() as conn:
-        return pd.read_sql_query(query, conn)
+        return pd.read_sql_query(text(query), conn)
 
 
 @cached(
@@ -82,7 +81,7 @@ def retrieve_valid_usernames_from_logbook(db=None):
         db = tools.create_db_connection()
 
     with db.connect() as conn:
-        memberlist = pd.read_sql_query("SELECT * from users", conn)
+        memberlist = pd.read_sql_query(text("SELECT * from users"), conn)
 
     memberlist = memberlist.rename(columns={
             "fid1": "institute",

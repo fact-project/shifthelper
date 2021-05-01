@@ -15,8 +15,14 @@ ENV LANG="en_US.UTF-8"
 RUN mkdir /opt/shifthelper
 WORKDIR /opt/shifthelper/
 COPY pyproject.toml poetry.lock ./
-COPY shifthelper /opt/shifthelper/shifthelper
 
+# This will only install the depdendencies in poetry.lock,
+# but we do this, so we don't have to run it with each build
+RUN poetry config virtualenvs.create false \
+	&& poetry install --no-dev
+
+COPY shifthelper /opt/shifthelper/shifthelper
+# need to run poetry a second time to also install shifthelper
 RUN poetry config virtualenvs.create false \
 	&& poetry install --no-dev
 

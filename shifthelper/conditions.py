@@ -32,7 +32,7 @@ UTC = timezone.utc
 
 def is_older(timestamp, delta):
     ''' Test if a timestamp is older than a certain amount of time'''
-    return (datetime.now(tz=UTC) - timestamp) > delta
+    return (datetime.now(tz=UTC) - timestamp.astimezone(UTC)) > delta
 
 
 @log_call_and_result
@@ -319,8 +319,8 @@ def is_nobody_ready_for_shutdown():
     '''Nobody is ready for shutdown'''
     ready_for_shutdown = {}
     for username, since in fetch_users_awake().items():
-        since = pd.to_datetime(since).tz_localize(UTC)
-        if since > get_next_shutdown() - timedelta(minutes=30):
+        since = datetime.fromisoformat(since)
+        if since > (get_next_shutdown() - timedelta(minutes=30)):
             ready_for_shutdown[username] = since
     return not ready_for_shutdown
 
@@ -334,7 +334,7 @@ def update_heartbeat():
         log.debug("HeartbeatMonitor offline?")
         return True
     else:
-        timestamp = pd.to_datetime(heartbeats['heartbeatMonitor']).tz_convert(UTC)
+        timestamp = datetime.fromisoformat(heartbeats['heartbeatMonitor'])
         if is_older(timestamp, timedelta(minutes=10)):
             log.debug('heartbeat_monitor_age > timedelta(minutes=10)')
             return True

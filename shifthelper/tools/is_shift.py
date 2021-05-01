@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from retrying import retry
 from cachetools import TTLCache, cached
 from cachetools.keys import hashkey
+from sqlalchemy import text
 
 from ..debug_log_wrapper import log_call_and_result
 
@@ -25,7 +26,7 @@ def get_MeasurementType(db=None):
         db = tools.create_db_connection()
 
     with db.connect() as conn:
-        df = pd.read_sql_query("select * from factdata_MeasurementType", conn)
+        df = pd.read_sql_query(text("select * from factdata_MeasurementType"), conn)
     df.set_index("fMeasurementTypeName", inplace=True)
     return df
 
@@ -41,7 +42,7 @@ def get_last_startup_or_shutdown(
         db = tools.create_db_connection()
 
     types = get_MeasurementType(db)
-    query = """
+    query = text("""
     SELECT * FROM factdata_Schedule AS S
     WHERE
         S.fMeasurementTypeKey IN {keys}
@@ -55,7 +56,7 @@ def get_last_startup_or_shutdown(
             types.loc["Shutdown"].fMeasurementTypeKey
         ),
         now=current_time_rounded_to_seconds
-    )
+    ))
 
     with db.connect() as conn:
         return pd.merge(
@@ -93,7 +94,7 @@ def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
         db = tools.create_db_connection()
 
     types = get_MeasurementType(db)
-    query = """
+    query = text("""
     SELECT * FROM factdata_Schedule AS S
     WHERE
         S.fMeasurementTypeKey = {key}
@@ -104,7 +105,7 @@ def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
     """.format(
         key=(types.loc["Shutdown"].fMeasurementTypeKey),
         now=current_time_rounded_to_seconds
-    )
+    ))
 
     try:
         with db.connect() as conn:
@@ -127,7 +128,7 @@ def get_last_shutdown(current_time_rounded_to_seconds=None, db=None):
             db = tools.create_db_connection()
 
         types = get_MeasurementType(db)
-        query = """
+        query = text("""
         SELECT * FROM factdata_Schedule AS S
         WHERE
             S.fMeasurementTypeKey = {key}
@@ -138,7 +139,7 @@ def get_last_shutdown(current_time_rounded_to_seconds=None, db=None):
         """.format(
             key=(types.loc["Shutdown"].fMeasurementTypeKey),
             now=current_time_rounded_to_seconds
-        )
+        ))
 
         with db.connect() as conn:
             return pd.merge(
