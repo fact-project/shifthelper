@@ -2,7 +2,6 @@ import os
 import threading
 from sqlalchemy import create_engine, text
 import json
-import pandas as pd
 import requests
 from retrying import retry, RetryError
 from datetime import datetime, timezone
