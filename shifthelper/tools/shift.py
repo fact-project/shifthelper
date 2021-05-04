@@ -22,6 +22,18 @@ WHERE
 '''
 
 
+shifter_query = '''
+SELECT
+    u AS username
+    fid5 AS phone_mobile
+    fid9 AS telegram_id
+    email
+FROM calendar_data
+LEFT JOIN users ON calendar_data.u = users.username
+WHERE y=:y AND m=:m AND d=:d AND NOT x
+'''
+
+
 def get_current_shifter(db=None):
     full_shifter_info = retrieve_shifters_from_calendar(db=db)
     only_interesting_stuff = full_shifter_info[
