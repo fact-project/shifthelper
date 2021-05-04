@@ -26,7 +26,7 @@ def get_MeasurementType(db=None):
         db = tools.create_db_connection()
 
     with db.connect() as conn:
-        df = pd.read_sql_query(text("select * from factdata_MeasurementType"), conn)
+        df = pd.read_sql_query(text("select * from MeasurementType"), conn)
     df.set_index("fMeasurementTypeName", inplace=True)
     return df
 
@@ -43,7 +43,7 @@ def get_last_startup_or_shutdown(
 
     types = get_MeasurementType(db)
     query = text("""
-    SELECT * FROM factdata_Schedule AS S
+    SELECT * FROM Schedule AS S
     WHERE
         S.fMeasurementTypeKey IN {keys}
     AND
@@ -95,7 +95,7 @@ def get_next_shutdown(current_time_rounded_to_seconds=None, db=None):
 
     types = get_MeasurementType(db)
     query = text("""
-    SELECT * FROM factdata_Schedule AS S
+    SELECT * FROM Schedule AS S
     WHERE
         S.fMeasurementTypeKey = {key}
     AND
@@ -129,7 +129,7 @@ def get_last_shutdown(current_time_rounded_to_seconds=None, db=None):
 
         types = get_MeasurementType(db)
         query = text("""
-        SELECT * FROM factdata_Schedule AS S
+        SELECT * FROM Schedule AS S
         WHERE
             S.fMeasurementTypeKey = {key}
         AND

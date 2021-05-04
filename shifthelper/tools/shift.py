@@ -1,7 +1,5 @@
 import logging
 from datetime import datetime, timedelta, timezone
-from cachetools import TTLCache, cached
-from cachetools.keys import hashkey
 from sqlalchemy import text
 
 from .. import tools
@@ -49,5 +47,5 @@ def get_current_shifter(db=None):
         log.warning('Found more than two shifters, choosing first')
 
     shifter = shifters[0]._mapping
-    log.debug('Found shifter: {shifter["username"]}')
+    log.debug(f'Found shifter: {shifter["username"]}')
     return shifter
