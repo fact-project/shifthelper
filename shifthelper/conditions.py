@@ -8,8 +8,8 @@ conditions are used by the Check-classes inside checks.py
 '''
 import re as regex
 from datetime import datetime, timedelta, timezone
-import numpy as np
 import logging
+import math
 
 from .tools.is_shift import (
     is_shift_at_the_moment,
@@ -185,7 +185,7 @@ def is_high_windspeed():
 
     if magic_weather.timestamp is not None and not is_older(timestamp, max_age):
         wind_speed = magic_weather.wind_speed.value
-        return np.isnan(wind_speed) or wind_speed >= 50
+        return math.isnan(wind_speed) or wind_speed >= 50
     else:
         log.warning('MAGIC weather outdated, using TNG weather info')
         tng_weather = sfc.tng_weather()
@@ -225,7 +225,7 @@ def is_high_windgusts():
 
     if magic_weather.timestamp is not None and not is_older(timestamp, max_age):
         wind_gusts = magic_weather.wind_gusts.value
-        return np.isnan(wind_gusts) or wind_gusts >= 50
+        return math.isnan(wind_gusts) or wind_gusts >= 50
     else:
         log.warning('MAGIC weather outdated, using TNG weather info')
         tng_weather = sfc.tng_weather()
@@ -254,7 +254,7 @@ def is_maximum_current_high():
 def is_rel_camera_temperature_high():
     '''relative camera temperature > 15°C'''
     relative_temperature = sfc.main_page().relative_camera_temperature.value
-    if np.isnan(relative_temperature):
+    if math.isnan(relative_temperature):
         raise ValueError('Could not get relative camera temperature')
     return relative_temperature >= 15.0
 
