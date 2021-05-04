@@ -8,7 +8,6 @@ conditions are used by the Check-classes inside checks.py
 '''
 import re as regex
 from datetime import datetime, timedelta, timezone
-import pandas as pd
 import numpy as np
 import logging
 
@@ -401,18 +400,19 @@ def is_trigger_rate_low_for_ten_minutes():
     self = is_trigger_rate_low_for_ten_minutes
 
     if not hasattr(self, 'history'):
-        self.history = pd.DataFrame()
+        self.history = []
 
     current_trigger_rate = sfc.trigger_rate().trigger_rate.value
-    self.history = self.history.append(
-        [{
-            'timestamp': datetime.now(tz=UTC),
-            'rate': current_trigger_rate,
-        }]
-    )
-    now = datetime.now(tz=UTC)
-    self.history = self.history[
-        (now - self.history.timestamp) < timedelta(minutes=10)
+    self.history.append({
+        'timestamp': datetime.now(tz=UTC),
+        'rate': current_trigger_rate,
+    })
+
+    # remove old data
+    ten_minutes_ago = datetime.now(tz=UTC) - timedelta(minutes=10)
+    self.history = [
+        h for h in self.history
+        if h['timestamp'] > ten_minutes_ago
     ]
-    df = pd.DataFrame(self.history)
-    return not df.empty and (df.rate < 1).all()
+
+    return len(self.history) > 0 and all(h['rate'] < 1 for h in self.history)
