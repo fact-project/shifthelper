@@ -45,7 +45,7 @@ class FactTwilioNotifier(TwilioNotifier):
 
     def phone_number_of_normal_shifter(self):
         try:
-            phone_number = get_current_shifter().phone_mobile
+            phone_number = get_current_shifter()['phone_mobile']
             if not phone_number:
                 return self.phone_number_of_fallback_shifter()
             return phone_number

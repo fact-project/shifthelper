@@ -20,11 +20,11 @@ def telegram_book(category):
     if category in ('check_error', CATEGORY_DEVELOPER):
         return [config['developer']['telegram_id']]
     try:
-        telegram_id = get_current_shifter().telegram_id
+        telegram_id = get_current_shifter()['telegram_id']
     except IndexError:
         return []
 
-    return [telegram_id] if telegram_id is not None else []
+    return [telegram_id] if telegram_id else []
 
 
 twilio = FactTwilioNotifier(

@@ -353,7 +353,7 @@ def is_dummy_alert_by_shifter():
         if not is_older(since, timedelta(minutes=3)):
             log.debug('%s issued a dummy alert at: %s', username, since)
             try:
-                current_shifter = get_current_shifter().username
+                current_shifter = get_current_shifter()["username"]
             except IndexError:
                 log.debug('Nobody on shift')
                 return False
