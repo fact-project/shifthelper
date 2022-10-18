@@ -1,20 +1,15 @@
 language: python
+
 python:
-  - "3.6"
-before_install:
-  - export MPLBACKEND=Agg
-  - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-  - chmod +x miniconda.sh
-  - ./miniconda.sh -b -p /home/travis/miniconda 
-  - export PATH=/home/travis/miniconda/bin:$PATH
-
-install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib pip pymongo flake8 pandas astropy pygments pyflakes
-  - pip install .
-
-script:
-  - pyflakes shifthelper
-  - python setup.py test
+  - "3.8"
 
 env:
   - SHIFTHELPER_CONFIG=tests/resources/test_config.json
+
+install:
+  - pip install -U pip poetry
+  - poetry install
+
+script:
+  - poetry run pyflakes shifthelper
+  - poetry run python -m pytest

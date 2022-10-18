@@ -10,4 +10,4 @@ def test_get_current_shifter():
     with freeze_time('2016-12-20 21:00:00'):
         shifter = get_current_shifter(db=db)
 
-        assert shifter.username == 'kbruegge'
+        assert shifter['username'] == 'kbruegge'

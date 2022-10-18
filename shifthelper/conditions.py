@@ -8,9 +8,8 @@ conditions are used by the Check-classes inside checks.py
 '''
 import re as regex
 from datetime import datetime, timedelta, timezone
-import pandas as pd
-import numpy as np
 import logging
+import math
 
 from .tools.is_shift import (
     is_shift_at_the_moment,
@@ -32,7 +31,7 @@ UTC = timezone.utc
 
 def is_older(timestamp, delta):
     ''' Test if a timestamp is older than a certain amount of time'''
-    return (datetime.now(tz=UTC) - timestamp) > delta
+    return (datetime.now(tz=UTC) - timestamp.astimezone(UTC)) > delta
 
 
 @log_call_and_result
@@ -186,7 +185,7 @@ def is_high_windspeed():
 
     if magic_weather.timestamp is not None and not is_older(timestamp, max_age):
         wind_speed = magic_weather.wind_speed.value
-        return np.isnan(wind_speed) or wind_speed >= 50
+        return math.isnan(wind_speed) or wind_speed >= 50
     else:
         log.warning('MAGIC weather outdated, using TNG weather info')
         tng_weather = sfc.tng_weather()
@@ -226,7 +225,7 @@ def is_high_windgusts():
 
     if magic_weather.timestamp is not None and not is_older(timestamp, max_age):
         wind_gusts = magic_weather.wind_gusts.value
-        return np.isnan(wind_gusts) or wind_gusts >= 50
+        return math.isnan(wind_gusts) or wind_gusts >= 50
     else:
         log.warning('MAGIC weather outdated, using TNG weather info')
         tng_weather = sfc.tng_weather()
@@ -255,7 +254,7 @@ def is_maximum_current_high():
 def is_rel_camera_temperature_high():
     '''relative camera temperature > 15°C'''
     relative_temperature = sfc.main_page().relative_camera_temperature.value
-    if np.isnan(relative_temperature):
+    if math.isnan(relative_temperature):
         raise ValueError('Could not get relative camera temperature')
     return relative_temperature >= 15.0
 
@@ -319,8 +318,8 @@ def is_nobody_ready_for_shutdown():
     '''Nobody is ready for shutdown'''
     ready_for_shutdown = {}
     for username, since in fetch_users_awake().items():
-        since = pd.to_datetime(since).tz_localize(UTC)
-        if since > get_next_shutdown() - timedelta(minutes=30):
+        since = datetime.fromisoformat(since)
+        if since > (get_next_shutdown() - timedelta(minutes=30)):
             ready_for_shutdown[username] = since
     return not ready_for_shutdown
 
@@ -334,7 +333,7 @@ def update_heartbeat():
         log.debug("HeartbeatMonitor offline?")
         return True
     else:
-        timestamp = pd.to_datetime(heartbeats['heartbeatMonitor']).tz_convert(UTC)
+        timestamp = datetime.fromisoformat(heartbeats['heartbeatMonitor'])
         if is_older(timestamp, timedelta(minutes=10)):
             log.debug('heartbeat_monitor_age > timedelta(minutes=10)')
             return True
@@ -346,12 +345,14 @@ def is_dummy_alert_by_shifter():
     '''Dummy Alert'''
     log = logging.getLogger(__name__)
     for username, since in fetch_dummy_alerts().items():
-        since = pd.to_datetime(since)
+
+        # we get a string without timezone here, add utc timezone
+        since = datetime.fromisoformat(since).replace(tzinfo=timezone.utc)
 
         if not is_older(since, timedelta(minutes=3)):
             log.debug('%s issued a dummy alert at: %s', username, since)
             try:
-                current_shifter = get_current_shifter().username
+                current_shifter = get_current_shifter()["username"]
             except IndexError:
                 log.debug('Nobody on shift')
                 return False
@@ -399,18 +400,19 @@ def is_trigger_rate_low_for_ten_minutes():
     self = is_trigger_rate_low_for_ten_minutes
 
     if not hasattr(self, 'history'):
-        self.history = pd.DataFrame()
+        self.history = []
 
     current_trigger_rate = sfc.trigger_rate().trigger_rate.value
-    self.history = self.history.append(
-        [{
-            'timestamp': datetime.now(tz=UTC),
-            'rate': current_trigger_rate,
-        }]
-    )
-    now = datetime.now(tz=UTC)
-    self.history = self.history[
-        (now - self.history.timestamp) < timedelta(minutes=10)
+    self.history.append({
+        'timestamp': datetime.now(tz=UTC),
+        'rate': current_trigger_rate,
+    })
+
+    # remove old data
+    ten_minutes_ago = datetime.now(tz=UTC) - timedelta(minutes=10)
+    self.history = [
+        h for h in self.history
+        if h['timestamp'] > ten_minutes_ago
     ]
-    df = pd.DataFrame(self.history)
-    return not df.empty and (df.rate < 1).all()
+
+    return len(self.history) > 0 and all(h['rate'] < 1 for h in self.history)

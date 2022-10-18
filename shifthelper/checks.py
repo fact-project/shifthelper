@@ -1,7 +1,6 @@
 import logging
-import pandas as pd
 from operator import attrgetter
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 from requests.exceptions import RequestException
 
 from custos import IntervalCheck
@@ -51,8 +50,8 @@ def message_level(checkname, check_time=timedelta(minutes=10), alerts=None):
         acknowledged = False
 
     if acknowledged:
-        return levels.INFO
         log.debug('Giving message status INFO')
+        return levels.INFO
     else:
         log.debug('Giving message status WARNING')
         return levels.WARNING
@@ -72,7 +71,7 @@ def all_recent_alerts_acknowledged(
     If there are no alerts matching the specified criteria, the result
     is dependent on the `result_if_no_alerts` option, which defaults to `False`
     '''
-    now = pd.Timestamp.utcnow()
+    now = datetime.now(timezone.utc)
 
     if alerts is None:
         alerts = get_alerts()
@@ -80,24 +79,31 @@ def all_recent_alerts_acknowledged(
         if not alerts:
             return result_if_no_alerts
 
-        alerts = pd.DataFrame(alerts)
-        alerts['timestamp'] = pd.to_datetime(alerts.timestamp, utc=True)
-
-    if alerts.empty:
+    if len(alerts) == 0:
         return result_if_no_alerts
 
-    alerts['age'] = now - alerts.timestamp
+    acknowledged_alerts = 0
+    for alert in alerts:
+        # ignore alerts that don't have the asked checkname
+        if checkname is not None and alert["check"] != checkname:
+            continue
 
-    if checkname is not None:
-        alerts = alerts[alerts.check == checkname]
+        # ignore old alerts if time limit is specified
+        if check_time is not None:
+            age = now - alert['timestamp'].astimezone(now.tzinfo)
 
-    if check_time is not None:
-        alerts = alerts[alerts.age < check_time]
+            if age > check_time:
+                continue
 
-    if alerts.empty:
+        if not alert["acknowledged"]:
+            return False
+
+        acknowledged_alerts += 1
+
+    if acknowledged_alerts == 0:
         return result_if_no_alerts
 
-    return alerts.acknowledged.all()
+    return True
 
 
 def get_max_rate_and_significance(qla_data):

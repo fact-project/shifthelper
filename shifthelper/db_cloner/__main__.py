@@ -1,96 +1,63 @@
 import os
-from datetime import datetime, timedelta
-import pandas as pd
-from ..tools import config
-from ..tools import create_db_connection
-from . import TIME_BETWEEN_CLONES
+from datetime import datetime, timedelta, timezone
 import time
+from sqlalchemy import text
 
 import logging
 import logging.config
 
-
-def factdata_MeasurementType():
-    return """SELECT * from factdata.MeasurementType"""
-
-
-def calendar_data():
-    yesterday_night = (datetime.utcnow() - timedelta(hours=12)).date()
-    return """
-        SELECT *
-        FROM calendar.Data
-        WHERE y={y}
-            AND m={m}
-            AND d={d}
-        """.format(
-        y=yesterday_night.year,
-        m=yesterday_night.month - 1,
-        d=yesterday_night.day)
+from .sql import copy_table
+from ..tools import config
+from ..tools import create_db_connection
+from . import TIME_BETWEEN_CLONES
 
 
-def factdata_Schedule():
-    return """
+def build_calendar_select(night=None):
+    if night is None:
+        # current "night", so before 12:00 am, we get the date of yesterday
+        night = (datetime.now(timezone.utc) - timedelta(hours=12)).date()
+
+    # See https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Date/getMonth
+    # and https://www.destroyallsoftware.com/talks/wat
+    return text(f'''
+    SELECT *
+    FROM `Data`
+    WHERE y={night.year} AND m={night.month - 1} and d={night.day}
+    ''')
+
+
+def build_schedule_select(since=None):
+    if since is None:
+        since = datetime.now(timezone.utc) - timedelta(days=30)
+
+    return text(f"""
         SELECT *
         FROM factdata.Schedule AS S
         WHERE
-            S.fStart > "{one_month_ago}"
-    """.format(one_month_ago=(datetime.utcnow() - timedelta(days=30)))
+            S.fStart > "{since}"
+    """)
 
 
-def users():
-    return """
-        SELECT * from logbook.users
-        JOIN
-            logbook.userfields
-        ON
-            logbook.users.uid=logbook.userfields.ufid
-        """
-
-query_funcs = [
-    factdata_MeasurementType,
-    calendar_data,
-    factdata_Schedule,
-    users,
-]
-
-
-def park_checklist_filled():
-    sandbox_db = create_db_connection(config['sandbox_db'])
-    query = 'select * from park_checklist_filled'
-    table = pd.read_sql(query, sandbox_db)
-    return table, 'park_checklist_filled'
-
-
-def atomic_write(table, table_name, db_out):
-    # we save the table to a temporary placeholder to make the
-    # change atomic
-    if table_name == 'calendar_data':
-        table.to_sql('t1', db_out, if_exists="replace", index=False)
-    else:
-        table.to_sql('t1', db_out, if_exists="replace")
-    db_out.execute('DROP TABLE IF EXISTS t2')
-    if db_out.dialect.has_table(db_out, table_name):
-        db_out.execute('RENAME TABLE {t} to t2, t1 to {t}'.format(
-            t=table_name)
-        )
-    else:
-        db_out.execute('RENAME TABLE t1 to {t}'.format(t=table_name))
-
-
-def do_clone(db_in, db_out, log):
+def do_clone(engines, log):
+    t0 = time.perf_counter()
     log.info("cloning ...")
 
-    for query_func in query_funcs:
-        table_name = query_func.__name__
+    copy_table(engines['factdata'], engines['cloned'], 'MeasurementType')
 
-        with db_in.connect() as conn:
-            table = pd.read_sql_query(query_func(), conn)
-        atomic_write(table, table_name, db_out)
+    select_query = build_schedule_select()
+    copy_table(engines['factdata'], engines['cloned'], 'Schedule', select_query=select_query)
 
-    table, name = park_checklist_filled()
-    atomic_write(table, name, db_out)
+    select_query = build_calendar_select()
+    copy_table(
+        engines['calendar'], engines['cloned'], 'Data',
+        output_table='calendar_data', select_query=select_query,
+    )
 
-    log.info("...done")
+    copy_table(engines['logbook'], engines['cloned'], 'users')
+    copy_table(engines['logbook'], engines['cloned'], 'userfields')
+
+    copy_table(engines['sandbox'], engines['cloned'], 'park_checklist_filled')
+    log.info(f"...done in {time.perf_counter() - t0:.2} s")
 
 
 def main():
@@ -109,21 +76,27 @@ def main():
         handler.setFormatter(formatter)
         log.addHandler(handler)
 
-    db_in = create_db_connection(config["database"])
-    db_out = create_db_connection(config["cloned_db"])
+    engines = {}
+    engines['factdata'] = create_db_connection(config["database"], database='factdata')
+    engines['logbook'] = create_db_connection(config["database"], database='logbook')
+    engines['calendar'] = create_db_connection(config["database"], database='calendar')
+    engines['sandbox'] = create_db_connection(config["database"], database='sandbox')
+    engines['cloned'] = create_db_connection(config["cloned_db"])
 
     time_for_next_clone = datetime.utcnow()
     while True:
         try:
             now = datetime.utcnow()
+
             if time_for_next_clone <= now:
                 time_for_next_clone += TIME_BETWEEN_CLONES
-                do_clone(db_in, db_out, log)
+                do_clone(engines, log)
+
+            time.sleep(10)  # 10 seconds
         except (SystemExit, KeyboardInterrupt):
             break
         except:
             log.exception("error")
-        time.sleep(10)  # 10 seconds
 
 if __name__ == '__main__':
     main()

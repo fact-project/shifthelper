@@ -1,30 +1,47 @@
-import pandas as pd
 from custos.notify import levels
+import json
+from datetime import datetime, timezone, timedelta
 
+
+UTC = timezone.utc
+
+
+def read_alerts(path, timestamp=None):
+    with open(path) as f:
+        alerts = json.load(f)
+
+    for alert in alerts:
+        if timestamp is not None:
+            alert['timestamp'] = timestamp
+        else:
+            alert['timestamp'] = datetime.fromisoformat(alert['timestamp']).replace(tzinfo=UTC)
+
+    return alerts
 
 def test_message_level_all_acknowledged():
     from shifthelper.checks import message_level
 
-    alerts = pd.read_json('tests/resources/all_acknowledged.json')
-    # shift time of the alerts so that they happend recently
-    alerts['timestamp'] = pd.Timestamp.utcnow()
+    alerts = read_alerts(
+        'tests/resources/all_acknowledged.json',
+        timestamp=datetime.now(UTC),
+    )
 
     assert message_level(checkname='WindGustCheck', alerts=alerts) == levels.INFO
 
 
 def test_message_level_all_acknowledged_but_old():
     from shifthelper.checks import message_level
-    alerts = pd.read_json('tests/resources/all_acknowledged.json')
-    alerts['timestamp'] = pd.to_datetime(alerts['timestamp'], utc=True)
 
+    alerts = read_alerts('tests/resources/all_acknowledged.json')
+    print(alerts)
     assert message_level(checkname='WindGustCheck', alerts=alerts) == levels.WARNING
 
 
 def test_all_acknowledged():
     from shifthelper.checks import all_recent_alerts_acknowledged
-    alerts = pd.read_json('tests/resources/all_acknowledged.json')
-    alerts['timestamp'] = pd.to_datetime(alerts['timestamp'], utc=True)
 
+    alerts = read_alerts('tests/resources/all_acknowledged.json')
+    print(alerts)
     assert not all_recent_alerts_acknowledged(
         checkname='WindGustCheck', alerts=alerts, result_if_no_alerts=False
     )
@@ -36,10 +53,11 @@ def test_all_acknowledged():
 def test_message_level_all_acknowledged_1():
     from shifthelper.checks import message_level
 
-    alerts = pd.read_json('tests/resources/not_all_acknowledged.json')
-    # shift time of the alerts so that they happend recently
-    alerts.timestamp = pd.date_range(pd.Timestamp.utcnow(), periods=len(alerts), freq='-1min')
+    timestamp = datetime.now(timezone.utc)
+    alerts = read_alerts('tests/resources/not_all_acknowledged.json', timestamp)
     print(alerts)
+    for i, alert in enumerate(alerts, start=1):
+        alert['timestamp'] -= timedelta(minutes=i)
 
     assert message_level(checkname='WindGustCheck', alerts=alerts) == levels.WARNING
     assert message_level(checkname='MainJSStatusCheck', alerts=alerts) == levels.WARNING
@@ -48,10 +66,8 @@ def test_message_level_all_acknowledged_1():
 def test_message_level_not_all_acknowledged_2():
     from shifthelper.checks import message_level
 
-    alerts = pd.read_json('tests/resources/not_all_acknowledged.json')
-    # shift time of the alerts so that they happend recently
-    alerts['timestamp'] = pd.Timestamp.utcnow()
-    print(alerts)
+    timestamp = datetime.now(UTC)
+    alerts = read_alerts('tests/resources/not_all_acknowledged.json', timestamp)
 
     assert message_level(checkname='WindGustCheck', alerts=alerts) == levels.WARNING
     assert message_level(checkname='MainJsStatusCheck', alerts=alerts) == levels.INFO
@@ -60,7 +76,7 @@ def test_message_level_not_all_acknowledged_2():
 def test_empty():
     from shifthelper.checks import all_recent_alerts_acknowledged
 
-    alerts = pd.read_json('tests/resources/no_alerts.json')
+    alerts = read_alerts('tests/resources/no_alerts.json')
 
     assert all_recent_alerts_acknowledged(alerts=alerts, result_if_no_alerts=True)
     assert not all_recent_alerts_acknowledged(alerts=alerts, result_if_no_alerts=False)
